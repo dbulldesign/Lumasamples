@@ -1,0 +1,2828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LumaSamples">
+<meta name="theme-color" content="#0a0a0c">
+<title>LumaSamples — Fixture Library</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<!-- Firebase compat SDK (v9) — loads as globals, works on all hosts including GitHub Pages -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+:root {
+  --bg: #0a0a0c;
+  --surface: #111114;
+  --surface2: #18181c;
+  --surface3: #202025;
+  --accent: #f5c842;
+  --accent-dim: rgba(245,200,66,0.12);
+  --accent2: #ff6b35;
+  --text: #eeeee8;
+  --text2: #8a8880;
+  --text3: #44443e;
+  --border: #222228;
+  --border2: #2e2e35;
+  --green: #4ade80;
+  --green-dim: rgba(74,222,128,0.1);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,0.1);
+  --blue: #60a5fa;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── LOGIN CHECKED-OUT BOARD ── */
+.login-co-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: 6px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.login-co-row:hover { background: var(--surface2); border-color: var(--border2); }
+.login-co-id   { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--accent); background: var(--accent-dim); padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+.login-co-name { font-size: 13px; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.login-co-user { font-size: 11px; color: var(--text2); white-space: nowrap; }
+.login-co-time { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); white-space: nowrap; }
+
+/* ── LOGIN SCREEN ── */
+#login-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+#login-screen::before {
+  content: '';
+  position: absolute;
+  top: -200px; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(245,200,66,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.login-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 52px;
+  letter-spacing: 4px;
+  color: var(--accent);
+  margin-bottom: 4px;
+  text-align: center;
+}
+.login-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 40px;
+  text-align: center;
+}
+.user-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+  width: 100%;
+  max-width: 560px;
+  margin-bottom: 16px;
+}
+.user-login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 12px 16px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+.user-login-card:hover {
+  border-color: var(--accent);
+  background: var(--surface2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(245,200,66,0.08);
+}
+.user-login-card.admin-card { border-color: rgba(96,165,250,0.25); }
+.user-login-card.admin-card:hover { border-color: var(--blue); box-shadow: 0 8px 24px rgba(96,165,250,0.1); }
+.ulc-avatar { font-size: 30px; margin-bottom: 10px; display: block; }
+.ulc-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.ulc-role {
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  padding: 2px 7px;
+  border-radius: 10px;
+  display: inline-block;
+}
+.ulc-role.admin { background: rgba(96,165,250,0.15); color: var(--blue); }
+.ulc-role.user { background: var(--surface3); color: var(--text3); }
+
+/* PIN PAD */
+.pin-screen {
+  width: 100%;
+  max-width: 320px;
+  animation: fadeSlideUp 0.25s ease;
+}
+@keyframes fadeSlideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+.pin-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.pin-avatar { font-size: 40px; margin-bottom: 8px; }
+.pin-name { font-size: 20px; font-weight: 600; }
+.pin-hint { font-size: 12px; color: var(--text2); margin-top: 4px; }
+.pin-dots {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+.pin-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--border2);
+  transition: all 0.15s;
+}
+.pin-dot.filled { background: var(--accent); border-color: var(--accent); }
+.pin-dot.error { background: var(--red); border-color: var(--red); animation: shake 0.4s ease; }
+@keyframes shake { 0%,100%{transform:none} 20%{transform:translateX(-4px)} 40%{transform:translateX(4px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+.pin-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.pin-key {
+  aspect-ratio: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.12s;
+  display: flex; align-items: center; justify-content: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.pin-key:hover { background: var(--surface3); border-color: var(--border2); }
+.pin-key:active { transform: scale(0.93); background: var(--surface3); }
+.pin-key.del { font-size: 18px; color: var(--text2); }
+.pin-back-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px;
+  font-family: 'DM Sans', sans-serif;
+  transition: color 0.15s;
+}
+.pin-back-btn:hover { color: var(--text2); }
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 58px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 2px;
+  color: var(--accent);
+}
+.logo-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); letter-spacing: 2px; margin-left: 8px; text-transform: uppercase; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.user-chip {
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 5px 12px 5px 8px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: all 0.15s;
+}
+.user-chip:hover { border-color: var(--text3); color: var(--text); }
+.user-chip .chip-avatar { font-size: 16px; }
+.role-badge {
+  font-size: 9px;
+  font-family: 'DM Mono', monospace;
+  padding: 1px 6px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.role-badge.admin { background: rgba(96,165,250,0.15); color: var(--blue); }
+.role-badge.user { background: var(--surface2); color: var(--text3); }
+
+/* ── NAV ── */
+.nav-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tab {
+  padding: 14px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.nav-tab:hover { color: var(--text2); }
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-tab .tab-icon { font-size: 14px; }
+.nav-tab.admin-tab { color: rgba(96,165,250,0.5); }
+.nav-tab.admin-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.nav-tab.admin-tab:hover { color: var(--blue); }
+
+/* ── MAIN ── */
+main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── HOMEPAGE: CURRENTLY OUT ── */
+.home-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+@media (max-width: 640px) { .home-hero { grid-template-columns: 1fr 1fr; } }
+.hero-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+}
+.hero-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text3); font-family: 'DM Mono', monospace; margin-bottom: 6px; }
+.hero-stat-val { font-size: 42px; font-family: 'Bebas Neue', sans-serif; line-height: 1; }
+.hero-stat-val.accent { color: var(--accent); }
+.hero-stat-val.green { color: var(--green); }
+.hero-stat-val.red { color: var(--red); }
+.hero-stat-val.blue { color: var(--blue); }
+
+.section-heading {
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text3);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-heading::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* CHECKED OUT LIST */
+.checked-out-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px; }
+.co-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 14px;
+  transition: border-color 0.2s;
+}
+.co-row:hover { border-color: var(--border2); border-left-color: var(--red); }
+.co-id { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); background: var(--accent-dim); padding: 3px 8px; border-radius: 5px; white-space: nowrap; }
+.co-info { min-width: 0; }
+.co-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.co-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.co-user {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface2);
+  border-radius: 20px;
+  padding: 4px 10px 4px 6px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.co-user .avatar { font-size: 14px; }
+.co-time { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); white-space: nowrap; }
+
+/* My checkouts widget on home */
+.my-co-strip {
+  background: linear-gradient(135deg, rgba(245,200,66,0.06), rgba(245,200,66,0.02));
+  border: 1px solid rgba(245,200,66,0.15);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 28px;
+}
+.my-co-strip-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.my-co-strip-title { font-size: 13px; font-weight: 600; color: var(--accent); }
+.my-co-items { display: flex; flex-wrap: wrap; gap: 8px; }
+.my-co-pill {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 12px;
+  display: flex; align-items: center; gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.my-co-pill:hover { border-color: var(--red); color: var(--red); }
+.my-co-pill .pill-id { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); }
+
+/* ── STATS BAR ── */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+}
+.stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.stat-value { font-size: 26px; font-family: 'Bebas Neue', sans-serif; margin-top: 2px; }
+
+/* ── TOOLBAR ── */
+.toolbar { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+.search-box {
+  flex: 1; min-width: 200px;
+  display: flex; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 14px; gap: 8px;
+}
+.search-box input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text); font-size: 14px; padding: 10px 0;
+  font-family: 'DM Sans', sans-serif;
+}
+.search-box input::placeholder { color: var(--text3); }
+.filter-select {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 12px;
+  color: var(--text2); font-size: 13px;
+  font-family: 'DM Sans', sans-serif; outline: none; cursor: pointer;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 9px 16px; border-radius: var(--radius-sm); border: none;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: all 0.15s; white-space: nowrap;
+}
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { background: #ffd84a; }
+.btn-secondary { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+.btn-secondary:hover { color: var(--text); border-color: var(--border2); }
+.btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+.btn-danger:hover { background: rgba(248,113,113,0.18); }
+.btn-success { background: var(--green-dim); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
+.btn-warning { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+.btn-warning:hover { background: rgba(251,191,36,0.2); }
+.btn-warning { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+.btn-warning:hover { background: rgba(251,191,36,0.22); }
+.btn-success:hover { background: rgba(74,222,128,0.18); }
+.btn-scan { background: var(--accent2); color: #fff; }
+.btn-scan:hover { background: #ff7c47; }
+.btn-blue { background: rgba(96,165,250,0.12); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+.btn-blue:hover { background: rgba(96,165,250,0.2); }
+.btn-sm { padding: 6px 11px; font-size: 12px; }
+.btn-icon { padding: 8px; aspect-ratio:1; justify-content:center; }
+
+/* ── FIXTURE GRID ── */
+.fixture-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 14px;
+}
+.fixture-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+}
+.fixture-card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: var(--shadow); }
+.fixture-card.out { border-left: 3px solid rgba(248,113,113,0.4); }
+.fixture-card.available { border-left: 3px solid rgba(74,222,128,0.25); }
+.card-top {
+  padding: 13px 14px 10px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+.fid { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--accent); background: var(--accent-dim); padding: 2px 7px; border-radius: 4px; }
+.sbadge {
+  font-size: 9px; font-weight: 700; padding: 3px 8px;
+  border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.sbadge.available { background: var(--green-dim); color: var(--green); }
+.sbadge.out { background: var(--red-dim); color: var(--red); }
+.card-body { padding: 0 14px 12px; }
+.card-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.card-meta { font-size: 11px; color: var(--text2); display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.card-loc { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.card-co-info {
+  background: var(--red-dim); border-radius: 6px;
+  padding: 7px 10px; font-size: 11px; color: var(--text2); margin-top: 8px;
+}
+.card-co-info strong { color: var(--red); }
+.card-footer {
+  padding: 9px 14px; border-top: 1px solid var(--border);
+  display: flex; gap: 7px;
+}
+.card-footer .btn { flex: 1; justify-content: center; font-size: 11px; padding: 7px 8px; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  width: 100%; max-width: 500px;
+  max-height: 92vh; overflow-y: auto;
+  animation: modalIn 0.2s ease;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+@keyframes modalIn { from { opacity:0; transform:scale(0.94) translateY(12px); } to { opacity:1; transform:none; } }
+.modal-header {
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  position: sticky; top: 0; background: var(--surface); border-radius: 18px 18px 0 0;
+}
+.modal-title { font-size: 16px; font-weight: 600; }
+.modal-close { background: none; border: none; color: var(--text3); font-size: 22px; cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+.modal-close:hover { color: var(--text); background: var(--surface3); }
+.modal-body { padding: 18px 22px; }
+.modal-footer { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ── FORM ── */
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 11px; font-weight: 500; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'DM Mono', monospace; }
+.form-input {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 12px;
+  color: var(--text); font-size: 14px; font-family: 'DM Sans', sans-serif;
+  outline: none; transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-input::placeholder { color: var(--text3); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── QR ── */
+.qr-print-block { background: white; border-radius: 10px; padding: 18px; display: inline-flex; flex-direction: column; align-items: center; gap: 8px; }
+.qr-print-id { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 700; color: #111; letter-spacing: 2px; }
+.qr-print-name { font-size: 12px; color: #444; text-align: center; max-width: 160px; }
+
+/* ── SCANNER ── */
+#qr-reader { width: 100% !important; }
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead { background: var(--surface2); }
+th { text-align: left; padding: 10px 14px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); font-family: 'DM Mono', monospace; white-space: nowrap; }
+td { padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text2); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+.mono { font-family: 'DM Mono', monospace; color: var(--accent); font-size: 11px; }
+
+/* ── ADMIN PANEL ── */
+.admin-section { margin-bottom: 32px; }
+.admin-section-title {
+  font-size: 14px; font-weight: 600; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px; color: var(--blue);
+}
+
+/* USER MANAGEMENT TABLE */
+.user-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+}
+.ur-avatar { font-size: 22px; }
+.ur-info { flex: 1; }
+.ur-name { font-size: 14px; font-weight: 500; }
+.ur-pin { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); }
+.ur-actions { display: flex; gap: 6px; }
+
+/* ── PRINT ── */
+.print-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+.print-card { background: white; border-radius: 10px; padding: 18px; text-align: center; position: relative; }
+.print-card .pname { font-size: 13px; font-weight: 700; color: #111; margin-top: 8px; font-family: 'DM Sans', sans-serif; }
+.print-card .pid { font-family: 'DM Mono', monospace; font-size: 11px; color: #555; }
+.print-card .pbrand { font-size: 10px; color: #888; }
+.print-card-btn { margin-top: 10px; width: 100%; padding: 6px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; cursor: pointer; }
+.print-card-btn:hover { background: #e0e0e0; }
+@media print { .no-print { display: none !important; } }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 50px 20px; color: var(--text3); }
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* ── SETUP PAGE ── */
+.setup-card {
+  display: flex;
+  gap: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 14px;
+  align-items: flex-start;
+  transition: border-color 0.2s;
+}
+.setup-card:hover { border-color: var(--border2); }
+.setup-card-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--accent); color: #000;
+  font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
+}
+.setup-card-body { flex: 1; min-width: 0; }
+.setup-card-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.setup-card-desc  { font-size: 13px; color: var(--text2); line-height: 1.7; }
+
+/* ── SYNC STATUS ── */
+#sync-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
+  background: var(--surface2); border-top: 1px solid var(--border);
+  padding: 6px 16px; display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text3);
+  transform: translateY(100%); transition: transform 0.3s ease;
+}
+#sync-bar.show { transform: translateY(0); }
+#sync-bar.syncing { color: var(--accent); border-top-color: rgba(245,200,66,0.3); }
+#sync-bar.synced  { color: var(--green);  border-top-color: rgba(74,222,128,0.3); }
+#sync-bar.error   { color: var(--red);    border-top-color: rgba(248,113,113,0.3); }
+#sync-bar.offline { color: var(--text3);  }
+.sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.sync-dot.pulse { animation: syncPulse 1s infinite; }
+@keyframes syncPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── SETUP MODAL ── */
+.setup-step { display:flex; gap:12px; margin-bottom:20px; }
+.setup-num  { width:28px; height:28px; border-radius:50%; background:var(--accent); color:#000; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+.setup-content { flex:1; }
+.setup-title { font-size:14px; font-weight:600; margin-bottom:4px; }
+.setup-desc  { font-size:12px; color:var(--text2); line-height:1.6; }
+.code-block  { background:var(--surface3); border:1px solid var(--border2); border-radius:6px; padding:10px 12px; font-family:'DM Mono',monospace; font-size:11px; color:var(--accent); margin-top:8px; word-break:break-all; }
+
+/* ── SYNC STATUS ── */
+#sync-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
+  background: var(--surface2); border-top: 1px solid var(--border);
+  padding: 6px 16px; display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text3);
+  transform: translateY(100%); transition: transform 0.3s ease;
+}
+#sync-bar.show { transform: translateY(0); }
+#sync-bar.syncing { color: var(--accent); border-top-color: rgba(245,200,66,0.3); }
+#sync-bar.synced  { color: var(--green);  border-top-color: rgba(74,222,128,0.3); }
+#sync-bar.error   { color: var(--red);    border-top-color: rgba(248,113,113,0.3); }
+#sync-bar.offline { color: var(--text3);  }
+.sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.sync-dot.pulse { animation: syncPulse 1s infinite; }
+@keyframes syncPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.setup-step { display:flex; gap:12px; margin-bottom:20px; }
+.setup-num  { width:28px; height:28px; border-radius:50%; background:var(--accent); color:#000; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+.setup-content { flex:1; }
+.setup-title { font-size:14px; font-weight:600; margin-bottom:4px; }
+.setup-desc  { font-size:12px; color:var(--text2); line-height:1.6; }
+.code-block  { background:var(--surface3); border:1px solid var(--border2); border-radius:6px; padding:10px 12px; font-family:'DM Mono',monospace; font-size:11px; color:var(--accent); margin-top:8px; word-break:break-all; cursor:pointer; }
+.code-block:hover { border-color:var(--accent); }
+
+/* ── NOTIFICATION ── */
+.notif {
+  position: fixed; bottom: 20px; right: 20px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 12px 16px;
+  font-size: 13px; max-width: 300px; z-index: 3000;
+  display: none; animation: slideUp 0.25s ease;
+  box-shadow: var(--shadow);
+}
+.notif.show { display: block; }
+.notif.success { border-color: rgba(74,222,128,0.4); background: rgba(74,222,128,0.08); color: var(--green); }
+.notif.error { border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.08); color: var(--red); }
+.notif.info { border-color: rgba(96,165,250,0.3); background: rgba(96,165,250,0.06); color: var(--blue); }
+@keyframes slideUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+
+/* ══════════════════════════════════════════
+   RESPONSIVE LAYOUT SYSTEM
+   body.is-mobile  → phone / saved web app
+   Default         → desktop / tablet
+══════════════════════════════════════════ */
+
+/* ── DESKTOP: comfortable wide layout ── */
+@media (min-width: 1024px) {
+  main { padding: 32px 40px; }
+  .fixture-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .home-hero { grid-template-columns: repeat(4, 1fr); }
+  .stats-bar { grid-template-columns: repeat(4, 1fr); }
+  .checked-out-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .co-row { display: flex; }
+  header { height: 64px; padding: 0 40px; }
+  .nav-tabs { padding: 0 40px; }
+  .login-logo { font-size: 64px; }
+  .user-cards { max-width: 680px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+
+/* ── TABLET ── */
+@media (min-width: 581px) and (max-width: 1023px) {
+  main { padding: 20px 24px; }
+  .fixture-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .home-hero { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── MOBILE (CSS fallback — JS adds .is-mobile to body) ── */
+@media (max-width: 580px) {
+  main { padding: 14px 14px 90px; } /* bottom padding for tab bar */
+  .form-row { grid-template-columns: 1fr; }
+  .co-row { gap: 8px; }
+  .co-user, .co-time { display: none; }
+  header { padding: 0 14px; height: 52px; }
+  .nav-tabs { display: none; } /* replaced by bottom tab bar on mobile */
+  .stats-bar { grid-template-columns: 1fr 1fr; }
+  .home-hero { grid-template-columns: 1fr 1fr; }
+  .fixture-grid { grid-template-columns: 1fr; }
+  .login-logo { font-size: 42px; }
+  .user-cards { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+  .modal { border-radius: 20px 20px 0 0; max-height: 92vh; }
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .hero-stat-val { font-size: 34px; }
+  .hero-stat { padding: 14px 16px; }
+  .checked-out-list { gap: 6px; }
+  .login-co-board { max-width: 100% !important; }
+}
+
+/* ── BODY.IS-MOBILE: JS-detected mobile enhancements ── */
+body.is-mobile main { padding-bottom: 90px; }
+body.is-mobile .nav-tabs { display: none; }
+body.is-mobile header { height: 52px; padding: 0 16px; }
+body.is-mobile .logo { font-size: 20px; }
+body.is-mobile .logo-sub { display: none; }
+body.is-mobile .btn-scan { padding: 7px 12px; font-size: 12px; }
+body.is-mobile #sync-bar { bottom: 60px; } /* above tab bar */
+
+/* ── BOTTOM TAB BAR (mobile only) ── */
+#bottom-tabs {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 200;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 6px 0 max(8px, env(safe-area-inset-bottom));
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+#bottom-tabs::-webkit-scrollbar { display: none; }
+body.is-mobile #bottom-tabs { display: flex; }
+@media (max-width: 580px) { #bottom-tabs { display: flex; } }
+
+.btab {
+  flex: 1;
+  min-width: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 4px;
+  cursor: pointer;
+  color: var(--text3);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s;
+  white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
+}
+.btab .btab-icon { font-size: 20px; line-height: 1; }
+.btab.active { color: var(--accent); }
+.btab.admin-btab { color: rgba(96,165,250,0.4); }
+.btab.admin-btab.active { color: var(--blue); }
+.btab:hover { color: var(--text2); }
+
+/* Safe area padding for notch phones */
+@supports (padding: max(0px)) {
+  body.is-mobile header {
+    padding-top: env(safe-area-inset-top);
+  }
+  #bottom-tabs {
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+}
+
+/* ── LOGIN SCREEN MOBILE ── */
+body.is-mobile #login-screen {
+  padding: 20px 16px;
+  padding-top: max(20px, env(safe-area-inset-top));
+}
+body.is-mobile .pin-screen { max-width: 100%; }
+body.is-mobile .pin-key { font-size: 20px; }
+
+@media print {
+  body { background: white !important; }
+  #login-screen, header, .nav-tabs, .toolbar, .stats-bar, .home-hero,
+  .card-footer, .btn, .notif, .modal-overlay { display: none !important; }
+  .print-grid { display: grid !important; }
+  .fixture-grid { display: none; }
+  #page-print { display: block !important; }
+}
+
+/* ── CONFIRM DIALOG ── */
+.confirm-box {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-top: 16px;
+}
+.confirm-box p { font-size: 14px; color: var(--text2); margin-bottom: 14px; }
+
+/* Section divider */
+.divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+/* ── LOCATION COMBO ── */
+.loc-dropdown {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 200;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); max-height: 200px; overflow-y: auto;
+  box-shadow: var(--shadow); margin-top: 4px;
+}
+.loc-option {
+  padding: 9px 14px; font-size: 13px; cursor: pointer;
+  color: var(--text2); transition: background 0.1s;
+  border-bottom: 1px solid var(--border);
+}
+.loc-option:last-child { border-bottom: none; }
+.loc-option:hover { background: var(--surface3); color: var(--text); }
+.loc-option.add-new { color: var(--accent); font-style: italic; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     LOGIN SCREEN
+════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-logo" onclick="adminQuickLogin()" style="cursor:pointer;user-select:none;" title="Admin access">LumaSamples</div>
+  <div class="login-sub">Lighting Fixture Library</div>
+
+  <!-- Checked out board -->
+  <div id="login-co-board" style="width:100%;max-width:560px;margin-bottom:28px;display:none;">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+      <span>Currently Checked Out</span>
+      <span style="flex:1;height:1px;background:var(--border);display:inline-block;"></span>
+      <span id="login-co-count" style="background:var(--red-dim);color:var(--red);padding:1px 7px;border-radius:8px;font-size:9px;"></span>
+    </div>
+    <div id="login-co-list"></div>
+  </div>
+
+  <!-- User selection -->
+  <div id="login-user-grid" class="user-cards"></div>
+  <div id="pin-entry" style="display:none;" class="pin-screen">
+    <div class="pin-header">
+      <div class="pin-avatar" id="pin-avatar"></div>
+      <div class="pin-name" id="pin-name"></div>
+      <div class="pin-hint">Enter your PIN</div>
+    </div>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pin-key" onclick="pinPress('1')">1</button>
+      <button class="pin-key" onclick="pinPress('2')">2</button>
+      <button class="pin-key" onclick="pinPress('3')">3</button>
+      <button class="pin-key" onclick="pinPress('4')">4</button>
+      <button class="pin-key" onclick="pinPress('5')">5</button>
+      <button class="pin-key" onclick="pinPress('6')">6</button>
+      <button class="pin-key" onclick="pinPress('7')">7</button>
+      <button class="pin-key" onclick="pinPress('8')">8</button>
+      <button class="pin-key" onclick="pinPress('9')">9</button>
+      <button class="pin-key" onclick="pinPress('')" style="visibility:hidden;"></button>
+      <button class="pin-key" onclick="pinPress('0')">0</button>
+      <button class="pin-key del" onclick="pinBackspace()">⌫</button>
+    </div>
+    <button class="pin-back-btn" onclick="showUserSelect()">← Back</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MAIN APP
+════════════════════════════════════════ -->
+<div id="app" style="display:none;">
+  <header>
+    <div style="display:flex;align-items:center;">
+      <div class="logo" onclick="showPage('home', document.querySelector('[data-page=home]'))" style="cursor:pointer;">LumaSamples</div>
+      <span class="logo-sub">Sample DB</span>
+    </div>
+    <div class="header-right">
+      <div class="user-chip" id="user-chip" onclick="logOut()">
+        <span class="chip-avatar" id="chip-avatar"></span>
+        <span id="chip-name"></span>
+        <span class="role-badge" id="chip-role"></span>
+      </div>
+      <button class="btn btn-scan" onclick="openScanModal()">📷 Scan</button>
+    </div>
+  </header>
+
+  <div class="nav-tabs" id="nav-tabs">
+    <div class="nav-tab active" data-page="home" onclick="showPage('home',this)"><span class="tab-icon">🏠</span> Home</div>
+    <div class="nav-tab" data-page="library" onclick="showPage('library',this)"><span class="tab-icon">📦</span> Library</div>
+    <div class="nav-tab" data-page="history" onclick="showPage('history',this)"><span class="tab-icon">📋</span> History</div>
+    <div class="nav-tab admin-tab" id="tab-add" data-page="add" onclick="showPage('add',this)" style="display:none;"><span class="tab-icon">➕</span> Add Fixture</div>
+    <div class="nav-tab admin-tab" id="tab-print" data-page="print" onclick="showPage('print',this)" style="display:none;"><span class="tab-icon">🖨</span> Print QR</div>
+    <div class="nav-tab admin-tab" id="tab-admin" data-page="admin" onclick="showPage('admin',this)" style="display:none;"><span class="tab-icon">⚙️</span> Admin</div>
+    <div class="nav-tab" id="tab-setup" data-page="setup" onclick="showPage('setup',this)"><span class="tab-icon">🔗</span> Sync Setup</div>
+  </div>
+
+  <main>
+    <!-- HOME PAGE -->
+    <div class="page active" id="page-home">
+      <div class="home-hero" id="home-hero"></div>
+      <div id="my-checkouts-strip"></div>
+      <div class="section-heading">Currently Checked Out</div>
+      <div class="checked-out-list" id="checked-out-list"></div>
+      <div class="section-heading">Recently Returned</div>
+      <div id="recent-returns"></div>
+    </div>
+
+    <!-- LIBRARY PAGE -->
+    <div class="page" id="page-library">
+      <div class="stats-bar" id="stats-bar"></div>
+      <div class="toolbar">
+        <div class="search-box">
+          <span style="color:var(--text3);">🔍</span>
+          <input type="text" id="search-input" placeholder="Search fixtures..." oninput="renderLibrary()">
+        </div>
+        <select class="filter-select" id="filter-status" onchange="renderLibrary()">
+          <option value="">All Status</option>
+          <option value="available">Available</option>
+          <option value="out">Checked Out</option>
+        </select>
+        <select class="filter-select" id="filter-category" onchange="renderLibrary()">
+          <option value="">All Types</option>
+        </select>
+      </div>
+      <div class="fixture-grid" id="fixture-grid"></div>
+    </div>
+
+    <!-- HISTORY PAGE -->
+    <div class="page" id="page-history">
+      <div class="toolbar" style="margin-bottom:18px;">
+        <h2 style="font-size:16px;font-weight:600;flex:1;">Transaction History</h2>
+        <select class="filter-select" id="hist-user-filter" onchange="renderHistory()">
+          <option value="">All Users</option>
+        </select>
+        <select class="filter-select" id="hist-type-filter" onchange="renderHistory()">
+          <option value="">All Actions</option>
+          <option value="checkout">Checkouts</option>
+          <option value="return">Returns</option>
+          <option value="added">Added</option>
+          <option value="deleted">Deleted</option>
+          <option value="transfer">Transferred</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date / Time</th><th>Fixture ID</th><th>Name</th><th>User</th><th>Action</th></tr></thead>
+          <tbody id="history-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ADD FIXTURE PAGE (admin only) -->
+    <div class="page" id="page-add">
+      <div style="max-width:580px;margin:0 auto;">
+        <h2 style="font-size:16px;font-weight:600;margin-bottom:6px;">Add New Fixture</h2>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:22px;">A unique QR code is auto-generated with each entry.</p>
+        <div class="form-group">
+          <label class="form-label">Auto-Generated ID</label>
+          <input class="form-input" id="new-fixture-id" readonly style="font-family:'DM Mono',monospace;color:var(--accent);background:var(--accent-dim);">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Fixture Name *</label>
+            <input class="form-input" id="new-name" placeholder="e.g. Arco Pendant LED">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Brand</label>
+            <input class="form-input" id="new-brand" placeholder="e.g. Flos">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Part Number</label>
+            <input class="form-input" id="new-partno" placeholder="e.g. FLS-1234-B">
+          </div>
+          <div class="form-group" style="display:none;"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Category / Type</label>
+            <input class="form-input" id="new-category" placeholder="e.g. Pendant">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Wattage</label>
+            <input class="form-input" id="new-wattage" placeholder="e.g. 18W">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Finish / Color</label>
+            <input class="form-input" id="new-finish" placeholder="e.g. Matte Black">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Shelf / Location</label>
+            <div style="position:relative;">
+              <input class="form-input" id="new-location" placeholder="Type or select location..." autocomplete="off" oninput="filterLocDropdown('new-location','loc-drop-add')" onfocus="showLocDropdown('new-location','loc-drop-add')" onblur="setTimeout(()=>hideLocDropdown('loc-drop-add'),180)" style="padding-right:32px;">
+              <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;font-size:12px;">▾</span>
+              <div id="loc-drop-add" class="loc-dropdown" style="display:none;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <input class="form-input" id="new-notes" placeholder="Additional details...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Spec Sheet URL</label>
+          <input class="form-input" id="new-specsheet" placeholder="https://… (link to PDF or product page)" type="url">
+        </div>
+        <button class="btn btn-primary" onclick="addFixture()" style="width:100%;justify-content:center;padding:13px;">
+          ✦ Add Fixture &amp; Generate QR
+        </button>
+        <div id="new-qr-section" style="display:none;margin-top:22px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h3 style="font-size:14px;font-weight:600;">✓ QR Code Ready</h3>
+            <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨 Print Label</button>
+          </div>
+          <div style="display:flex;justify-content:center;">
+            <div class="qr-print-block" id="new-qr-display">
+              <div id="new-qr-code"></div>
+              <div class="qr-print-id" id="new-qr-id-text"></div>
+              <div class="qr-print-name" id="new-qr-name-text"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRINT QR PAGE (admin only) -->
+    <div class="page" id="page-print">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+        <h2 style="font-size:16px;font-weight:600;">Print QR Labels</h2>
+        <button class="btn btn-primary" onclick="window.print()">🖨 Print All Labels</button>
+      </div>
+      <div class="print-grid" id="print-grid"></div>
+    </div>
+
+    <!-- ADMIN PAGE (admin only) -->
+    <div class="page" id="page-admin">
+      <!-- Firebase Sync -->
+      <div class="admin-section">
+        <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>🔥 Firebase Sync</span>
+          <div style="display:flex;gap:8px;" id="fb-action-btns"></div>
+        </div>
+        <div id="fb-status-block" style="font-size:13px;color:var(--text2);margin-top:4px;"></div>
+      </div>
+      <div class="divider"></div>
+      <!-- User Management -->
+      <div class="admin-section">
+        <div class="admin-section-title">👥 User Management</div>
+        <div id="user-list"></div>
+        <button class="btn btn-blue btn-sm" style="margin-top:10px;" onclick="openAddUserModal()">+ Add User</button>
+      </div>
+      <div class="divider"></div>
+      <!-- Location Management -->
+      <div class="admin-section">
+        <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>📍 Shelf / Location List</span>
+          <button class="btn btn-blue btn-sm" onclick="openLocationsModal()">Manage Locations</button>
+        </div>
+        <div id="location-preview" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
+      </div>
+      <div class="divider"></div>
+      <!-- Fixture Management -->
+      <div class="admin-section">
+        <div class="admin-section-title">📦 Fixture Management</div>
+        <div class="toolbar">
+          <div class="search-box" style="flex:1;">
+            <span style="color:var(--text3);">🔍</span>
+            <input type="text" id="admin-search" placeholder="Search fixtures to manage..." oninput="renderAdminFixtures()">
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Brand</th><th>Location</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="admin-fixture-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <!-- Force Return -->
+      <div class="admin-section">
+        <div class="admin-section-title">🔁 Force Return</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Return a fixture on behalf of any user.</p>
+        <div id="force-return-list"></div>
+      </div>
+    </div>
+    <!-- SETUP PAGE -->
+    <div class="page" id="page-setup">
+      <div style="max-width:680px;margin:0 auto;">
+
+        <!-- Status banner -->
+        <div id="setup-status-banner" style="border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;"></div>
+
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;">🔥 Firebase Sync</h2>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:28px;line-height:1.7;">Connect LumaSamples to Firebase for instant real-time sync across every device. Changes appear in under a second — no polling needed. Free for small teams on Firebase's Spark plan.</p>
+
+        <!-- Step 1 -->
+        <div class="setup-card">
+          <div class="setup-card-num">1</div>
+          <div class="setup-card-body">
+            <div class="setup-card-title">Create a Firebase project</div>
+            <div class="setup-card-desc">Go to <a href="https://console.firebase.google.com" target="_blank" style="color:var(--accent);">console.firebase.google.com</a> → <strong>Add project</strong> → name it <strong>lumasamples</strong> → disable Google Analytics → Create.</div>
+            <a href="https://console.firebase.google.com" target="_blank" class="btn btn-secondary btn-sm" style="margin-top:12px;display:inline-flex;">Open Firebase Console ↗</a>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="setup-card">
+          <div class="setup-card-num">2</div>
+          <div class="setup-card-body">
+            <div class="setup-card-title">Enable Realtime Database</div>
+            <div class="setup-card-desc">
+              In your project sidebar: <strong>Build → Realtime Database → Create database</strong>.<br>
+              Choose a region → start in <strong>Test mode</strong> (you can secure it later) → Enable.
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="setup-card">
+          <div class="setup-card-num">3</div>
+          <div class="setup-card-body">
+            <div class="setup-card-title">Get your config</div>
+            <div class="setup-card-desc">
+              Go to <strong>Project Settings</strong> (gear icon) → <strong>Your apps</strong> → click <strong>&lt;/&gt; Web</strong> → register the app (any nickname) → copy the <code style="font-family:'DM Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;">firebaseConfig</code> object shown.<br>
+              It looks like this — paste the <strong>JSON only</strong> (the curly-brace part) below:
+              <div style="background:var(--surface3);border:1px solid var(--border2);border-radius:6px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);margin-top:10px;line-height:1.7;">
+{<br>
+&nbsp;&nbsp;"apiKey": "AIza…",<br>
+&nbsp;&nbsp;"authDomain": "lumasamples.firebaseapp.com",<br>
+&nbsp;&nbsp;"databaseURL": "https://lumasamples-default-rtdb.firebaseio.com",<br>
+&nbsp;&nbsp;"projectId": "lumasamples",<br>
+&nbsp;&nbsp;"storageBucket": "lumasamples.appspot.com",<br>
+&nbsp;&nbsp;"messagingSenderId": "123…",<br>
+&nbsp;&nbsp;"appId": "1:123…"<br>
+}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 — Paste config & connect (hidden when connected) -->
+        <div class="setup-card" id="setup-connect-card">
+          <div class="setup-card-num">4</div>
+          <div class="setup-card-body">
+            <div class="setup-card-title">Paste config &amp; connect</div>
+            <div class="setup-card-desc">Paste your <code style="font-family:'DM Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;">firebaseConfig</code> JSON here:</div>
+            <textarea id="setup-fb-config" class="form-input" rows="6"
+              placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}'
+              style="margin-top:12px;font-family:'DM Mono',monospace;font-size:11px;resize:vertical;line-height:1.6;"></textarea>
+            <div id="setup-connect-feedback" style="margin-top:8px;font-size:12px;color:var(--red);display:none;"></div>
+            <button class="btn btn-primary" onclick="connectFromSetup()" style="margin-top:12px;width:100%;justify-content:center;padding:12px;">
+              🔥 Connect &amp; Start Syncing →
+            </button>
+          </div>
+        </div>
+
+        <!-- Connected state -->
+        <div id="setup-connected-block" style="display:none;">
+          <div class="setup-card" style="border-color:rgba(74,222,128,0.3);background:rgba(74,222,128,0.04);">
+            <div style="font-size:28px;">🔥</div>
+            <div class="setup-card-body">
+              <div class="setup-card-title" style="color:var(--green);">Connected — Real-time sync active</div>
+              <div id="setup-connected-url" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-top:4px;word-break:break-all;"></div>
+              <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+                <button class="btn btn-secondary btn-sm" onclick="fbStartListening();notify('Listener restarted','info')">↻ Reconnect</button>
+                <button class="btn btn-danger btn-sm" onclick="disconnectFromSetup()">Disconnect</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── BOTTOM TAB BAR (mobile) ── -->
+<div id="bottom-tabs">
+  <button class="btab active" id="btab-home"    onclick="showPage('home',this)"   >
+    <span class="btab-icon">🏠</span>Home
+  </button>
+  <button class="btab"        id="btab-library" onclick="showPage('library',this)">
+    <span class="btab-icon">📦</span>Library
+  </button>
+  <button class="btab"        id="btab-history" onclick="showPage('history',this)">
+    <span class="btab-icon">📋</span>History
+  </button>
+  <button class="btab admin-btab" id="btab-add"   onclick="showPage('add',this)"   style="display:none;">
+    <span class="btab-icon">➕</span>Add
+  </button>
+  <button class="btab admin-btab" id="btab-print" onclick="showPage('print',this)" style="display:none;">
+    <span class="btab-icon">🖨</span>Print
+  </button>
+  <button class="btab admin-btab" id="btab-admin" onclick="showPage('admin',this)" style="display:none;">
+    <span class="btab-icon">⚙️</span>Admin
+  </button>
+  <button class="btab"        id="btab-setup"   onclick="showPage('setup',this)">
+    <span class="btab-icon">🔗</span>Sync
+  </button>
+</div>
+
+<!-- ═════════════ LOGIN DETAIL MODAL ═════════════ -->
+<div class="modal-overlay" id="login-detail-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">Fixture Details</div>
+      <button class="modal-close" onclick="closeModal('login-detail-modal')">×</button>
+    </div>
+    <div class="modal-body" id="login-detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('login-detail-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════ SCAN MODAL ═════════════ -->
+<div class="modal-overlay" id="scan-modal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <div class="modal-title">📷 Scan QR Code</div>
+      <button class="modal-close" onclick="closeScanModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">Point camera at a fixture QR code.</p>
+      <div id="qr-reader" style="border-radius:var(--radius-sm);overflow:hidden;background:#000;min-height:200px;"></div>
+      <div id="scan-result" style="display:none;margin-top:14px;padding:14px;background:var(--surface2);border-radius:var(--radius-sm);"></div>
+      <div style="margin-top:14px;">
+        <label class="form-label">Or Enter ID Manually</label>
+        <div style="display:flex;gap:8px;">
+          <input class="form-input" id="manual-id-input" placeholder="e.g. LUM-0042" style="flex:1;">
+          <button class="btn btn-secondary" onclick="processManualId()">Go</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════ DETAIL MODAL ═════════════ -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Fixture Details</div>
+      <button class="modal-close" onclick="closeModal('detail-modal')">×</button>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+    <div class="modal-footer" id="detail-footer"></div>
+  </div>
+</div>
+
+<!-- ═════════════ ADD USER MODAL ═════════════ -->
+<div class="modal-overlay" id="add-user-modal">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-header">
+      <div class="modal-title">Add New User</div>
+      <button class="modal-close" onclick="closeModal('add-user-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" id="nu-name" placeholder="e.g. Jane Smith">
+      </div>
+      <div class="form-group">
+        <label class="form-label">4-Digit PIN</label>
+        <input class="form-input" id="nu-pin" type="password" maxlength="4" inputmode="numeric" placeholder="••••">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select class="form-input" id="nu-role">
+          <option value="user">User — checkout/return only</option>
+          <option value="admin">Admin — full access</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Avatar</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="avatar-picker">
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">💡</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔦</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌟</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">⚡</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎨</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🏗️</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎯</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌙</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔧</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🏠</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('add-user-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addUser()">Add User</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════ EDIT USER MODAL ═════════════ -->
+<div class="modal-overlay" id="edit-user-modal">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-header">
+      <div class="modal-title">Edit User</div>
+      <button class="modal-close" onclick="closeModal('edit-user-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="eu-id">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" id="eu-name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Change PIN (leave blank to keep)</label>
+        <input class="form-input" id="eu-pin" type="password" maxlength="4" inputmode="numeric" placeholder="New PIN">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select class="form-input" id="eu-role">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('edit-user-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditUser()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+<div id="sync-bar">
+  <div class="sync-dot" id="sync-dot"></div>
+  <span id="sync-msg">Not connected</span>
+  <span style="margin-left:auto;cursor:pointer;color:var(--text3);" onclick="hideSyncBar()">✕</span>
+</div>
+
+
+<!-- ═════════════ EDIT FIXTURE MODAL ═════════════ -->
+<div class="modal-overlay" id="edit-fixture-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Edit Fixture</div>
+      <button class="modal-close" onclick="closeModal('edit-fixture-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ef-id">
+      <div class="form-group">
+        <label class="form-label">Fixture ID</label>
+        <input class="form-input" id="ef-fid" readonly style="font-family:'DM Mono',monospace;color:var(--accent);background:var(--accent-dim);">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Fixture Name *</label>
+          <input class="form-input" id="ef-name" placeholder="e.g. Arco Pendant LED">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Brand</label>
+          <input class="form-input" id="ef-brand" placeholder="e.g. Flos">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Part Number</label>
+          <input class="form-input" id="ef-partno" placeholder="e.g. FLS-1234-B">
+        </div>
+        <div class="form-group" style="display:none;"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Category / Type</label>
+          <input class="form-input" id="ef-category" placeholder="e.g. Pendant">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Wattage</label>
+          <input class="form-input" id="ef-wattage" placeholder="e.g. 18W">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Finish / Color</label>
+          <input class="form-input" id="ef-finish" placeholder="e.g. Matte Black">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Shelf / Location</label>
+          <div style="position:relative;">
+            <input class="form-input" id="ef-location" placeholder="Type or select..." autocomplete="off"
+              oninput="filterLocDropdown('ef-location','loc-drop-edit')"
+              onfocus="showLocDropdown('ef-location','loc-drop-edit')"
+              onblur="setTimeout(()=>hideLocDropdown('loc-drop-edit'),180)"
+              style="padding-right:32px;">
+            <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;font-size:12px;">▾</span>
+            <div id="loc-drop-edit" class="loc-dropdown" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <input class="form-input" id="ef-notes" placeholder="Additional details...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Spec Sheet URL</label>
+        <input class="form-input" id="ef-specsheet" placeholder="https://… (link to PDF or product page)" type="url">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('edit-fixture-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditFixture()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════ MANAGE LOCATIONS MODAL ═════════════ -->
+<div class="modal-overlay" id="locations-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">📍 Manage Locations</div>
+      <button class="modal-close" onclick="closeModal('locations-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">These appear in the Location dropdown when adding or editing fixtures.</p>
+      <div id="locations-list" style="margin-bottom:14px;"></div>
+      <div style="display:flex;gap:8px;">
+        <input class="form-input" id="new-location-input" placeholder="New location name..." style="flex:1;">
+        <button class="btn btn-primary" onclick="addLocation()">Add</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('locations-modal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  CONSTANTS & STATE
+// ═══════════════════════════════════════════════════════
+const KEY_FIXTURES  = 'luma:fixtures';
+const KEY_USERS     = 'luma:users';
+const KEY_HISTORY   = 'luma:history';
+const KEY_COUNTER   = 'luma:counter';
+const KEY_LOCATIONS = 'luma:locations';
+const KEY_FB_CONFIG = 'luma:fbConfig';  // Firebase config JSON
+
+const DEFAULT_LOCATIONS = ['Shelf A-1','Shelf A-2','Shelf B-1','Shelf B-2','Shelf B-3','Shelf C-1','Shelf C-2','Storage Room','Display Floor','Front Desk','Back Office'];
+
+let fixtures  = [];
+let users     = [];
+let history   = [];
+let locations = [];
+let fixtureCounter = 42;
+let currentUser    = null;
+let pinTarget      = null;
+let pinBuffer      = '';
+let selectedAvatar = '💡';
+let scannerInstance = null;
+let fbConfig   = null;   // Firebase config object { apiKey, projectId, ... }
+let fbDb       = null;   // Firebase database reference
+let fbUnsub    = [];     // active Firebase listeners (for cleanup)
+let fbSyncing  = false;  // prevent overlapping initial sync
+
+const ADMIN_DEFAULTS = [
+  { id: 'admin-1', name: 'Admin', pin: '4116', role: 'admin', avatar: '⚙️' }
+];
+const SAMPLE_FIXTURES = [
+  { id:'LUM-0001', name:'Arco Pendant LED', brand:'Flos', category:'Pendant', wattage:'18W', finish:'Polished Chrome', location:'Shelf A-1', notes:'Dimmable 0-10V', status:'available', checkedOutBy:null, checkedOutAt:null },
+  { id:'LUM-0002', name:'Zuma Recessed Trim', brand:'Halo', category:'Recessed', wattage:'9W', finish:'Matte White', location:'Shelf A-2', notes:'4" aperture', status:'available', checkedOutBy:null, checkedOutAt:null },
+  { id:'LUM-0003', name:'Volta Wall Sconce', brand:'Visual Comfort', category:'Wall', wattage:'12W', finish:'Aged Brass', location:'Shelf B-1', notes:'Up/down light', status:'available', checkedOutBy:null, checkedOutAt:null },
+  { id:'LUM-0004', name:'Nova Track Head', brand:'Juno', category:'Track', wattage:'15W', finish:'Matte Black', location:'Shelf B-2', notes:'Adjustable beam', status:'available', checkedOutBy:null, checkedOutAt:null },
+  { id:'LUM-0005', name:'Serene Strip Light', brand:'Lutron', category:'Linear', wattage:'20W/m', finish:'N/A', location:'Shelf C-1', notes:'Color tunable 2700-6500K', status:'available', checkedOutBy:null, checkedOutAt:null },
+];
+
+// ═══════════════════════════════════════════════════════
+//  LOCAL STORAGE (cache layer)
+// ═══════════════════════════════════════════════════════
+// ── Safe storage abstraction: tries window.storage, falls back to localStorage ──
+async function storeGet(key) {
+  try {
+    if (window.storage && typeof window.storage.get === 'function') {
+      const r = await window.storage.get(key);
+      return r ? r.value : null;
+    }
+  } catch(e) {}
+  try { return localStorage.getItem(key); } catch(e) {}
+  return null;
+}
+async function storeSet(key, val) {
+  try {
+    if (window.storage && typeof window.storage.set === 'function') {
+      await window.storage.set(key, val);
+      return;
+    }
+  } catch(e) {}
+  try { localStorage.setItem(key, val); } catch(e) {}
+}
+
+async function localLoad() {
+  try { const r = await storeGet(KEY_FIXTURES);   fixtures  = r ? JSON.parse(r) : [...SAMPLE_FIXTURES]; } catch { fixtures = [...SAMPLE_FIXTURES]; }
+  try { const r = await storeGet(KEY_USERS);      users     = r ? JSON.parse(r) : [...ADMIN_DEFAULTS]; } catch { users = [...ADMIN_DEFAULTS]; }
+  try { const r = await storeGet(KEY_HISTORY);    history   = r ? JSON.parse(r) : []; } catch { history = []; }
+  try { const r = await storeGet(KEY_COUNTER);    fixtureCounter = r ? parseInt(r) : 42; } catch { fixtureCounter = 42; }
+  try { const r = await storeGet(KEY_LOCATIONS);  locations = r ? JSON.parse(r) : [...DEFAULT_LOCATIONS]; } catch { locations = [...DEFAULT_LOCATIONS]; }
+  try { const r = await storeGet(KEY_FB_CONFIG);  fbConfig = r ? JSON.parse(r) : null; } catch { fbConfig = null; }
+}
+
+async function localSave() {
+  try {
+    await storeSet(KEY_FIXTURES,  JSON.stringify(fixtures));
+    await storeSet(KEY_USERS,     JSON.stringify(users));
+    await storeSet(KEY_HISTORY,   JSON.stringify(history));
+    await storeSet(KEY_COUNTER,   String(fixtureCounter));
+    await storeSet(KEY_LOCATIONS, JSON.stringify(locations));
+  } catch(e) { console.error('Local save failed', e); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  FIREBASE REALTIME DATABASE SYNC
+// ═══════════════════════════════════════════════════════
+
+// ─────────────────────────────────────────────────────
+//  FIREBASE SYNC  (compat SDK v9 — loaded via <script>)
+// ─────────────────────────────────────────────────────
+let _fbApp = null;
+
+// ── Init Firebase ──
+async function fbInit(config) {
+  // Delete any pre-existing app so re-connect works cleanly
+  if (_fbApp) {
+    try { await _fbApp.delete(); } catch(e) {}
+    _fbApp = null; fbDb = null;
+  }
+  _fbApp = firebase.initializeApp(config, 'lumasamples-' + Date.now());
+  fbDb   = firebase.database(_fbApp);
+  return fbDb;
+}
+
+// ── Path helpers (compat API) ──
+function fbRef(path)             { return fbDb.ref(path); }
+async function fbGet(path)       { return fbDb.ref(path).get(); }
+async function fbSet(path, val)  { return fbDb.ref(path).set(val); }
+async function fbUpdate(path, u) { return fbDb.ref(path).update(u); }
+async function fbRemove(path)    { return fbDb.ref(path).remove(); }
+async function fbPush(path, val) { return fbDb.ref(path).push(val); }
+
+// ── Real-time listener ──
+let fbUnsubscribe = null;
+function fbStartListening() {
+  fbStopListening();
+  fbDb.ref('lumasamples').on('value',
+    snap => {
+      if (!snap.exists()) return;
+      applyRemoteData(snap.val());
+      localSave();
+      refreshCurrentPage();
+      renderLoginScreen();
+      setSyncStatus('synced', 'Live · ' + new Date().toLocaleTimeString());
+    },
+    err => setSyncStatus('error', 'Firebase: ' + err.message)
+  );
+  fbUnsubscribe = () => fbDb.ref('lumasamples').off('value');
+}
+
+function fbStopListening() {
+  if (fbUnsubscribe) { try { fbUnsubscribe(); } catch(e) {} fbUnsubscribe = null; }
+}
+
+// ── Apply remote snapshot to local state ──
+function applyRemoteData(data) {
+  if (data.fixtures)  fixtures  = Object.values(data.fixtures).map(normalizeFixture);
+  if (data.users)     users     = Object.values(data.users).map(normalizeUser);
+  if (data.locations) locations = Array.isArray(data.locations)
+    ? data.locations.filter(Boolean)
+    : Object.values(data.locations).filter(Boolean);
+  if (data.history)   history   = Object.values(data.history)
+    .sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 500);
+  if (data.counter) {
+    const rc = parseInt(data.counter);
+    if (!isNaN(rc) && rc > fixtureCounter) fixtureCounter = rc;
+  }
+  ensureAdmin();
+  bumpCounter();
+}
+
+// ── Normalize data from Firebase ──
+function normalizeFixture(f) {
+  return {
+    id: f.id||'', name: f.name||'', brand: f.brand||'',
+    category: f.category||'', wattage: f.wattage||'',
+    finish: f.finish||'', location: f.location||'',
+    partNo: f.partNo||'', notes: f.notes||'', specSheet: f.specSheet||'',
+    status: f.status||'available',
+    checkedOutBy: f.checkedOutBy||null, checkedOutAt: f.checkedOutAt||null,
+  };
+}
+function normalizeUser(u) {
+  return { id:u.id||'', name:u.name||'', pin:u.pin||'', role:u.role||'user', avatar:u.avatar||'💡' };
+}
+
+// ── Push full local snapshot to Firebase (on first connect) ──
+async function fbPushAll() {
+  setSyncStatus('syncing', 'Uploading to Firebase…');
+  // Firebase keys cannot contain . # $ [ ]
+  const sanitize = s => String(s).replace(/[.#$[\]]/g, '_');
+  const snap = {
+    fixtures:  Object.fromEntries(fixtures.map(f => [sanitize(f.id), f])),
+    users:     Object.fromEntries(users.map(u    => [sanitize(u.id), u])),
+    locations: Object.fromEntries(locations.map((l, i) => [sanitize(l) || 'loc' + i, l])),
+    counter:   fixtureCounter,
+  };
+  await fbSet('lumasamples', snap);
+  // Push history entries one by one
+  for (const h of history.slice(0, 200)) {
+    await fbPush('lumasamples/history', h);
+  }
+}
+
+// ── Connect ──
+async function connectFirebase(configInput) {
+  let config;
+  try {
+    config = typeof configInput === 'string' ? JSON.parse(configInput) : configInput;
+    if (!config.apiKey || !config.projectId) throw new Error('Missing apiKey or projectId');
+  } catch(e) { notify('Invalid config: ' + e.message, 'error'); return; }
+
+  setSyncStatus('syncing', 'Connecting to Firebase…');
+  try {
+    fbConfig = config;
+    await fbInit(config);
+    await fbPushAll();
+    fbStartListening();
+    await storeSet(KEY_FB_CONFIG, JSON.stringify(config));
+    notify('✓ Connected — real-time sync active!', 'success');
+    renderSetupPage();
+    renderGsStatus();
+  } catch(e) {
+    setSyncStatus('error', 'Connection failed: ' + e.message);
+    notify('Firebase failed: ' + e.message, 'error');
+    fbConfig = null; fbDb = null;
+  }
+}
+
+// ── Disconnect ──
+function disconnectFirebase() {
+  fbStopListening();
+  if (_fbApp) { try { _fbApp.delete(); } catch(e) {} _fbApp = null; }
+  fbConfig = null; fbDb = null;
+  storeSet(KEY_FB_CONFIG, '');
+  hideSyncBar();
+  notify('Disconnected from Firebase', 'info');
+  renderSetupPage();
+  renderGsStatus();
+}
+
+// ── Sync status bar ──
+let syncHideTimer = null;
+function setSyncStatus(state, msg) {
+  const bar = document.getElementById('sync-bar');
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-msg');
+  if (!bar) return;
+  bar.className = 'show ' + state;
+  dot.className = 'sync-dot' + (state === 'syncing' ? ' pulse' : '');
+  txt.textContent = msg;
+  clearTimeout(syncHideTimer);
+  if (state === 'synced') syncHideTimer = setTimeout(hideSyncBar, 4000);
+}
+function hideSyncBar() {
+  const bar = document.getElementById('sync-bar');
+  if (bar) bar.className = bar.className.replace('show','').trim();
+}
+
+// ═══════════════════════════════════════════════════════
+//  UNIFIED SAVE (local cache + Firebase)
+// ═══════════════════════════════════════════════════════
+async function saveData(options = {}) {
+  await localSave();
+  if (!fbDb) return;                      // no Firebase connected → local only
+  try {
+    const updates = {};
+    if (options.fixture) {
+      const f = options.fixture;
+      updates[`lumasamples/fixtures/${f.id}`] = f;
+      updates[`lumasamples/counter`] = fixtureCounter;
+    }
+    if (options.user) {
+      const u = options.user;
+      updates[`lumasamples/users/${u.id}`] = u;
+    }
+    if (options.deletedFixtureId)
+      updates[`lumasamples/fixtures/${options.deletedFixtureId}`] = null;
+    if (options.deletedUserId)
+      updates[`lumasamples/users/${options.deletedUserId}`] = null;
+    if (options.location)
+      updates[`lumasamples/locations/${options.location}`] = options.location;
+    if (options.deletedLocation)
+      updates[`lumasamples/locations/${options.deletedLocation}`] = null;
+    if (options.counter)
+      updates[`lumasamples/counter`] = fixtureCounter;
+    if (Object.keys(updates).length) await fbUpdate('lumasamples', flattenUpdates(updates));
+    if (options.historyEntry)
+      await fbPush('lumasamples/history', options.historyEntry);
+  } catch(e) {
+    setSyncStatus('error', 'Save error: ' + e.message);
+    console.error('Firebase save error:', e);
+  }
+}
+
+// flatten { 'lumasamples/fixtures/X': val } → { 'fixtures/X': val }
+function flattenUpdates(obj) {
+  const out = {};
+  for (const [k, v] of Object.entries(obj)) {
+    const short = k.replace(/^lumasamples\//, '');
+    out[short] = v;
+  }
+  return out;
+}
+
+// ═══════════════════════════════════════════════════════
+//  BOOT / LOAD DATA
+// ═══════════════════════════════════════════════════════
+async function loadData() {
+  await localLoad();
+  ensureAdmin();
+  bumpCounter();
+  await localSave();
+  if (fbConfig) {
+    // Firebase config saved — reconnect silently in background
+    fbInit(fbConfig)
+      .then(() => { fbStartListening(); setSyncStatus('synced', 'Firebase connected'); })
+      .catch(e => setSyncStatus('error', 'Firebase reconnect failed: ' + e.message));
+  }
+}
+
+function ensureAdmin() {
+  users = users.filter(u => u.id === 'admin-1' || u.role === 'admin' || !(['Alex Rivera','Jordan Kim','Sam Chen'].includes(u.name)));
+  const a = users.find(u => u.id === 'admin-1');
+  if (!a) users.unshift({ id:'admin-1', name:'Admin', pin:'4116', role:'admin', avatar:'⚙️' });
+  else { a.role = 'admin'; a.pin = '4116'; }
+}
+
+function bumpCounter() {
+  fixtures.forEach(f => {
+    const n = parseInt((f.id||'').split('-')[1]);
+    if (!isNaN(n) && n >= fixtureCounter) fixtureCounter = n + 1;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  LOGIN / PIN
+// ═══════════════════════════════════════════════════════
+function renderLoginScreen() {
+  const grid = document.getElementById('login-user-grid');
+  grid.innerHTML = users.map(u => `
+    <div class="user-login-card ${u.role==='admin'?'admin-card':''}" onclick="startPinEntry('${u.id}')">
+      <span class="ulc-avatar">${u.avatar}</span>
+      <div class="ulc-name">${u.name}</div>
+      <span class="ulc-role ${u.role}">${u.role}</span>
+    </div>
+  `).join('');
+  renderLoginCheckedOut();
+}
+
+function openLoginDetail(fid) {
+  const f = fixtures.find(x => x.id === fid);
+  if (!f) return;
+  const u = f.checkedOutBy ? users.find(x => x.id === f.checkedOutBy) : null;
+  document.getElementById('login-detail-body').innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
+      <div style="flex:1;min-width:180px;">
+        <div style="margin-bottom:10px;">
+          <span class="fid">${f.id}</span>
+          <span class="sbadge out" style="margin-left:8px;">Checked Out</span>
+        </div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:14px;">${f.name}</div>
+        <table style="font-size:13px;border-collapse:collapse;width:100%;">
+          ${f.partNo   ? `<tr><td style="padding:5px 0;color:var(--text3);width:90px;">Part #</td><td style="padding:5px 0;font-family:'DM Mono',monospace;">${f.partNo}</td></tr>` : ''}
+          ${f.brand    ? `<tr><td style="padding:5px 0;color:var(--text3);width:90px;">Brand</td><td style="padding:5px 0;">${f.brand}</td></tr>` : ''}
+          ${f.category ? `<tr><td style="padding:5px 0;color:var(--text3);">Type</td><td style="padding:5px 0;">${f.category}</td></tr>` : ''}
+          ${f.wattage  ? `<tr><td style="padding:5px 0;color:var(--text3);">Wattage</td><td style="padding:5px 0;">${f.wattage}</td></tr>` : ''}
+          ${f.finish   ? `<tr><td style="padding:5px 0;color:var(--text3);">Finish</td><td style="padding:5px 0;">${f.finish}</td></tr>` : ''}
+          ${f.location ? `<tr><td style="padding:5px 0;color:var(--text3);">Location</td><td style="padding:5px 0;">${f.location}</td></tr>` : ''}
+          ${f.notes    ? `<tr><td style="padding:5px 0;color:var(--text3);">Notes</td><td style="padding:5px 0;">${f.notes}</td></tr>` : ''}
+          ${f.specSheet ? `<tr><td style="padding:5px 0;color:var(--text3);">Spec Sheet</td><td style="padding:5px 0;"><a href="${f.specSheet}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">📄 View ↗</a></td></tr>` : ''}
+          ${u ? `<tr><td style="padding:8px 0 0;color:var(--text3);">With</td><td style="padding:8px 0 0;color:var(--red);font-weight:600;">${u.avatar} ${u.name} · ${timeAgo(f.checkedOutAt)}</td></tr>` : ''}
+        </table>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <div id="ldm-qr-${f.id}" style="background:white;border-radius:8px;padding:12px;"></div>
+        <div style="font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;">${f.id}</div>
+      </div>
+    </div>
+  `;
+  openModal('login-detail-modal');
+  setTimeout(() => {
+    const el = document.getElementById('ldm-qr-' + f.id);
+    if (el && !el.querySelector('canvas')) {
+      new QRCode(el, { text: f.id, width: 100, height: 100, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+    }
+  }, 60);
+}
+
+function renderLoginCheckedOut() {
+  const board   = document.getElementById('login-co-board');
+  const listEl  = document.getElementById('login-co-list');
+  const countEl = document.getElementById('login-co-count');
+  if (!board || !listEl) return;
+  const coList = fixtures.filter(f => f.status === 'out').sort((a,b) => new Date(b.checkedOutAt) - new Date(a.checkedOutAt));
+  if (!coList.length) { board.style.display = 'none'; return; }
+  board.style.display = 'block';
+  if (countEl) countEl.textContent = coList.length + ' out';
+  listEl.innerHTML = coList.map(f => {
+    const u = users.find(x => x.id === f.checkedOutBy);
+    return `<div class="login-co-row" onclick="openLoginDetail('${f.id}')" style="cursor:pointer;">
+      <span class="login-co-id">${f.id}</span>
+      <span class="login-co-name">${f.name}</span>
+      <span class="login-co-user">${u ? u.avatar + ' ' + u.name : '—'}</span>
+      <span class="login-co-time">${timeAgo(f.checkedOutAt)}</span>
+    </div>`;
+  }).join('');
+}
+
+function startPinEntry(uid) {
+  pinTarget = users.find(u => u.id === uid);
+  pinBuffer = '';
+  document.getElementById('pin-avatar').textContent = pinTarget.avatar;
+  document.getElementById('pin-name').textContent = pinTarget.name;
+  updatePinDots();
+  document.getElementById('login-user-grid').style.display = 'none';
+  document.getElementById('pin-entry').style.display = 'block';
+}
+
+function showUserSelect() {
+  pinBuffer = '';
+  pinTarget = null;
+  document.getElementById('pin-entry').style.display = 'none';
+  document.getElementById('login-user-grid').style.display = 'grid';
+}
+
+function pinPress(digit) {
+  if (!digit) return;
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updatePinDots();
+  if (pinBuffer.length === 4) {
+    setTimeout(checkPin, 120);
+  }
+}
+
+function pinBackspace() {
+  pinBuffer = pinBuffer.slice(0, -1);
+  updatePinDots();
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('d' + i);
+    d.classList.toggle('filled', i < pinBuffer.length);
+    d.classList.remove('error');
+  }
+}
+
+function checkPin() {
+  if (pinBuffer === pinTarget.pin) {
+    loginSuccess(pinTarget);
+  } else {
+    // Shake dots
+    for (let i = 0; i < 4; i++) document.getElementById('d' + i).classList.add('error');
+    setTimeout(() => { pinBuffer = ''; updatePinDots(); }, 800);
+  }
+}
+
+function adminQuickLogin() {
+  // Find admin by id first, then fall back to any admin role
+  const admin = users.find(u => u.id === 'admin-1') || users.find(u => u.role === 'admin');
+  if (!admin) { notify('No admin account found.', 'error'); return; }
+  loginSuccess(admin);
+}
+
+function loginSuccess(user) {
+  currentUser = user;
+  detectAndApplyLayout();
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  // Header
+  document.getElementById('chip-avatar').textContent = user.avatar;
+  document.getElementById('chip-name').textContent = user.name;
+  const roleEl = document.getElementById('chip-role');
+  roleEl.textContent = user.role;
+  roleEl.className = 'role-badge ' + user.role;
+  // Show/hide admin tabs
+  const isAdmin = user.role === 'admin';
+  ['tab-add','tab-print','tab-admin'].forEach(id => {
+    document.getElementById(id).style.display = isAdmin ? '' : 'none';
+  });
+  ['btab-add','btab-print','btab-admin'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isAdmin ? '' : 'none';
+  });
+  showPage('home', document.querySelector('[data-page="home"]'));
+}
+
+function logOut() {
+  currentUser = null;
+  pinBuffer = '';
+  pinTarget = null;
+  stopScanner();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = '';
+  document.getElementById('pin-entry').style.display = 'none';
+  document.getElementById('login-user-grid').style.display = 'grid';
+  renderLoginScreen();
+  notify('Signed out', 'info');
+}
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showPage(name, tabEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.btab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (tabEl) tabEl.classList.add('active');
+  const btab = document.getElementById('btab-' + name);
+  if (btab) btab.classList.add('active');
+  if (name === 'home')    renderHome();
+  if (name === 'library') { renderStats(); renderLibrary(); populateFilters(); }
+  if (name === 'history') { populateHistFilters(); renderHistory(); }
+  if (name === 'add')     refreshAddId();
+  if (name === 'print')   renderPrintPage();
+  if (name === 'admin')   { renderUserList(); renderAdminFixtures(); renderForceReturn(); renderLocationPreview(); renderGsStatus(); }
+  if (name === 'setup')   { renderSetupPage(); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  HOME PAGE
+// ═══════════════════════════════════════════════════════
+function renderHome() {
+  const total  = fixtures.length;
+  const out    = fixtures.filter(f => f.status === 'out').length;
+  const avail  = total - out;
+  const myOut  = fixtures.filter(f => f.checkedOutBy === currentUser?.id).length;
+
+  document.getElementById('home-hero').innerHTML = `
+    <div class="hero-stat"><div class="hero-stat-label">Available</div><div class="hero-stat-val green">${avail}</div></div>
+    <div class="hero-stat"><div class="hero-stat-label">Checked Out</div><div class="hero-stat-val red">${out}</div></div>
+    <div class="hero-stat"><div class="hero-stat-label">Total Fixtures</div><div class="hero-stat-val accent">${total}</div></div>
+    <div class="hero-stat"><div class="hero-stat-label">My Checkouts</div><div class="hero-stat-val blue">${myOut}</div></div>
+  `;
+
+  // My checkouts strip
+  const mine = fixtures.filter(f => f.checkedOutBy === currentUser?.id);
+  const strip = document.getElementById('my-checkouts-strip');
+  if (mine.length) {
+    strip.innerHTML = `
+      <div class="my-co-strip">
+        <div class="my-co-strip-header">
+          <div class="my-co-strip-title">📤 Your Checked Out Fixtures (${mine.length})</div>
+          <button class="btn btn-danger btn-sm" onclick="showPage('library', document.querySelector('[data-page=library]'))">View All</button>
+        </div>
+        <div class="my-co-items">
+          ${mine.map(f => `
+            <div class="my-co-pill" onclick="openDetailModal('${f.id}')">
+              <span class="pill-id">${f.id}</span>
+              <span>${f.name}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  } else {
+    strip.innerHTML = '';
+  }
+
+  // All checked out list
+  const coList = fixtures.filter(f => f.status === 'out').sort((a,b) => new Date(b.checkedOutAt) - new Date(a.checkedOutAt));
+  const coEl = document.getElementById('checked-out-list');
+  if (!coList.length) {
+    coEl.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>All fixtures are currently available.</p></div>';
+  } else {
+    coEl.innerHTML = coList.map(f => {
+      const u = users.find(x => x.id === f.checkedOutBy);
+      return `
+        <div class="co-row" onclick="openDetailModal('${f.id}')">
+          <div class="co-id">${f.id}</div>
+          <div class="co-info">
+            <div class="co-name">${f.name}</div>
+            <div class="co-meta">${f.brand || ''} ${f.category ? '· ' + f.category : ''} ${f.location ? '· 📍' + f.location : ''}</div>
+          </div>
+          ${u ? `<div class="co-user"><span class="avatar">${u.avatar}</span><span>${u.name}</span></div>` : ''}
+          <div class="co-time">${timeAgo(f.checkedOutAt)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Recent returns (last 5 return events)
+  const returns = history.filter(h => h.action === 'return').slice(0, 5);
+  const rrEl = document.getElementById('recent-returns');
+  if (!returns.length) {
+    rrEl.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px 0;">No returns recorded yet.</div>';
+  } else {
+    rrEl.innerHTML = `<div class="table-wrap"><table>
+      <thead><tr><th>Fixture</th><th>Returned By</th><th>When</th></tr></thead>
+      <tbody>${returns.map(h => `
+        <tr>
+          <td><span class="mono">${h.fixtureId}</span> <span style="color:var(--text2);margin-left:8px;">${h.fixtureName}</span></td>
+          <td>${h.userName}</td>
+          <td style="color:var(--text3);font-family:'DM Mono',monospace;font-size:11px;">${new Date(h.ts).toLocaleString()}</td>
+        </tr>
+      `).join('')}</tbody>
+    </table></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  LIBRARY
+// ═══════════════════════════════════════════════════════
+function renderStats() {
+  const total = fixtures.length;
+  const out   = fixtures.filter(f => f.status === 'out').length;
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value accent">${total}</div></div>
+    <div class="stat-card"><div class="stat-label">Available</div><div class="stat-value green">${total-out}</div></div>
+    <div class="stat-card"><div class="stat-label">Checked Out</div><div class="stat-value red">${out}</div></div>
+    <div class="stat-card"><div class="stat-label">My Checkouts</div><div class="stat-value" style="color:var(--blue);">${fixtures.filter(f=>f.checkedOutBy===currentUser?.id).length}</div></div>
+  `;
+}
+
+function populateFilters() {
+  const cats = [...new Set(fixtures.map(f=>f.category).filter(Boolean))];
+  const sel = document.getElementById('filter-category');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All Types</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  sel.value = cur;
+}
+
+function renderLibrary() {
+  const q    = (document.getElementById('search-input').value||'').toLowerCase();
+  const sf   = document.getElementById('filter-status').value;
+  const cf   = document.getElementById('filter-category').value;
+  const list = fixtures.filter(f => {
+    const txt = [f.id,f.name,f.brand,f.category,f.finish,f.location].join(' ').toLowerCase();
+    return txt.includes(q) && (!sf || f.status===sf) && (!cf || f.category===cf);
+  });
+  const grid = document.getElementById('fixture-grid');
+  if (!list.length) { grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔦</div><p>No fixtures found.</p></div>'; return; }
+  grid.innerHTML = list.map(f => fixtureCardHTML(f)).join('');
+}
+
+function fixtureCardHTML(f) {
+  const u = f.checkedOutBy ? users.find(x=>x.id===f.checkedOutBy) : null;
+  const isMe = f.checkedOutBy === currentUser?.id;
+  const isAdmin = currentUser?.role === 'admin';
+  return `
+    <div class="fixture-card ${f.status}" onclick="openDetailModal('${f.id}')">
+      <div class="card-top">
+        <div class="fid">${f.id}</div>
+        <div class="sbadge ${f.status==='available'?'available':'out'}">${f.status==='available'?'Available':'Out'}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name">${f.name}</div>
+        <div class="card-meta">
+          ${f.partNo?`<span style='font-family:"DM Mono",monospace;font-size:10px;color:var(--text3);'>🔢 ${f.partNo}</span>`:''}
+          ${f.brand?`<span>🏷 ${f.brand}</span>`:''}
+          ${f.category?`<span>📦 ${f.category}</span>`:''}
+          ${f.wattage?`<span>⚡ ${f.wattage}</span>`:''}
+        </div>
+        ${f.location?`<div class="card-loc">📍 ${f.location}</div>`:''}
+        ${f.specSheet?`<a href="${f.specSheet}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--accent);text-decoration:none;margin-top:5px;opacity:0.8;">📄 Spec Sheet ↗</a>`:''}
+        ${u?`<div class="card-co-info">With <strong>${u.name}</strong> · ${timeAgo(f.checkedOutAt)}</div>`:''}
+      </div>
+      <div class="card-footer" onclick="event.stopPropagation()">
+        ${f.status==='available'
+          ? `<button class="btn btn-success" onclick="quickCheckout('${f.id}')">↗ Check Out</button>`
+          : isMe
+          ? `<button class="btn btn-danger" onclick="quickReturn('${f.id}')">↙ Return</button>`
+          : `<span style="display:flex;gap:5px;">
+               <button class="btn btn-warning btn-sm" onclick="swapOwnership('${f.id}');event.stopPropagation()">⇄ Take Over</button>
+               <button class="btn btn-danger btn-sm" onclick="quickReturn('${f.id}');event.stopPropagation()">↙ Return</button>
+             </span>`}
+        <button class="btn btn-secondary" onclick="openDetailModal('${f.id}');event.stopPropagation()">Details</button>
+        ${isAdmin ? `<button class="btn btn-blue btn-sm" onclick="openEditFixture('${f.id}');event.stopPropagation()" title="Edit fixture">✏️</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+//  CHECKOUT / RETURN
+// ═══════════════════════════════════════════════════════
+async function quickCheckout(fid) {
+  const f = fixtures.find(x=>x.id===fid);
+  if (!f || f.status!=='available') return;
+  f.status = 'out';
+  f.checkedOutBy = currentUser.id;
+  f.checkedOutAt = new Date().toISOString();
+  const hco = logEvent(f, 'checkout');
+  await saveData({ fixture: f, historyEntry: hco });
+  refreshCurrentPage();
+  notify(`✓ Checked out: ${f.name}`, 'success');
+}
+
+async function quickReturn(fid) {
+  const f = fixtures.find(x=>x.id===fid);
+  if (!f) return;
+  // Any user can return any fixture (or swap ownership)
+  f.status = 'available';
+  f.checkedOutBy = null;
+  f.checkedOutAt = null;
+  const hret = logEvent(f, 'return');
+  await saveData({ fixture: f, historyEntry: hret });
+  refreshCurrentPage();
+  notify(`✓ Returned: ${f.name}`, 'success');
+}
+
+async function swapOwnership(fid) {
+  const f = fixtures.find(x => x.id === fid);
+  if (!f || f.status !== 'out') return;
+  const prev = users.find(x => x.id === f.checkedOutBy);
+  f.checkedOutBy = currentUser.id;
+  f.checkedOutAt = new Date().toISOString();
+  const h = logEvent(f, 'transfer');
+  await saveData({ fixture: f, historyEntry: h });
+  refreshCurrentPage();
+  notify(`⇄ Taken over from ${prev?.name || 'previous user'}`, 'success');
+}
+
+function logEvent(f, action) {
+  const entry = { ts: new Date().toISOString(), fixtureId: f.id, fixtureName: f.name, userId: currentUser.id, userName: currentUser.name, action };
+  history.unshift(entry);
+  return entry;
+}
+
+function refreshCurrentPage() {
+  const active = document.querySelector('.page.active');
+  if (!active) return;
+  const id = active.id.replace('page-','');
+  if (id==='home') renderHome();
+  if (id==='library') { renderStats(); renderLibrary(); }
+  if (id==='admin') { renderAdminFixtures(); renderForceReturn(); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  DETAIL MODAL
+// ═══════════════════════════════════════════════════════
+function openDetailModal(fid) {
+  const f = fixtures.find(x=>x.id===fid);
+  if (!f) return;
+  const u = f.checkedOutBy ? users.find(x=>x.id===f.checkedOutBy) : null;
+  const isMe = f.checkedOutBy === currentUser?.id;
+  const isAdmin = currentUser?.role === 'admin';
+  document.getElementById('detail-body').innerHTML = `
+    <div style="display:flex;gap:20px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:180px;">
+        <div style="margin-bottom:10px;"><span class="fid">${f.id}</span> <span class="sbadge ${f.status==='available'?'available':'out'}" style="margin-left:8px;">${f.status==='available'?'Available':'Checked Out'}</span></div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:12px;">${f.name}</div>
+        <table style="font-size:13px;border-collapse:collapse;">
+          ${drow('Part #',f.partNo)}${drow('Brand',f.brand)}${drow('Type',f.category)}${drow('Wattage',f.wattage)}${drow('Finish',f.finish)}${drow('Location',f.location)}${drow('Notes',f.notes)}${drowLink('Spec Sheet',f.specSheet)}
+          ${u?`<tr><td style="padding:5px 0;color:var(--text3);width:80px;">With</td><td style="padding:5px 0;color:var(--red);">${u.avatar} ${u.name} · ${timeAgo(f.checkedOutAt)}</td></tr>`:''}
+        </table>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <div id="detail-qr-${f.id}" class="qr-print-block" style="padding:14px;"></div>
+        <div style="font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;">${f.id}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('detail-footer').innerHTML = `
+    <button class="btn btn-secondary" onclick="closeModal('detail-modal')">Close</button>
+    ${isAdmin ? `<button class="btn btn-blue" onclick="closeModal('detail-modal');openEditFixture('${f.id}')">✏️ Edit</button>` : ''}
+    ${f.status==='available'
+      ? `<button class="btn btn-success" onclick="quickCheckout('${f.id}');closeModal('detail-modal')">↗ Check Out</button>`
+      : isMe
+      ? `<button class="btn btn-danger" onclick="quickReturn('${f.id}');closeModal('detail-modal')">↙ Return to Stock</button>`
+      : `<span style="display:inline-flex;gap:8px;flex-wrap:wrap;">
+           <button class="btn btn-warning" onclick="swapOwnership('${f.id}');closeModal('detail-modal')">⇄ Take Over</button>
+           <button class="btn btn-danger" onclick="quickReturn('${f.id}');closeModal('detail-modal')">↙ Return to Stock</button>
+         </span>`
+    }
+  `;
+  openModal('detail-modal');
+  setTimeout(() => {
+    const el = document.getElementById('detail-qr-'+f.id);
+    if (el && !el.querySelector('canvas')) {
+      new QRCode(el, { text:f.id, width:110, height:110, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
+    }
+  }, 60);
+}
+
+function drow(l,v) { return v ? `<tr><td style="padding:5px 0;color:var(--text3);width:80px;">${l}</td><td style="padding:5px 0;">${v}</td></tr>` : ''; }
+function drowLink(l,v) { return v ? `<tr><td style="padding:5px 0;color:var(--text3);width:80px;">${l}</td><td style="padding:5px 0;"><a href="${v}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:5px;font-size:13px;">📄 View Spec Sheet <span style="font-size:10px;opacity:0.7;">↗</span></a></td></tr>` : ''; }
+
+// ═══════════════════════════════════════════════════════
+//  HISTORY
+// ═══════════════════════════════════════════════════════
+function populateHistFilters() {
+  const sel = document.getElementById('hist-user-filter');
+  sel.innerHTML = '<option value="">All Users</option>' + users.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+}
+
+function renderHistory() {
+  const uf = document.getElementById('hist-user-filter').value;
+  const tf = document.getElementById('hist-type-filter').value;
+  const list = history.filter(h => (!uf||h.userId===uf) && (!tf||h.action===tf));
+  const tbody = document.getElementById('history-tbody');
+  if (!list.length) { tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text3);">No records found.</td></tr>`; return; }
+  const actionColors = { checkout:'out', return:'available', added:'available', deleted:'out', edited:'available', transfer:'out' };
+  tbody.innerHTML = list.map(h=>`
+    <tr>
+      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);">${new Date(h.ts).toLocaleString()}</td>
+      <td class="mono">${h.fixtureId}</td>
+      <td>${h.fixtureName}</td>
+      <td>${h.userName}</td>
+      <td><span class="sbadge ${actionColors[h.action]||'available'}">${h.action}</span></td>
+    </tr>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADD FIXTURE (admin)
+// ═══════════════════════════════════════════════════════
+function genId() { return 'LUM-' + String(fixtureCounter).padStart(4,'0'); }
+
+function refreshAddId() {
+  document.getElementById('new-fixture-id').value = genId();
+  document.getElementById('new-qr-section').style.display = 'none';
+}
+
+async function addFixture() {
+  const name = document.getElementById('new-name').value.trim();
+  if (!name) { notify('Fixture name is required.','error'); return; }
+  const f = {
+    id: genId(), name,
+    partNo:   document.getElementById('new-partno').value.trim(),
+    brand:    document.getElementById('new-brand').value.trim(),
+    category: document.getElementById('new-category').value.trim(),
+    wattage:  document.getElementById('new-wattage').value.trim(),
+    finish:   document.getElementById('new-finish').value.trim(),
+    location: document.getElementById('new-location').value.trim(),
+    notes:    document.getElementById('new-notes').value.trim(),
+    specSheet: document.getElementById('new-specsheet').value.trim(),
+    status: 'available', checkedOutBy: null, checkedOutAt: null,
+  };
+  fixtures.push(f);
+  fixtureCounter++;
+  const hadd = logEvent(f, 'added');
+  await saveData({ fixture: f, historyEntry: hadd, counter: true });
+  populateFilters();
+  notify(`✓ Added ${f.id}: ${f.name}`, 'success');
+  // Show QR
+  document.getElementById('new-qr-section').style.display = 'block';
+  document.getElementById('new-qr-id-text').textContent = f.id;
+  document.getElementById('new-qr-name-text').textContent = f.name;
+  const qrEl = document.getElementById('new-qr-code');
+  qrEl.innerHTML = '';
+  new QRCode(qrEl, { text:f.id, width:150, height:150, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
+  // Reset form
+  ['new-name','new-partno','new-brand','new-category','new-wattage','new-finish','new-location','new-notes','new-specsheet'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('new-fixture-id').value = genId();
+}
+
+// ═══════════════════════════════════════════════════════
+//  PRINT PAGE
+// ═══════════════════════════════════════════════════════
+function renderPrintPage() {
+  const grid = document.getElementById('print-grid');
+  grid.innerHTML = fixtures.map(f=>`
+    <div class="print-card" id="pcard-${f.id}">
+      <div id="pqr-${f.id}"></div>
+      <div class="pid">${f.id}</div>
+      <div class="pname">${f.name}</div>
+      <div class="pbrand">${[f.partNo,f.brand,f.category].filter(Boolean).join(' · ')}</div>
+      <button class="print-card-btn no-print" onclick="printSingleQR('${f.id}')">🖨 Print</button>
+    </div>
+  `).join('');
+  fixtures.forEach(f=>{
+    setTimeout(()=>{
+      const el = document.getElementById('pqr-'+f.id);
+      if (el && !el.querySelector('canvas')) {
+        new QRCode(el,{text:f.id,width:130,height:130,colorDark:'#111',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});
+      }
+    },50);
+  });
+}
+
+function printSingleQR(fid) {
+  const f = fixtures.find(x=>x.id===fid);
+  if (!f) return;
+  const w = window.open('', '_blank', 'width=400,height=500');
+  // Build QR as data URL via a temporary canvas
+  const tmp = document.createElement('div');
+  document.body.appendChild(tmp);
+  new QRCode(tmp, { text: f.id, width: 200, height: 200, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+  setTimeout(() => {
+    const canvas = tmp.querySelector('canvas');
+    const imgSrc = canvas ? canvas.toDataURL() : '';
+    document.body.removeChild(tmp);
+    const info = [f.partNo, f.brand, f.category].filter(Boolean).join(' · ');
+    w.document.write(`<!DOCTYPE html><html><head><title>${f.id}</title>
+      <style>
+        body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff;font-family:'DM Sans',sans-serif;}
+        .label{text-align:center;padding:24px;}
+        img{width:180px;height:180px;}
+        .lid{font-family:monospace;font-size:13px;color:#555;margin-top:8px;}
+        .lname{font-size:16px;font-weight:700;color:#111;margin-top:4px;}
+        .lbrand{font-size:11px;color:#888;margin-top:2px;}
+        @media print{@page{size:3in 3in;margin:0;}body{min-height:unset;}}
+      </style></head><body>
+      <div class="label">
+        ${imgSrc ? `<img src="${imgSrc}">` : ''}
+        <div class="lid">${f.id}</div>
+        <div class="lname">${f.name}</div>
+        ${info ? `<div class="lbrand">${info}</div>` : ''}
+      </div>
+      <script>window.onload=()=>{window.print();}<\/script>
+      </body></html>`);
+    w.document.close();
+  }, 200);
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADMIN — USER MANAGEMENT
+// ═══════════════════════════════════════════════════════
+let selectedAv = '💡';
+
+function renderUserList() {
+  const el = document.getElementById('user-list');
+  el.innerHTML = users.map(u=>`
+    <div class="user-row">
+      <div class="ur-avatar">${u.avatar}</div>
+      <div class="ur-info">
+        <div class="ur-name">${u.name} <span class="role-badge ${u.role}" style="margin-left:6px;">${u.role}</span></div>
+        <div class="ur-pin">PIN: ${'•'.repeat(u.pin.length)} &nbsp;|&nbsp; ID: ${u.id}</div>
+      </div>
+      <div class="ur-actions">
+        <button class="btn btn-blue btn-sm" onclick="openEditUser('${u.id}')">Edit</button>
+        ${u.id !== currentUser?.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">Delete</button>` : `<span style="font-size:11px;color:var(--text3);padding:0 8px;">(you)</span>`}
+      </div>
+    </div>
+  `).join('');
+}
+
+function openAddUserModal() {
+  document.getElementById('nu-name').value = '';
+  document.getElementById('nu-pin').value = '';
+  document.getElementById('nu-role').value = 'user';
+  selectedAv = '💡';
+  document.querySelectorAll('.av-opt').forEach((el,i) => { el.style.border = i===0?'2px solid var(--accent)':'2px solid transparent'; });
+  openModal('add-user-modal');
+}
+
+function pickAvatar(el) {
+  document.querySelectorAll('.av-opt').forEach(a=>a.style.border='2px solid transparent');
+  el.style.border = '2px solid var(--accent)';
+  selectedAv = el.textContent;
+}
+
+async function addUser() {
+  const name = document.getElementById('nu-name').value.trim();
+  const pin  = document.getElementById('nu-pin').value.trim();
+  const role = document.getElementById('nu-role').value;
+  if (!name) { notify('Name required','error'); return; }
+  if (!/^\d{4}$/.test(pin)) { notify('PIN must be exactly 4 digits','error'); return; }
+  const newUser = { id:'u'+Date.now(), name, pin, role, avatar: selectedAv };
+  users.push(newUser);
+  await saveData({ user: newUser });
+  closeModal('add-user-modal');
+  renderUserList();
+  renderLoginScreen();
+  notify('User added!', 'success');
+}
+
+function openEditUser(uid) {
+  const u = users.find(x=>x.id===uid);
+  if (!u) return;
+  document.getElementById('eu-id').value   = u.id;
+  document.getElementById('eu-name').value = u.name;
+  document.getElementById('eu-pin').value  = '';
+  document.getElementById('eu-role').value = u.role;
+  openModal('edit-user-modal');
+}
+
+async function saveEditUser() {
+  const uid  = document.getElementById('eu-id').value;
+  const name = document.getElementById('eu-name').value.trim();
+  const pin  = document.getElementById('eu-pin').value.trim();
+  const role = document.getElementById('eu-role').value;
+  if (!name) { notify('Name required','error'); return; }
+  if (pin && !/^\d{4}$/.test(pin)) { notify('PIN must be 4 digits','error'); return; }
+  const u = users.find(x=>x.id===uid);
+  if (!u) return;
+  u.name = name;
+  u.role = role;
+  if (pin) u.pin = pin;
+  await saveData({ user: u });
+  closeModal('edit-user-modal');
+  renderUserList();
+  renderLoginScreen();
+  notify('User updated!','success');
+}
+
+async function deleteUser(uid) {
+  const u = users.find(x=>x.id===uid);
+  if (!u) return;
+  if (!confirm(`Delete user "${u.name}"? This cannot be undone.`)) return;
+  users = users.filter(x=>x.id!==uid);
+  await saveData({ deletedUserId: uid });
+  renderUserList();
+  renderLoginScreen();
+  notify('User deleted.','info');
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADMIN — FIXTURE MANAGEMENT
+// ═══════════════════════════════════════════════════════
+function renderAdminFixtures() {
+  const q = (document.getElementById('admin-search').value||'').toLowerCase();
+  const list = fixtures.filter(f=>[f.id,f.name,f.brand,f.category].join(' ').toLowerCase().includes(q));
+  const tbody = document.getElementById('admin-fixture-tbody');
+  if (!list.length) { tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3);">No fixtures.</td></tr>`; return; }
+  tbody.innerHTML = list.map(f=>`
+    <tr>
+      <td class="mono">${f.id}</td>
+      <td>${f.name}</td>
+      <td style="color:var(--text2);">${f.brand||'—'}</td>
+      <td style="color:var(--text2);font-size:11px;font-family:'DM Mono',monospace;">${f.location||'—'}</td>
+      <td><span class="sbadge ${f.status==='available'?'available':'out'}">${f.status==='available'?'Available':'Out'}</span></td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-blue btn-sm" onclick="openEditFixture('${f.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteFixture('${f.id}')">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function deleteFixture(fid) {
+  const f = fixtures.find(x=>x.id===fid);
+  if (!f) return;
+  if (f.status==='out') { notify('Return fixture before deleting.','error'); return; }
+  if (!confirm(`Delete "${f.name}" (${f.id})? This cannot be undone.`)) return;
+  fixtures = fixtures.filter(x=>x.id!==fid);
+  const hdel = logEvent(f,'deleted');
+  await saveData({ deletedFixtureId: fid, historyEntry: hdel });
+  renderAdminFixtures();
+  notify(`Deleted ${f.id}`,'info');
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADMIN — FORCE RETURN
+// ═══════════════════════════════════════════════════════
+function renderForceReturn() {
+  const coList = fixtures.filter(f=>f.status==='out');
+  const el = document.getElementById('force-return-list');
+  if (!coList.length) { el.innerHTML='<div style="color:var(--text3);font-size:13px;">Nothing currently checked out.</div>'; return; }
+  el.innerHTML = coList.map(f=>{
+    const u = users.find(x=>x.id===f.checkedOutBy);
+    return `
+      <div class="user-row" style="margin-bottom:8px;">
+        <div style="flex:1;">
+          <span class="fid">${f.id}</span>
+          <span style="margin-left:10px;font-weight:500;">${f.name}</span>
+          <span style="margin-left:10px;font-size:12px;color:var(--text2);">${u?u.avatar+' '+u.name:'Unknown'}</span>
+          <span style="margin-left:8px;font-size:11px;color:var(--text3);">${timeAgo(f.checkedOutAt)}</span>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="forceReturn('${f.id}')">Force Return</button>
+      </div>
+    `;
+  }).join('');
+}
+
+async function forceReturn(fid) {
+  const f = fixtures.find(x=>x.id===fid);
+  if (!f) return;
+  f.status = 'available';
+  f.checkedOutBy = null;
+  f.checkedOutAt = null;
+  const hfr = logEvent(f,'return');
+  await saveData({ fixture: f, historyEntry: hfr });
+  renderForceReturn();
+  renderAdminFixtures();
+  notify(`Force returned: ${f.name}`,'info');
+}
+
+// ═══════════════════════════════════════════════════════
+//  QR SCANNER
+// ═══════════════════════════════════════════════════════
+function openScanModal() {
+  openModal('scan-modal');
+  document.getElementById('scan-result').style.display = 'none';
+  document.getElementById('manual-id-input').value = '';
+  startScanner();
+}
+
+function closeScanModal() {
+  closeModal('scan-modal');
+  stopScanner();
+}
+
+function startScanner() {
+  stopScanner();
+  scannerInstance = new Html5Qrcode('qr-reader');
+  scannerInstance.start(
+    {facingMode:'environment'},
+    {fps:10, qrbox:{width:200,height:200}},
+    (decoded) => { stopScanner(); processScannedId(decoded.trim()); },
+    () => {}
+  ).catch(() => {
+    document.getElementById('qr-reader').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;">Camera unavailable.<br>Use manual ID entry below.</div>';
+  });
+}
+
+function stopScanner() {
+  if (scannerInstance) { scannerInstance.stop().catch(()=>{}); scannerInstance = null; }
+}
+
+function processManualId() {
+  const id = document.getElementById('manual-id-input').value.trim().toUpperCase();
+  if (!id) return;
+  processScannedId(id);
+}
+
+function processScannedId(id) {
+  const f = fixtures.find(x=>x.id===id);
+  const el = document.getElementById('scan-result');
+  el.style.display = 'block';
+  if (!f) { el.innerHTML=`<div style="color:var(--red);">❌ Fixture "${id}" not found.</div>`; return; }
+  const u = f.checkedOutBy ? users.find(x=>x.id===f.checkedOutBy) : null;
+  const isMe = f.checkedOutBy === currentUser?.id;
+  const isAdmin = currentUser?.role === 'admin';
+  el.innerHTML = `
+    <div style="margin-bottom:12px;">
+      <span class="fid">${f.id}</span>
+      <div style="font-size:15px;font-weight:600;margin-top:6px;">${f.name}</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:2px;">${f.brand||''} ${f.category||''}</div>
+      <div style="margin-top:8px;">
+        <span class="sbadge ${f.status==='available'?'available':'out'}">${f.status==='available'?'Available':'Checked Out'}</span>
+        ${u?`<span style="font-size:12px;color:var(--text2);margin-left:8px;">${u.avatar} ${u.name}</span>`:''}
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      ${f.status==='available'
+        ? `<button class="btn btn-success" onclick="quickCheckout('${f.id}');closeScanModal();">↗ Check Out</button>`
+        : isMe
+        ? `<button class="btn btn-danger" onclick="quickReturn('${f.id}');closeScanModal();">↙ Return to Stock</button>`
+        : `<span style="display:inline-flex;gap:8px;flex-wrap:wrap;">
+             <button class="btn btn-warning" onclick="swapOwnership('${f.id}');closeScanModal();">⇄ Take Over</button>
+             <button class="btn btn-danger" onclick="quickReturn('${f.id}');closeScanModal();">↙ Return to Stock</button>
+           </span>`}
+      <button class="btn btn-secondary" onclick="closeScanModal();openDetailModal('${f.id}')">Details</button>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+//  EDIT FIXTURE
+// ═══════════════════════════════════════════════════════
+function openEditFixture(fid) {
+  const f = fixtures.find(x=>x.id===fid);
+  if (!f) return;
+  document.getElementById('ef-id').value       = f.id;
+  document.getElementById('ef-fid').value      = f.id;
+  document.getElementById('ef-name').value     = f.name;
+  document.getElementById('ef-brand').value    = f.brand    || '';
+  document.getElementById('ef-category').value = f.category || '';
+  document.getElementById('ef-wattage').value  = f.wattage  || '';
+  document.getElementById('ef-finish').value   = f.finish   || '';
+  document.getElementById('ef-location').value = f.location || '';
+  document.getElementById('ef-partno').value   = f.partNo   || '';
+  document.getElementById('ef-notes').value    = f.notes    || '';
+  document.getElementById('ef-specsheet').value = f.specSheet || '';
+  openModal('edit-fixture-modal');
+}
+
+async function saveEditFixture() {
+  const fid = document.getElementById('ef-id').value;
+  const f   = fixtures.find(x=>x.id===fid);
+  if (!f) return;
+  const name = document.getElementById('ef-name').value.trim();
+  if (!name) { notify('Fixture name is required.','error'); return; }
+  f.name     = name;
+  f.brand    = document.getElementById('ef-brand').value.trim();
+  f.category = document.getElementById('ef-category').value.trim();
+  f.wattage  = document.getElementById('ef-wattage').value.trim();
+  f.finish   = document.getElementById('ef-finish').value.trim();
+  f.location = document.getElementById('ef-location').value.trim();
+  f.partNo   = document.getElementById('ef-partno').value.trim();
+  f.notes    = document.getElementById('ef-notes').value.trim();
+  f.specSheet = document.getElementById('ef-specsheet').value.trim();
+  // Auto-add new location to list if not already there
+  if (f.location && !locations.includes(f.location)) {
+    locations.push(f.location);
+    locations.sort();
+  }
+  const hedit = logEvent(f,'edited');
+  await saveData({ fixture: f, historyEntry: hedit });
+  closeModal('edit-fixture-modal');
+  refreshCurrentPage();
+  populateFilters();
+  notify(`✓ Updated: ${f.name}`,'success');
+}
+
+// ═══════════════════════════════════════════════════════
+//  LOCATION COMBO DROPDOWN
+// ═══════════════════════════════════════════════════════
+function showLocDropdown(inputId, dropId) {
+  filterLocDropdown(inputId, dropId);
+  document.getElementById(dropId).style.display = 'block';
+}
+
+function hideLocDropdown(dropId) {
+  const el = document.getElementById(dropId);
+  if (el) el.style.display = 'none';
+}
+
+function filterLocDropdown(inputId, dropId) {
+  const q   = (document.getElementById(inputId).value||'').toLowerCase();
+  const drop = document.getElementById(dropId);
+  if (!drop) return;
+  const filtered = locations.filter(l => l.toLowerCase().includes(q));
+  const showAdd  = q && !locations.some(l=>l.toLowerCase()===q);
+  drop.innerHTML = filtered.map(l =>
+    `<div class="loc-option" onmousedown="pickLocation('${inputId}','${dropId}','${l.replace(/'/g,"\'")}')">📍 ${l}</div>`
+  ).join('') + (showAdd ? `<div class="loc-option add-new" onmousedown="addAndPickLocation('${inputId}','${dropId}')">＋ Add "${document.getElementById(inputId).value}"</div>` : '');
+  drop.style.display = 'block';
+}
+
+function pickLocation(inputId, dropId, val) {
+  document.getElementById(inputId).value = val;
+  hideLocDropdown(dropId);
+}
+
+async function addAndPickLocation(inputId, dropId) {
+  const val = document.getElementById(inputId).value.trim();
+  if (!val || locations.includes(val)) return;
+  locations.push(val);
+  locations.sort();
+  await saveData({ location: val });
+  hideLocDropdown(dropId);
+  renderLocationPreview();
+  notify(`Location "${val}" added`,'success');
+}
+
+// ═══════════════════════════════════════════════════════
+//  LOCATION MANAGEMENT (admin)
+// ═══════════════════════════════════════════════════════
+function openLocationsModal() {
+  renderLocationsList();
+  openModal('locations-modal');
+}
+
+function renderLocationsList() {
+  const el = document.getElementById('locations-list');
+  if (!el) return;
+  el.innerHTML = locations.map((l,i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <span style="flex:1;font-size:13px;">📍 ${l}</span>
+      <button class="btn btn-danger btn-sm" onclick="removeLocation(${i})">Remove</button>
+    </div>
+  `).join('');
+}
+
+async function addLocation() {
+  const val = document.getElementById('new-location-input').value.trim();
+  if (!val) return;
+  if (locations.includes(val)) { notify('Already exists','error'); return; }
+  locations.push(val);
+  locations.sort();
+  document.getElementById('new-location-input').value = '';
+  await saveData({ location: val });
+  renderLocationsList();
+  renderLocationPreview();
+  notify(`✓ Added location: ${val}`,'success');
+}
+
+async function removeLocation(idx) {
+  const removed = locations[idx];
+  locations.splice(idx,1);
+  await saveData({ deletedLocation: removed });
+  renderLocationsList();
+  renderLocationPreview();
+}
+
+function renderLocationPreview() {
+  const el = document.getElementById('location-preview');
+  if (!el) return;
+  el.innerHTML = locations.map(l =>
+    `<span style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-size:11px;font-family:'DM Mono',monospace;color:var(--text2);">📍 ${l}</span>`
+  ).join('');
+}
+
+
+// ═══════════════════════════════════════════════════════
+//  SETUP PAGE
+// ═══════════════════════════════════════════════════════
+function renderSetupPage() {
+  const connected = !!(fbConfig && fbDb);
+  const banner = document.getElementById('setup-status-banner');
+  if (banner) {
+    if (connected) {
+      banner.style.cssText = 'border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.25);';
+      banner.innerHTML = `<span style="font-size:26px;">🔥</span><div><div style="font-weight:600;color:var(--green);">Real-time sync active</div><div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;">${fbConfig?.projectId||''}</div></div>`;
+    } else {
+      banner.style.cssText = 'border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;background:rgba(245,200,66,0.06);border:1px solid rgba(245,200,66,0.2);';
+      banner.innerHTML = `<span style="font-size:26px;">⚠️</span><div><div style="font-weight:600;color:var(--accent);">Not connected</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Follow the steps below to connect to Firebase.</div></div>`;
+    }
+  }
+  const connectCard    = document.getElementById('setup-connect-card');
+  const connectedBlock = document.getElementById('setup-connected-block');
+  const urlEl          = document.getElementById('setup-connected-url');
+  if (connected) {
+    if (connectCard)    connectCard.style.display = 'none';
+    if (connectedBlock) connectedBlock.style.display = 'block';
+    if (urlEl) urlEl.textContent = `Project: ${fbConfig?.projectId||''}  ·  ${fbConfig?.databaseURL||''}`;
+  } else {
+    if (connectCard)    connectCard.style.display = 'flex';
+    if (connectedBlock) connectedBlock.style.display = 'none';
+  }
+}
+
+async function connectFromSetup() {
+  const raw = (document.getElementById('setup-fb-config')?.value || '').trim();
+  const fb  = document.getElementById('setup-connect-feedback');
+  if (!raw) {
+    if (fb) { fb.style.display='block'; fb.textContent='⚠ Paste your Firebase config JSON first.'; }
+    return;
+  }
+  if (fb) { fb.style.display='block'; fb.style.color='var(--accent)'; fb.textContent='Connecting…'; }
+  await connectFirebase(raw);
+  if (fb) fb.style.display = 'none';
+}
+
+function disconnectFromSetup() {
+  disconnectFirebase();
+}
+
+// ═══════════════════════════════════════════════════════
+//  FIREBASE STATUS (admin panel)
+// ═══════════════════════════════════════════════════════
+function renderGsStatus() {
+  const btns  = document.getElementById('fb-action-btns');
+  const block = document.getElementById('fb-status-block');
+  if (!btns || !block) return;
+  const connected = !!(fbConfig && fbDb);
+  if (connected) {
+    btns.innerHTML = `
+      <button class="btn btn-secondary btn-sm" onclick="fbStartListening();notify('Reconnected','success')">↻ Reconnect</button>
+      <button class="btn btn-danger btn-sm" onclick="disconnectFirebase()">Disconnect</button>
+    `;
+    block.innerHTML = `<span style="color:var(--green);">🔥 Firebase live sync</span> <span style="color:var(--text3);margin-left:8px;font-size:11px;font-family:'DM Mono',monospace;">${fbConfig?.projectId}</span>`;
+  } else {
+    btns.innerHTML = `<button class="btn btn-primary btn-sm" onclick="showPage('setup',document.getElementById('tab-setup'))">Connect Firebase</button>`;
+    block.innerHTML = `<span style="color:var(--text3);">Not connected — data is stored locally only.</span>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function timeAgo(ts) {
+  if (!ts) return '';
+  const d = Math.floor((Date.now()-new Date(ts))/1000);
+  if (d<60) return `${d}s ago`;
+  if (d<3600) return `${Math.floor(d/60)}m ago`;
+  if (d<86400) return `${Math.floor(d/3600)}h ago`;
+  return `${Math.floor(d/86400)}d ago`;
+}
+
+function notify(msg, type='success') {
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.className = 'notif show ' + type;
+  setTimeout(()=>{el.className='notif';},3000);
+}
+
+// Keyboard PIN support
+document.addEventListener('keydown', e => {
+  if (document.getElementById('pin-entry').style.display!=='none') {
+    if (e.key>='0'&&e.key<='9') pinPress(e.key);
+    if (e.key==='Backspace') pinBackspace();
+  }
+});
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+function detectAndApplyLayout() {
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || window.innerWidth <= 580
+    || (window.navigator.standalone === true)           // iOS saved-to-home
+    || window.matchMedia('(display-mode: standalone)').matches; // Android PWA
+  document.body.classList.toggle('is-mobile', isMobile);
+}
+
+async function init() {
+  detectAndApplyLayout();
+  window.addEventListener('resize', detectAndApplyLayout);
+  await loadData();
+  renderLoginScreen();
+}
+
+init();
+</script>
+</body>
+</html>
