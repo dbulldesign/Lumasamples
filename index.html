@@ -1638,8 +1638,16 @@ async function fbPushAll() {
 async function connectFirebase(configInput) {
   let config;
   try {
-    config = typeof configInput === 'string' ? JSON.parse(configInput) : configInput;
+    let raw = typeof configInput === 'string' ? configInput.trim() : JSON.stringify(configInput);
+    // Strip "const firebaseConfig = " or "var firebaseConfig = " preamble
+    raw = raw.replace(/^[\s\S]*?=\s*({)/, '$1').replace(/;\s*$/, '').trim();
+    // Quote unquoted JS object keys  e.g.  apiKey: "x"  →  "apiKey": "x"
+    if (raw.startsWith('{')) {
+      raw = raw.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
+    }
+    config = JSON.parse(raw);
     if (!config.apiKey || !config.projectId) throw new Error('Missing apiKey or projectId');
+    if (!config.databaseURL) throw new Error('Missing databaseURL — create Realtime Database first');
   } catch(e) { notify('Invalid config: ' + e.message, 'error'); return; }
 
   setSyncStatus('syncing', 'Connecting to Firebase…');
