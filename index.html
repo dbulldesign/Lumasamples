@@ -1854,7 +1854,7 @@ function normalizeUser(u) {
 async function fbPushAll() {
   setSyncStatus('syncing', 'Uploading to Firebase…');
   // Firebase keys cannot contain . # $ [ ]
-  const sanitize = s => String(s).replace(/[.#$[\]]/g, '_');
+  const sanitize = s => String(s).replace(/[.#$[\]\/\s]/g, '_');
   const snap = {
     fixtures:  Object.fromEntries(fixtures.map(f => [sanitize(f.id), f])),
     users:     Object.fromEntries(users.map(u    => [sanitize(u.id), u])),
@@ -3273,14 +3273,14 @@ async function addFixtureType() {
   fixtureTypes.sort();
   document.getElementById('new-fixtype-input').value = '';
   await storeSet(KEY_FIX_TYPES, JSON.stringify(fixtureTypes));
-  if (fbDb) await fbSet('lumasamples/fixtureTypes', Object.fromEntries(fixtureTypes.map((t,i)=>[t.replace(/[.#$[\]\s]/g,'_')||'t'+i,t])));
+  if (fbDb) await fbSet('lumasamples/fixtureTypes', Object.fromEntries(fixtureTypes.map((t,i)=>[t.replace(/[.#$[\]\/\s]/g,'_')||'t'+i,t])));
   renderFixtypesList();
   notify(`✓ Added type: ${val}`,'success');
 }
 async function removeFixtureType(idx) {
   fixtureTypes.splice(idx,1);
   await storeSet(KEY_FIX_TYPES, JSON.stringify(fixtureTypes));
-  if (fbDb) await fbSet('lumasamples/fixtureTypes', Object.fromEntries(fixtureTypes.map((t,i)=>[t.replace(/[.#$[\]\s]/g,'_')||'t'+i,t])));
+  if (fbDb) await fbSet('lumasamples/fixtureTypes', Object.fromEntries(fixtureTypes.map((t,i)=>[t.replace(/[.#$[\]\/\s]/g,'_')||'t'+i,t])));
   renderFixtypesList();
 }
 function populateFixTypeSelect(selectId) {
