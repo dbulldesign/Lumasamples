@@ -662,7 +662,10 @@ tr:hover td { background: var(--surface2); }
 .setup-desc  { font-size:12px; color:var(--text2); line-height:1.6; }
 .code-block  { background:var(--surface3); border:1px solid var(--border2); border-radius:6px; padding:10px 12px; font-family:'DM Mono',monospace; font-size:11px; color:var(--accent); margin-top:8px; word-break:break-all; }
 
-/* duplicate sync-bar removed */
+/* Hide bottom sync bar on desktop — header dot shows status instead */
+@media (min-width: 581px) {
+  body.app-visible #sync-bar { display: none !important; }
+}
 .setup-step { display:flex; gap:12px; margin-bottom:20px; }
 .setup-num  { width:28px; height:28px; border-radius:50%; background:var(--accent); color:#000; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
 .setup-content { flex:1; }
@@ -729,6 +732,7 @@ tr:hover td { background: var(--surface2); }
   .btn-scan { padding: 8px 12px; font-size: 13px; }
   /* Forms — 16px prevents iOS zoom on focus */
   .form-input { font-size: 16px !important; padding: 12px 14px; min-height: 48px; }
+  input[type="date"].form-input { height: 48px; min-height: 48px; padding: 0 14px; box-sizing: border-box; -webkit-appearance: none; appearance: none; line-height: 48px; }
   .form-label { font-size: 13px; letter-spacing: 0.5px; }
   .filter-select { font-size: 15px; padding: 10px 12px; min-height: 44px; }
   .search-box input { font-size: 15px; }
@@ -816,6 +820,7 @@ body.is-mobile .nav-tabs { display: none !important; }
 body.is-mobile .btn { padding: 11px 16px; font-size: 15px; min-height: 46px; }
 body.is-mobile .btn-sm { padding: 8px 12px; font-size: 13px; min-height: 38px; }
 body.is-mobile .form-input { font-size: 16px !important; padding: 12px 14px; min-height: 48px; }
+body.is-mobile input[type="date"].form-input { height: 48px; min-height: 48px; padding: 0 14px; box-sizing: border-box; -webkit-appearance: none; appearance: none; line-height: 48px; }
 body.is-mobile .form-label { font-size: 13px; }
 body.is-mobile .filter-select { font-size: 15px; padding: 10px 12px; min-height: 44px; }
 body.is-mobile .search-box input { font-size: 15px; }
@@ -965,6 +970,11 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
      LOGIN SCREEN
 ════════════════════════════════════════ -->
 <div id="login-screen">
+  <!-- Firebase connection status — shown at top of login -->
+  <div id="login-sync-bar" style="display:flex;position:fixed;top:0;left:0;right:0;width:100%;z-index:200;padding:8px 0;font-size:12px;font-family:'DM Mono',monospace;align-items:center;justify-content:center;text-align:center;gap:8px;background:var(--surface2);border-bottom:1px solid var(--border);visibility:hidden;">
+    <span id="login-sync-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;"></span>
+    <span id="login-sync-msg">Not connected</span>
+  </div>
   <div class="login-logo" onclick="adminQuickLogin()" style="cursor:pointer;user-select:none;" title="Admin access">LumaSamples</div>
   <div class="login-sub">Lighting Fixture Library</div>
 
@@ -1015,9 +1025,10 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
 ════════════════════════════════════════ -->
 <div id="app" style="display:none;">
   <header>
-    <div style="display:flex;align-items:center;">
-      <div class="logo" onclick="showPage('home', document.querySelector('[data-page=home]'))" style="cursor:pointer;">LumaSamples</div>
-      <span class="logo-sub">Sample DB</span>
+    <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
+      <div class="logo" onclick="showPage('home', document.querySelector('[data-page=home]'))" style="cursor:pointer;flex-shrink:0;">LumaSamples</div>
+      <!-- Sync status dot — always visible when logged in -->
+      <div id="header-sync-dot" style="width:9px;height:9px;border-radius:50%;background:var(--red);flex-shrink:0;margin-left:2px;" title="Not connected"></div>
     </div>
     <div class="header-right">
       <div class="user-chip" id="user-chip" onclick="logOut()">
@@ -1073,7 +1084,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
     <!-- HISTORY PAGE -->
     <div class="page" id="page-history">
       <div class="toolbar" style="margin-bottom:18px;">
-        <h2 style="font-size:16px;font-weight:600;flex:1;">Transaction History</h2>
+        <h2 style="font-size:20px;font-weight:700;flex:1;color:#ffffff;">Transaction History</h2>
         <select class="filter-select" id="hist-user-filter" onchange="renderHistory()">
           <option value="">All Users</option>
         </select>
@@ -1097,7 +1108,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
     <!-- ADD FIXTURE PAGE -->
     <div class="page" id="page-add">
       <div style="max-width:580px;margin:0 auto;">
-        <h2 style="font-size:16px;font-weight:600;margin-bottom:6px;">Add New Fixture</h2>
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;color:#ffffff;">Add New Fixture</h2>
         <p style="color:var(--text2);font-size:13px;margin-bottom:22px;">A unique QR code is auto-generated with each entry.</p>
         <div class="form-group">
           <label class="form-label">Auto-Generated ID</label>
@@ -1167,7 +1178,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
     <!-- PRINT QR PAGE (admin only) -->
     <div class="page" id="page-print">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
-        <h2 style="font-size:16px;font-weight:600;">Print QR Labels</h2>
+        <h2 style="font-size:20px;font-weight:700;color:#ffffff;">Print QR Labels</h2>
         <button class="btn btn-primary" onclick="window.print()">🖨 Print All Labels</button>
       </div>
       <div class="print-grid" id="print-grid"></div>
@@ -1247,7 +1258,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
         <!-- Status banner -->
         <div id="setup-status-banner" style="border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;"></div>
 
-        <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;">🔥 Firebase Sync</h2>
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;color:#ffffff;">🔥 Firebase Sync</h2>
         <p style="color:var(--text2);font-size:13px;margin-bottom:16px;line-height:1.7;">Sync LumaSamples across every device in real time. Free on Firebase's Spark plan — setup takes about 3 minutes.</p>
         <div id="setup-hardcoded-tip" style="display:none;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--text2);line-height:1.6;">
           <strong style="color:var(--green);">💡 Pro tip:</strong> Once you've connected, open this HTML file, find <code style="font-family:'DM Mono',monospace;background:var(--surface3);padding:1px 5px;border-radius:3px;">HARDCODED_FB_PROJECT_ID</code> near the top of the &lt;script&gt; section, and paste your Project ID there. Every device will then auto-connect on load — no setup needed.
@@ -1478,7 +1489,6 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
 <div id="sync-bar">
   <div class="sync-dot" id="sync-dot"></div>
   <span id="sync-msg">Not connected</span>
-  <span style="margin-left:auto;cursor:pointer;color:var(--text3);" onclick="hideSyncBar()">✕</span>
 </div>
 
 
@@ -1864,19 +1874,45 @@ function disconnectFirebase() {
 // ── Sync status bar ──
 let syncHideTimer = null;
 function setSyncStatus(state, msg) {
+  // ── bottom bar (legacy — only shown on login screen) ──
   const bar = document.getElementById('sync-bar');
   const dot = document.getElementById('sync-dot');
   const txt = document.getElementById('sync-msg');
-  if (!bar) return;
-  bar.className = 'show ' + state;
-  dot.className = 'sync-dot' + (state === 'syncing' ? ' pulse' : '');
-  txt.textContent = msg;
+  if (bar) {
+    bar.className = 'show ' + state;
+    if (dot) dot.className = 'sync-dot' + (state === 'syncing' ? ' pulse' : '');
+    if (txt) txt.textContent = msg;
+  }
   clearTimeout(syncHideTimer);
   if (state === 'synced') syncHideTimer = setTimeout(hideSyncBar, 4000);
+
+  // ── login screen top bar ──
+  const loginBar  = document.getElementById('login-sync-bar');
+  const loginDot  = document.getElementById('login-sync-dot');
+  const loginMsg  = document.getElementById('login-sync-msg');
+  if (loginBar) {
+    loginBar.style.visibility = 'visible';
+    const colors = { syncing: 'var(--accent)', synced: 'var(--green)', error: 'var(--red)', offline: 'var(--text3)' };
+    const c = colors[state] || 'var(--text3)';
+    loginBar.style.borderBottomColor = c + '44';
+    if (loginDot) { loginDot.style.background = c; loginDot.style.animation = state === 'syncing' ? 'syncPulse 1s infinite' : ''; }
+    if (loginMsg) { loginMsg.textContent = msg; loginMsg.style.color = c; }
+  }
+
+  // ── header dot (always visible in header when app shown) ──
+  const hDot = document.getElementById('header-sync-dot');
+  if (hDot) {
+    const colors = { syncing: 'var(--accent)', synced: 'var(--green)', error: 'var(--red)', offline: 'var(--red)' };
+    hDot.style.background = colors[state] || 'var(--red)';
+    hDot.className = state === 'syncing' ? 'sync-dot pulse' : 'sync-dot';
+    hDot.title = msg;
+  }
 }
 function hideSyncBar() {
+  // Hide the legacy bottom bar
   const bar = document.getElementById('sync-bar');
   if (bar) bar.className = bar.className.replace('show','').trim();
+  // Header chip stays visible — fades to "connected" state colour
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2105,6 +2141,9 @@ function loginSuccess(user) {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.body.classList.add('app-visible');
+  // Hide the login-screen sync bar, keep header chip
+  const loginBar = document.getElementById('login-sync-bar');
+  if (loginBar) loginBar.style.visibility = 'hidden';
   // Header
   document.getElementById('chip-avatar').textContent = user.avatar;
   document.getElementById('chip-name').textContent = user.name;
@@ -2134,6 +2173,9 @@ function logOut() {
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = '';
   document.body.classList.remove('app-visible');
+  // Re-show login sync bar, hide header chip
+  const loginBar = document.getElementById('login-sync-bar');
+  if (loginBar && fbConfig) loginBar.style.visibility = 'visible';
   document.getElementById('pin-entry').style.display = 'none';
   document.getElementById('login-user-grid').style.display = 'grid';
   renderLoginScreen();
