@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="LumaSamples">
 <meta name="theme-color" content="#0a0a0c">
 <title>LumaSamples — Fixture Library</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💡</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -86,9 +87,17 @@ body {
 #login-screen::before {
   content: '';
   position: absolute;
-  top: -200px; left: 50%; transform: translateX(-50%);
-  width: 600px; height: 600px;
-  background: radial-gradient(circle, rgba(245,200,66,0.06) 0%, transparent 70%);
+  top: -160px; left: 50%; transform: translateX(-50%);
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(245,200,66,0.18) 0%, rgba(245,200,66,0.06) 35%, transparent 70%);
+  pointer-events: none;
+}
+#login-screen::after {
+  content: '';
+  position: absolute;
+  top: -60px; left: 50%; transform: translateX(-50%);
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(245,200,66,0.10) 0%, transparent 65%);
   pointer-events: none;
 }
 .login-logo {
@@ -536,6 +545,8 @@ main { padding: 24px; max-width: 1400px; margin: 0 auto; }
   outline: none; transition: border-color 0.2s;
 }
 .form-input:focus { border-color: var(--accent); }
+input[type="date"].form-input { color-scheme: dark; }
+input[type="date"].form-input::-webkit-calendar-picker-indicator { filter: invert(1) opacity(0.6); cursor: pointer; }
 .form-input::placeholder { color: var(--text3); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
@@ -631,26 +642,9 @@ tr:hover td { background: var(--surface2); }
 .setup-card-desc  { font-size: 13px; color: var(--text2); line-height: 1.7; }
 
 /* ── SYNC STATUS ── */
-#sync-bar {
-  position: fixed;
-  /* Sits just above the tab bar. --tab-bar-h is set by JS after layout. */
-  bottom: calc(var(--tab-bar-h, 0px) + env(safe-area-inset-bottom, 0px));
-  left: 0; right: 0;
-  z-index: 200;   /* BELOW tab bar (500) so tabs always show on top */
-  background: var(--surface2);
-  border-top: 1px solid var(--border);
-  padding: 7px 16px;
-  display: flex; align-items: center; gap: 8px;
-  font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text3);
-  transform: translateY(100%); transition: transform 0.3s ease;
-  pointer-events: none;
-}
-#sync-bar.show { transform: translateY(0); pointer-events: auto; }
-#sync-bar.syncing { color: var(--accent); border-top-color: rgba(245,200,66,0.3); }
-#sync-bar.synced  { color: var(--green);  border-top-color: rgba(74,222,128,0.3); }
-#sync-bar.error   { color: var(--red);    border-top-color: rgba(248,113,113,0.3); }
-#sync-bar.offline { color: var(--text3);  }
-.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+/* Login sync indicator only on mobile */
+@media (min-width: 581px) { body:not(.app-visible) #login-sync-bar { display: none !important; } }
 .sync-dot.pulse { animation: syncPulse 1s infinite; }
 @keyframes syncPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
@@ -662,13 +656,7 @@ tr:hover td { background: var(--surface2); }
 .setup-desc  { font-size:12px; color:var(--text2); line-height:1.6; }
 .code-block  { background:var(--surface3); border:1px solid var(--border2); border-radius:6px; padding:10px 12px; font-family:'DM Mono',monospace; font-size:11px; color:var(--accent); margin-top:8px; word-break:break-all; }
 
-/* Hide bottom sync bar on desktop when logged in — header dot shows status instead */
-@media (min-width: 581px) {
-  body.app-visible #sync-bar { display: none !important; }
-}
-/* Hide bottom sync bar on mobile everywhere — login page uses top-left dot instead */
-@media (max-width: 580px) { #sync-bar { display: none !important; } }
-body.is-mobile #sync-bar { display: none !important; }
+
 .setup-step { display:flex; gap:12px; margin-bottom:20px; }
 .setup-num  { width:28px; height:28px; border-radius:50%; background:var(--accent); color:#000; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
 .setup-content { flex:1; }
@@ -808,7 +796,6 @@ body.is-mobile #sync-bar { display: none !important; }
   /* Comments — let inline max-height work, just ensure minimum size */
   #ef-comment-list { min-height: 120px; }
   /* Sync bar sits above tab bar */
-  #sync-bar { bottom: calc(var(--tab-bar-h, 58px) + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* ── MOBILE (JS-detected: PWA/standalone/tablet-phone) ── */
@@ -861,7 +848,6 @@ body.is-mobile .pin-key { height: 46px; font-size: 20px; border-radius: 10px; mi
 body.is-mobile .pin-name { font-size: 18px; }
 body.is-mobile .pin-dots { gap: 12px; margin-bottom: 18px; }
 body.is-mobile .pin-header { margin-bottom: 16px; }
-body.is-mobile #sync-bar { bottom: calc(var(--tab-bar-h, 58px) + env(safe-area-inset-bottom, 0px)); }
 
 /* ── BOTTOM TAB BAR ── */
 :root { --tab-bar-h: 58px; }   /* default = tab bar height; JS updates it precisely */
@@ -930,10 +916,15 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
 @media print {
   body { background: white !important; }
   #login-screen, header, .nav-tabs, .toolbar, .stats-bar, .home-hero,
-  .card-footer, .btn, .notif, .modal-overlay { display: none !important; }
+  .card-footer, .btn, .notif, .modal-overlay,
+  #bottom-tabs, #sync-bar, #login-sync-bar { display: none !important; }
   .print-grid { display: grid !important; }
   .fixture-grid { display: none; }
   #page-print { display: block !important; }
+  /* Prevent blank overflow pages */
+  html, body { height: auto !important; overflow: visible !important; }
+  main { padding-bottom: 0 !important; }
+  .print-grid { page-break-after: avoid; }
 }
 
 /* ── CONFIRM DIALOG ── */
@@ -1032,6 +1023,11 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
       <div class="logo" onclick="showPage('home', document.querySelector('[data-page=home]'))" style="cursor:pointer;flex-shrink:0;">LumaSamples</div>
       <!-- Sync status dot — always visible when logged in -->
       <div id="header-sync-dot" style="width:9px;height:9px;border-radius:50%;background:var(--red);flex-shrink:0;margin-left:2px;" title="Not connected"></div>
+      <!-- Manual sync buttons — desktop only -->
+      <div id="header-sync-btns" class="no-print" style="display:flex;gap:4px;margin-left:6px;">
+        <button class="btn btn-secondary btn-sm" onclick="manualPull()" title="Pull latest from Firebase" style="padding:4px 8px;font-size:11px;">⬇ Pull</button>
+        <button class="btn btn-secondary btn-sm" onclick="manualPush()" title="Push local data to Firebase" style="padding:4px 8px;font-size:11px;">⬆ Push</button>
+      </div>
     </div>
     <div class="header-right">
       <div class="user-chip" id="user-chip" onclick="logOut()">
@@ -1138,14 +1134,32 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
           </div>
           <div class="form-group">
             <label class="form-label">Wattage</label>
-            <input class="form-input" id="new-wattage" placeholder="e.g. 18W">
+            <input class="form-input" id="new-wattage" placeholder="e.g. 18" oninput="autoWatt(this)" onblur="autoWatt(this)">
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
+            <label class="form-label">Fixture Type</label>
+            <div style="position:relative;">
+              <select class="form-input" id="new-fixtype" onchange="onFixTypeChange('new-fixtype','new-output-wattage-row')" style="padding-right:32px;-webkit-appearance:none;appearance:none;background:var(--surface2);cursor:pointer;">
+                <option value="">— Select type —</option>
+              </select>
+              <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;font-size:12px;">▾</span>
+            </div>
+          </div>
+          <div class="form-group">
             <label class="form-label">Input Voltage</label>
             <input class="form-input" id="new-voltage" placeholder="e.g. 120V / 277V">
           </div>
+        </div>
+        <div class="form-row" id="new-output-wattage-row" style="display:none;">
+          <div class="form-group">
+            <label class="form-label">Output Wattage</label>
+            <input class="form-input" id="new-output-wattage" placeholder="e.g. 60" oninput="autoWatt(this)" onblur="autoWatt(this)">
+          </div>
+          <div class="form-group"></div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label class="form-label">Shelf / Location</label>
             <div style="position:relative;">
@@ -1154,6 +1168,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
               <div id="loc-drop-add" class="loc-dropdown" style="display:none;"></div>
             </div>
           </div>
+          <div class="form-group"></div>
         </div>
         <div class="form-group">
           <label class="form-label">Spec Sheet URL</label>
@@ -1210,6 +1225,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
         <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
           <span>📍 Shelf / Location List</span>
           <button class="btn btn-blue btn-sm" onclick="openLocationsModal()">Manage Locations</button>
+          <button class="btn btn-blue btn-sm" onclick="openFixtureTypesModal()">Manage Types</button>
         </div>
         <div id="location-preview" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
       </div>
@@ -1263,10 +1279,6 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
 
         <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;color:#ffffff;">🔥 Firebase Sync</h2>
         <p style="color:var(--text2);font-size:13px;margin-bottom:16px;line-height:1.7;">Sync LumaSamples across every device in real time. Free on Firebase's Spark plan — setup takes about 3 minutes.</p>
-        <div id="setup-hardcoded-tip" style="display:none;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--text2);line-height:1.6;">
-          <strong style="color:var(--green);">💡 Pro tip:</strong> Once you've connected, open this HTML file, find <code style="font-family:'DM Mono',monospace;background:var(--surface3);padding:1px 5px;border-radius:3px;">HARDCODED_FB_PROJECT_ID</code> near the top of the &lt;script&gt; section, and paste your Project ID there. Every device will then auto-connect on load — no setup needed.
-        </div>
-
         <!-- Step 1 -->
         <div class="setup-card">
           <div class="setup-card-num">1</div>
@@ -1489,10 +1501,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
 </div>
 
 <div class="notif" id="notif"></div>
-<div id="sync-bar">
-  <div class="sync-dot" id="sync-dot"></div>
-  <span id="sync-msg">Not connected</span>
-</div>
+
 
 
 <!-- ═════════════ EDIT FIXTURE MODAL ═════════════ -->
@@ -1529,7 +1538,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
         </div>
         <div class="form-group">
           <label class="form-label">Wattage</label>
-          <input class="form-input" id="ef-wattage" placeholder="e.g. 18W">
+          <input class="form-input" id="ef-wattage" placeholder="e.g. 18" oninput="autoWatt(this)" onblur="autoWatt(this)">
         </div>
       </div>
       <div class="form-row">
@@ -1537,6 +1546,24 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
           <label class="form-label">Input Voltage</label>
           <input class="form-input" id="ef-voltage" placeholder="e.g. 120V / 277V">
         </div>
+        <div class="form-group">
+          <label class="form-label">Fixture Type</label>
+          <div style="position:relative;">
+            <select class="form-input" id="ef-fixtype" onchange="onFixTypeChange('ef-fixtype','ef-output-wattage-row')" style="padding-right:32px;-webkit-appearance:none;appearance:none;background:var(--surface2);cursor:pointer;">
+              <option value="">— Select type —</option>
+            </select>
+            <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;font-size:12px;">▾</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-row" id="ef-output-wattage-row" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Output Wattage</label>
+          <input class="form-input" id="ef-output-wattage" placeholder="e.g. 60" oninput="autoWatt(this)" onblur="autoWatt(this)">
+        </div>
+        <div class="form-group"></div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label class="form-label">Shelf / Location</label>
           <div style="position:relative;">
@@ -1549,6 +1576,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
             <div id="loc-drop-edit" class="loc-dropdown" style="display:none;"></div>
           </div>
         </div>
+        <div class="form-group"></div>
       </div>
       <div class="form-group">
         <label class="form-label">Spec Sheet URL</label>
@@ -1602,6 +1630,27 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
   </div>
 </div>
 
+<!-- ═════════════ MANAGE FIXTURE TYPES MODAL ═════════════ -->
+<div class="modal-overlay" id="fixtypes-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">🔧 Fixture Types</div>
+      <button class="modal-close" onclick="closeModal('fixtypes-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">These appear in the Fixture Type dropdown. Anyone can add new types.</p>
+      <div id="fixtypes-list" style="margin-bottom:14px;max-height:260px;overflow-y:auto;"></div>
+      <div style="display:flex;gap:8px;">
+        <input class="form-input" id="new-fixtype-input" placeholder="New type name..." style="flex:1;">
+        <button class="btn btn-primary" onclick="addFixtureType()">Add</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('fixtypes-modal')">Done</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════
 //  CONSTANTS & STATE
@@ -1610,7 +1659,8 @@ const KEY_FIXTURES  = 'luma:fixtures';
 const KEY_USERS     = 'luma:users';
 const KEY_HISTORY   = 'luma:history';
 const KEY_COUNTER   = 'luma:counter';
-const KEY_LOCATIONS = 'luma:locations';
+const KEY_LOCATIONS  = 'luma:locations';
+const KEY_FIX_TYPES  = 'luma:fixtureTypes';
 const KEY_FB_CONFIG = 'luma:fbConfig';  // Firebase config JSON
 
 // ── HARDCODED FIREBASE CONFIG ─────────────────────────────
@@ -1621,12 +1671,14 @@ const KEY_FB_CONFIG = 'luma:fbConfig';  // Firebase config JSON
 const HARDCODED_FB_PROJECT_ID = null;
 // ─────────────────────────────────────────────────────────
 
+const DEFAULT_FIX_TYPES = ['Downlight','Uplight','Wall Sconce','Pendant','Track Head','Linear / Strip','Flood','Spot','Bollard','Step Light','Underwater','Power Supply','Driver','Transformer','Other'];
 const DEFAULT_LOCATIONS = ['Shelf A-1','Shelf A-2','Shelf B-1','Shelf B-2','Shelf B-3','Shelf C-1','Shelf C-2','Storage Room','Display Floor','Front Desk','Back Office'];
 
 let fixtures  = [];
 let users     = [];
 let history   = [];
 let locations = [];
+let fixtureTypes = [];
 let fixtureCounter = 42;
 let currentUser    = null;
 let pinTarget      = null;
@@ -1679,6 +1731,7 @@ async function localLoad() {
   try { const r = await storeGet(KEY_HISTORY);    history   = r ? JSON.parse(r) : []; } catch { history = []; }
   try { const r = await storeGet(KEY_COUNTER);    fixtureCounter = r ? parseInt(r) : 42; } catch { fixtureCounter = 42; }
   try { const r = await storeGet(KEY_LOCATIONS);  locations = r ? JSON.parse(r) : [...DEFAULT_LOCATIONS]; } catch { locations = [...DEFAULT_LOCATIONS]; }
+  try { const r = await storeGet(KEY_FIX_TYPES);   fixtureTypes = r ? JSON.parse(r) : [...DEFAULT_FIX_TYPES]; } catch { fixtureTypes = [...DEFAULT_FIX_TYPES]; }
   try {
     const r = await storeGet(KEY_FB_CONFIG);
     fbConfig = r ? JSON.parse(r) : null;
@@ -1704,6 +1757,7 @@ async function localSave() {
     await storeSet(KEY_HISTORY,   JSON.stringify(history));
     await storeSet(KEY_COUNTER,   String(fixtureCounter));
     await storeSet(KEY_LOCATIONS, JSON.stringify(locations));
+    await storeSet(KEY_FIX_TYPES,  JSON.stringify(fixtureTypes));
   } catch(e) { console.error('Local save failed', e); }
 }
 
@@ -1765,6 +1819,9 @@ function applyRemoteData(data) {
   if (data.locations) locations = Array.isArray(data.locations)
     ? data.locations.filter(Boolean)
     : Object.values(data.locations).filter(Boolean);
+  if (data.fixtureTypes) fixtureTypes = Array.isArray(data.fixtureTypes)
+    ? data.fixtureTypes.filter(Boolean)
+    : Object.values(data.fixtureTypes).filter(Boolean);
   if (data.history)   history   = Object.values(data.history)
     .sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 500);
   if (data.counter) {
@@ -1779,7 +1836,7 @@ function applyRemoteData(data) {
 function normalizeFixture(f) {
   return {
     id: f.id||'', name: f.name||'', brand: f.brand||'',
-    category: f.category||'', wattage: f.wattage||'',
+    category: f.category||'', fixtureType: f.fixtureType||'', outputWattage: f.outputWattage||'', wattage: f.wattage||'',
     voltage: f.voltage||'',
     finish: f.finish||'', location: f.location||'',
     partNo: f.partNo||'', notes: f.notes||'', specSheet: f.specSheet||'',
@@ -1801,7 +1858,8 @@ async function fbPushAll() {
   const snap = {
     fixtures:  Object.fromEntries(fixtures.map(f => [sanitize(f.id), f])),
     users:     Object.fromEntries(users.map(u    => [sanitize(u.id), u])),
-    locations: Object.fromEntries(locations.map((l, i) => [sanitize(l) || 'loc' + i, l])),
+    locations:    Object.fromEntries(locations.map((l, i) => [sanitize(l) || 'loc' + i, l])),
+    fixtureTypes: Object.fromEntries(fixtureTypes.map((t, i) => [sanitize(t) || 'type' + i, t])),
     counter:   fixtureCounter,
   };
   await fbSet('lumasamples', snap);
@@ -1868,7 +1926,7 @@ function disconnectFirebase() {
   if (_fbApp) { try { _fbApp.delete(); } catch(e) {} _fbApp = null; }
   fbConfig = null; fbDb = null;
   storeSet(KEY_FB_CONFIG, '');
-  hideSyncBar();
+  setSyncStatus('offline', 'Not connected');
   notify('Disconnected from Firebase', 'info');
   renderSetupPage();
   renderGsStatus();
@@ -1877,18 +1935,6 @@ function disconnectFirebase() {
 // ── Sync status bar ──
 let syncHideTimer = null;
 function setSyncStatus(state, msg) {
-  // ── bottom bar (legacy — only shown on login screen) ──
-  const bar = document.getElementById('sync-bar');
-  const dot = document.getElementById('sync-dot');
-  const txt = document.getElementById('sync-msg');
-  if (bar) {
-    bar.className = 'show ' + state;
-    if (dot) dot.className = 'sync-dot' + (state === 'syncing' ? ' pulse' : '');
-    if (txt) txt.textContent = msg;
-  }
-  clearTimeout(syncHideTimer);
-  if (state === 'synced') syncHideTimer = setTimeout(hideSyncBar, 4000);
-
   // ── login screen top-left indicator ──
   const loginBar  = document.getElementById('login-sync-bar');
   const loginDot  = document.getElementById('login-sync-dot');
@@ -1910,11 +1956,39 @@ function setSyncStatus(state, msg) {
     hDot.title = msg;
   }
 }
-function hideSyncBar() {
-  // Hide the legacy bottom bar
-  const bar = document.getElementById('sync-bar');
-  if (bar) bar.className = bar.className.replace('show','').trim();
-  // Header chip stays visible — fades to "connected" state colour
+function hideSyncBar() { /* no-op — bottom bar removed */ }
+
+async function manualPull() {
+  if (!fbDb) { notify('Not connected to Firebase', 'error'); return; }
+  setSyncStatus('syncing', 'Pulling from Firebase…');
+  try {
+    const snap = await fbGet('lumasamples');
+    if (snap && snap.exists()) {
+      applyRemoteData(snap.val());
+      await localSave();
+      refreshCurrentPage();
+      setSyncStatus('synced', 'Pulled · ' + new Date().toLocaleTimeString());
+      notify('✓ Pulled latest data from Firebase', 'success');
+    } else {
+      setSyncStatus('error', 'No data in Firebase');
+      notify('Firebase database is empty', 'error');
+    }
+  } catch(e) {
+    setSyncStatus('error', 'Pull failed: ' + e.message);
+    notify('Pull failed: ' + e.message, 'error');
+  }
+}
+async function manualPush() {
+  if (!fbDb) { notify('Not connected to Firebase', 'error'); return; }
+  setSyncStatus('syncing', 'Pushing to Firebase…');
+  try {
+    await fbPushAll();
+    setSyncStatus('synced', 'Pushed · ' + new Date().toLocaleTimeString());
+    notify('✓ Pushed all data to Firebase', 'success');
+  } catch(e) {
+    setSyncStatus('error', 'Push failed: ' + e.message);
+    notify('Push failed: ' + e.message, 'error');
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2198,7 +2272,7 @@ function showPage(name, tabEl) {
   if (name === 'home')    renderHome();
   if (name === 'library') { renderStats(); renderLibrary(); populateFilters(); }
   if (name === 'history') { populateHistFilters(); renderHistory(); }
-  if (name === 'add')     refreshAddId();
+  if (name === 'add')     { refreshAddId(); populateFixTypeSelect('new-fixtype'); }
   if (name === 'print')   renderPrintPage();
   if (name === 'admin')   { renderUserList(); renderAdminFixtures(); renderForceReturn(); renderLocationPreview(); renderGsStatus(); }
   if (name === 'setup')   { renderSetupPage(); }
@@ -2579,6 +2653,8 @@ async function addFixture() {
     voltage:      document.getElementById('new-voltage').value.trim(),
     location:     document.getElementById('new-location').value.trim(),
     specSheet:    document.getElementById('new-specsheet').value.trim(),
+    fixtureType:   document.getElementById('new-fixtype').value.trim(),
+    outputWattage: document.getElementById('new-fixtype').value==='Power Supply'||document.getElementById('new-fixtype').value==='Driver'||document.getElementById('new-fixtype').value==='Transformer' ? document.getElementById('new-output-wattage').value.trim() : '',
     category: '', finish: '', notes: '', comments: [],
     status: 'available', checkedOutBy: null, checkedOutAt: null,
   };
@@ -2596,7 +2672,9 @@ async function addFixture() {
   qrEl.innerHTML = '';
   new QRCode(qrEl, { text:f.id, width:150, height:150, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
   // Reset form
-  ['new-name','new-brand','new-partno','new-wattage','new-voltage','new-location','new-specsheet'].forEach(id=>document.getElementById(id).value='');
+  ['new-name','new-brand','new-partno','new-wattage','new-voltage','new-location','new-specsheet','new-output-wattage'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('new-fixtype').value='';
+  document.getElementById('new-output-wattage-row').style.display='none';
   document.getElementById('new-datereceived').value='';
   document.getElementById('new-fixture-id').value = genId();
 }
@@ -2628,33 +2706,54 @@ function renderPrintPage() {
 function printSingleQR(fid) {
   const f = fixtures.find(x=>x.id===fid);
   if (!f) return;
-  const w = window.open('', '_blank', 'width=300,height=400');
   const tmp = document.createElement('div');
   document.body.appendChild(tmp);
-  // Generate at 2x (96px) for sharp print at 0.5"
   new QRCode(tmp, { text: f.id, width: 96, height: 96, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
   setTimeout(() => {
     const canvas = tmp.querySelector('canvas');
     const imgSrc = canvas ? canvas.toDataURL() : '';
     document.body.removeChild(tmp);
     const info = [f.partNo, f.brand].filter(Boolean).join(' · ');
-    w.document.write(`<!DOCTYPE html><html><head><title>${f.id}</title>
+    // Create a print overlay in the same window so iOS can return after printing
+    const overlay = document.createElement('div');
+    overlay.id = 'print-single-overlay';
+    overlay.innerHTML = `
       <style>
-        *{box-sizing:border-box;margin:0;padding:0;}
-        @page{size:1.5in 1.5in;margin:0;}
-        body{width:1.5in;height:1.5in;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;font-family:Arial,sans-serif;padding:4pt;}
-        .qr{width:0.5in;height:0.5in;display:block;margin:0 auto;}
-        .lid{font-size:6pt;font-family:monospace;color:#444;margin-top:3pt;text-align:center;letter-spacing:0.3pt;}
-        .lname{font-size:6pt;font-weight:bold;color:#111;margin-top:1pt;text-align:center;max-width:1.4in;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .linfo{font-size:5pt;color:#777;margin-top:1pt;text-align:center;}
-      </style></head><body>
-      ${imgSrc ? `<img class="qr" src="${imgSrc}">` : ''}
-      <div class="lid">${f.id}</div>
-      <div class="lname">${f.name}</div>
-      ${info ? `<div class="linfo">${info}</div>` : ''}
-      <script>window.onload=()=>{setTimeout(()=>window.print(),120);}<\/script>
-      </body></html>`);
-    w.document.close();
+        #print-single-overlay {
+          display:none;
+          position:fixed;inset:0;background:#fff;z-index:9999;
+          flex-direction:column;align-items:center;justify-content:center;
+          font-family:Arial,sans-serif;
+        }
+        @media print {
+          body > *:not(#print-single-overlay) { display:none !important; }
+          #print-single-overlay { display:flex !important; }
+          #pso-back { display:none !important; }
+        }
+        #pso-back {
+          position:fixed;top:16px;left:16px;padding:8px 16px;
+          background:#111;color:#fff;border:none;border-radius:8px;
+          font-size:14px;cursor:pointer;z-index:10000;
+        }
+        .pso-qr { width:0.5in;height:0.5in;display:block;margin:0 auto; }
+        .pso-id { font-size:6pt;font-family:monospace;color:#444;margin-top:3pt;text-align:center; }
+        .pso-name { font-size:6pt;font-weight:bold;color:#111;margin-top:1pt;text-align:center; }
+        .pso-info { font-size:5pt;color:#777;margin-top:1pt;text-align:center; }
+      </style>
+      <button id="pso-back" onclick="document.getElementById('print-single-overlay').remove()">← Back</button>
+      ${imgSrc ? `<img class="pso-qr" src="${imgSrc}">` : ''}
+      <div class="pso-id">${f.id}</div>
+      <div class="pso-name">${f.name}</div>
+      ${info ? `<div class="pso-info">${info}</div>` : ''}
+    `;
+    overlay.style.display = 'flex';
+    document.body.appendChild(overlay);
+    // Remove overlay after printing
+    window.addEventListener('afterprint', () => {
+      const el = document.getElementById('print-single-overlay');
+      if (el) el.remove();
+    }, { once: true });
+    setTimeout(() => window.print(), 150);
   }, 250);
 }
 
@@ -2907,6 +3006,11 @@ function openEditFixture(fid) {
   document.getElementById('ef-voltage').value      = f.voltage      || '';
   document.getElementById('ef-location').value     = f.location     || '';
   document.getElementById('ef-specsheet').value    = f.specSheet    || '';
+  populateFixTypeSelect('ef-fixtype');
+  const eft = document.getElementById('ef-fixtype');
+  if (eft) eft.value = f.fixtureType || '';
+  onFixTypeChange('ef-fixtype','ef-output-wattage-row');
+  document.getElementById('ef-output-wattage').value = f.outputWattage || '';
 
   // Last checked out box
   const lcBox  = document.getElementById('ef-lastco-box');
@@ -2983,6 +3087,9 @@ async function saveEditFixture() {
   f.voltage      = document.getElementById('ef-voltage').value.trim();
   f.location     = document.getElementById('ef-location').value.trim();
   f.specSheet    = document.getElementById('ef-specsheet').value.trim();
+  f.fixtureType  = document.getElementById('ef-fixtype').value.trim();
+  const isPSType = ['Power Supply','Driver','Transformer'].includes(f.fixtureType);
+  f.outputWattage = isPSType ? document.getElementById('ef-output-wattage').value.trim() : '';
   if (f.location && !locations.includes(f.location)) {
     locations.push(f.location);
     locations.sort();
@@ -3002,7 +3109,7 @@ function exportBackup() {
   const data = {
     version: 2,
     exportedAt: new Date().toISOString(),
-    fixtures, users, history, locations, fixtureCounter,
+    fixtures, users, history, locations, fixtureTypes, fixtureCounter,
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -3030,7 +3137,8 @@ This will REPLACE all current data. Make sure you have a current backup first.`)
     fixtures  = (data.fixtures  || []).map(normalizeFixture);
     users     = (data.users     || []).map(normalizeUser);
     history   = data.history   || [];
-    locations = data.locations || DEFAULT_LOCATIONS;
+    locations    = data.locations    || DEFAULT_LOCATIONS;
+    fixtureTypes = data.fixtureTypes || DEFAULT_FIX_TYPES;
     if (data.fixtureCounter) fixtureCounter = data.fixtureCounter;
     ensureAdmin();
     bumpCounter();
@@ -3142,6 +3250,68 @@ function renderLocationPreview() {
   ).join('');
 }
 
+// ── Fixture Types ──
+function openFixtureTypesModal() {
+  renderFixtypesList();
+  openModal('fixtypes-modal');
+}
+function renderFixtypesList() {
+  const el = document.getElementById('fixtypes-list');
+  if (!el) return;
+  el.innerHTML = fixtureTypes.map((t,i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <span style="flex:1;font-size:13px;">🔧 ${t}</span>
+      <button class="btn btn-danger btn-sm" onclick="removeFixtureType(${i})">Remove</button>
+    </div>
+  `).join('') || '<div style="font-size:12px;color:var(--text3);padding:8px 0;">No types yet.</div>';
+}
+async function addFixtureType() {
+  const val = document.getElementById('new-fixtype-input').value.trim();
+  if (!val) return;
+  if (fixtureTypes.includes(val)) { notify('Already exists','error'); return; }
+  fixtureTypes.push(val);
+  fixtureTypes.sort();
+  document.getElementById('new-fixtype-input').value = '';
+  await storeSet(KEY_FIX_TYPES, JSON.stringify(fixtureTypes));
+  if (fbDb) await fbSet('lumasamples/fixtureTypes', Object.fromEntries(fixtureTypes.map((t,i)=>[t.replace(/[.#$[\]\s]/g,'_')||'t'+i,t])));
+  renderFixtypesList();
+  notify(`✓ Added type: ${val}`,'success');
+}
+async function removeFixtureType(idx) {
+  fixtureTypes.splice(idx,1);
+  await storeSet(KEY_FIX_TYPES, JSON.stringify(fixtureTypes));
+  if (fbDb) await fbSet('lumasamples/fixtureTypes', Object.fromEntries(fixtureTypes.map((t,i)=>[t.replace(/[.#$[\]\s]/g,'_')||'t'+i,t])));
+  renderFixtypesList();
+}
+function populateFixTypeSelect(selectId) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Select type —</option>' +
+    fixtureTypes.map(t=>`<option value="${t}">${t}</option>`).join('') +
+    '<option value="__add__">+ Add new type…</option>';
+  if (cur && fixtureTypes.includes(cur)) sel.value = cur;
+}
+function onFixTypeChange(selectId, outputRowId) {
+  const sel = document.getElementById(selectId);
+  const row = document.getElementById(outputRowId);
+  if (!sel) return;
+  if (sel.value === '__add__') {
+    sel.value = '';
+    openFixtureTypesModal();
+    return;
+  }
+  const isPowerSupply = ['Power Supply','Driver','Transformer'].includes(sel.value);
+  if (row) row.style.display = isPowerSupply ? '' : 'none';
+}
+function autoWatt(el) {
+  let v = el.value.trim();
+  if (!v) return;
+  // Remove any trailing W/w already there then re-add
+  v = v.replace(/[Ww]+$/, '').trim();
+  if (v && /^[\d.,\/\-\+x]+/.test(v)) el.value = v + 'W';
+}
+
 
 // ═══════════════════════════════════════════════════════
 //  SETUP PAGE
@@ -3165,13 +3335,9 @@ function renderSetupPage() {
     if (connectCard)    connectCard.style.display = 'none';
     if (connectedBlock) connectedBlock.style.display = 'block';
     if (urlEl) urlEl.textContent = `Project: ${fbConfig?.projectId||''}  ·  ${fbConfig?.databaseURL||''}`;
-    const tip = document.getElementById('setup-hardcoded-tip');
-    if (tip) tip.style.display = HARDCODED_FB_PROJECT_ID ? 'none' : 'block';
   } else {
     if (connectCard)    connectCard.style.display = 'flex';
     if (connectedBlock) connectedBlock.style.display = 'none';
-    const tip = document.getElementById('setup-hardcoded-tip');
-    if (tip) tip.style.display = 'none';
   }
 }
 
