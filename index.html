@@ -662,10 +662,13 @@ tr:hover td { background: var(--surface2); }
 .setup-desc  { font-size:12px; color:var(--text2); line-height:1.6; }
 .code-block  { background:var(--surface3); border:1px solid var(--border2); border-radius:6px; padding:10px 12px; font-family:'DM Mono',monospace; font-size:11px; color:var(--accent); margin-top:8px; word-break:break-all; }
 
-/* Hide bottom sync bar on desktop — header dot shows status instead */
+/* Hide bottom sync bar on desktop when logged in — header dot shows status instead */
 @media (min-width: 581px) {
   body.app-visible #sync-bar { display: none !important; }
 }
+/* Hide bottom sync bar on mobile everywhere — login page uses top-left dot instead */
+@media (max-width: 580px) { #sync-bar { display: none !important; } }
+body.is-mobile #sync-bar { display: none !important; }
 .setup-step { display:flex; gap:12px; margin-bottom:20px; }
 .setup-num  { width:28px; height:28px; border-radius:50%; background:var(--accent); color:#000; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
 .setup-content { flex:1; }
@@ -970,10 +973,10 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
      LOGIN SCREEN
 ════════════════════════════════════════ -->
 <div id="login-screen">
-  <!-- Firebase connection status — shown at top of login -->
-  <div id="login-sync-bar" style="display:flex;position:fixed;top:0;left:0;right:0;width:100%;z-index:200;padding:8px 0;font-size:12px;font-family:'DM Mono',monospace;align-items:center;justify-content:center;text-align:center;gap:8px;background:var(--surface2);border-bottom:1px solid var(--border);visibility:hidden;">
+  <!-- Firebase connection status — top-left dot on login screen -->
+  <div id="login-sync-bar" style="position:fixed;top:12px;left:14px;z-index:200;display:flex;align-items:center;gap:6px;font-size:11px;font-family:'DM Mono',monospace;visibility:hidden;">
     <span id="login-sync-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;"></span>
-    <span id="login-sync-msg">Not connected</span>
+    <span id="login-sync-msg" style="color:var(--text3);">Not connected</span>
   </div>
   <div class="login-logo" onclick="adminQuickLogin()" style="cursor:pointer;user-select:none;" title="Admin access">LumaSamples</div>
   <div class="login-sub">Lighting Fixture Library</div>
@@ -1886,7 +1889,7 @@ function setSyncStatus(state, msg) {
   clearTimeout(syncHideTimer);
   if (state === 'synced') syncHideTimer = setTimeout(hideSyncBar, 4000);
 
-  // ── login screen top bar ──
+  // ── login screen top-left indicator ──
   const loginBar  = document.getElementById('login-sync-bar');
   const loginDot  = document.getElementById('login-sync-dot');
   const loginMsg  = document.getElementById('login-sync-msg');
@@ -1894,7 +1897,6 @@ function setSyncStatus(state, msg) {
     loginBar.style.visibility = 'visible';
     const colors = { syncing: 'var(--accent)', synced: 'var(--green)', error: 'var(--red)', offline: 'var(--text3)' };
     const c = colors[state] || 'var(--text3)';
-    loginBar.style.borderBottomColor = c + '44';
     if (loginDot) { loginDot.style.background = c; loginDot.style.animation = state === 'syncing' ? 'syncPulse 1s infinite' : ''; }
     if (loginMsg) { loginMsg.textContent = msg; loginMsg.style.color = c; }
   }
