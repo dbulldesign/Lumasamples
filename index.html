@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -48,6 +48,7 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  font-size: 15px;
   overflow-x: hidden;
 }
 
@@ -182,7 +183,7 @@ body {
   margin-bottom: 16px;
 }
 .pin-key {
-  aspect-ratio: 1;
+  height: 56px;          /* fixed height, no aspect-ratio */
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -269,7 +270,7 @@ header {
 .nav-tabs::-webkit-scrollbar { display: none; }
 .nav-tab {
   padding: 14px 18px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--text3);
   cursor: pointer;
@@ -339,8 +340,8 @@ main { padding: 24px; max-width: 1400px; margin: 0 auto; }
 .co-row:hover { border-color: var(--border2); border-left-color: var(--red); }
 .co-id { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); background: var(--accent-dim); padding: 3px 8px; border-radius: 5px; white-space: nowrap; }
 .co-info { min-width: 0; }
-.co-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.co-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.co-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.co-meta { font-size: 13px; color: var(--text2); margin-top: 2px; }
 .co-user {
   display: flex; align-items: center; gap: 6px;
   background: var(--surface2);
@@ -389,8 +390,8 @@ main { padding: 24px; max-width: 1400px; margin: 0 auto; }
   border-radius: var(--radius-sm);
   padding: 14px 18px;
 }
-.stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); font-family: 'DM Mono', monospace; }
-.stat-value { font-size: 26px; font-family: 'Bebas Neue', sans-serif; margin-top: 2px; }
+.stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.stat-value { font-size: 28px; font-family: 'Bebas Neue', sans-serif; margin-top: 2px; }
 
 /* ── TOOLBAR ── */
 .toolbar { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
@@ -471,9 +472,18 @@ main { padding: 24px; max-width: 1400px; margin: 0 auto; }
 .sbadge.available { background: var(--green-dim); color: var(--green); }
 .sbadge.out { background: var(--red-dim); color: var(--red); }
 .card-body { padding: 0 14px 12px; }
-.card-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-.card-meta { font-size: 11px; color: var(--text2); display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
-.card-loc { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.card-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.card-meta { font-size: 13px; color: var(--text2); display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.card-loc {
+  font-size: 11px; font-family: 'DM Mono', monospace;
+  display: inline-flex; align-items: center; gap: 4px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  padding: 2px 7px;
+  color: var(--text2);
+  margin-top: 5px;
+}
 .card-co-info {
   background: var(--red-dim); border-radius: 6px;
   padding: 7px 10px; font-size: 11px; color: var(--text2); margin-top: 8px;
@@ -548,7 +558,13 @@ tr:hover td { background: var(--surface2); }
 .mono { font-family: 'DM Mono', monospace; color: var(--accent); font-size: 11px; }
 
 /* ── ADMIN PANEL ── */
-.admin-section { margin-bottom: 32px; }
+.admin-section {
+  margin-bottom: 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+}
 .admin-section-title {
   font-size: 14px; font-weight: 600; margin-bottom: 14px;
   display: flex; align-items: center; gap: 8px; color: var(--blue);
@@ -616,18 +632,25 @@ tr:hover td { background: var(--surface2); }
 
 /* ── SYNC STATUS ── */
 #sync-bar {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
-  background: var(--surface2); border-top: 1px solid var(--border);
-  padding: 6px 16px; display: flex; align-items: center; gap: 8px;
-  font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text3);
+  position: fixed;
+  /* Sits just above the tab bar. --tab-bar-h is set by JS after layout. */
+  bottom: calc(var(--tab-bar-h, 0px) + env(safe-area-inset-bottom, 0px));
+  left: 0; right: 0;
+  z-index: 200;   /* BELOW tab bar (500) so tabs always show on top */
+  background: var(--surface2);
+  border-top: 1px solid var(--border);
+  padding: 7px 16px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text3);
   transform: translateY(100%); transition: transform 0.3s ease;
+  pointer-events: none;
 }
-#sync-bar.show { transform: translateY(0); }
+#sync-bar.show { transform: translateY(0); pointer-events: auto; }
 #sync-bar.syncing { color: var(--accent); border-top-color: rgba(245,200,66,0.3); }
 #sync-bar.synced  { color: var(--green);  border-top-color: rgba(74,222,128,0.3); }
 #sync-bar.error   { color: var(--red);    border-top-color: rgba(248,113,113,0.3); }
 #sync-bar.offline { color: var(--text3);  }
-.sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 .sync-dot.pulse { animation: syncPulse 1s infinite; }
 @keyframes syncPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
@@ -639,22 +662,7 @@ tr:hover td { background: var(--surface2); }
 .setup-desc  { font-size:12px; color:var(--text2); line-height:1.6; }
 .code-block  { background:var(--surface3); border:1px solid var(--border2); border-radius:6px; padding:10px 12px; font-family:'DM Mono',monospace; font-size:11px; color:var(--accent); margin-top:8px; word-break:break-all; }
 
-/* ── SYNC STATUS ── */
-#sync-bar {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
-  background: var(--surface2); border-top: 1px solid var(--border);
-  padding: 6px 16px; display: flex; align-items: center; gap: 8px;
-  font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text3);
-  transform: translateY(100%); transition: transform 0.3s ease;
-}
-#sync-bar.show { transform: translateY(0); }
-#sync-bar.syncing { color: var(--accent); border-top-color: rgba(245,200,66,0.3); }
-#sync-bar.synced  { color: var(--green);  border-top-color: rgba(74,222,128,0.3); }
-#sync-bar.error   { color: var(--red);    border-top-color: rgba(248,113,113,0.3); }
-#sync-bar.offline { color: var(--text3);  }
-.sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-.sync-dot.pulse { animation: syncPulse 1s infinite; }
-@keyframes syncPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+/* duplicate sync-bar removed */
 .setup-step { display:flex; gap:12px; margin-bottom:20px; }
 .setup-num  { width:28px; height:28px; border-radius:50%; background:var(--accent); color:#000; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
 .setup-content { flex:1; }
@@ -665,7 +673,9 @@ tr:hover td { background: var(--surface2); }
 
 /* ── NOTIFICATION ── */
 .notif {
-  position: fixed; bottom: 20px; right: 20px;
+  position: fixed;
+  bottom: calc(var(--tab-bar-h, 0px) + env(safe-area-inset-bottom, 0px) + 52px);
+  right: 16px;
   background: var(--surface2); border: 1px solid var(--border2);
   border-radius: var(--radius); padding: 12px 16px;
   font-size: 13px; max-width: 300px; z-index: 3000;
@@ -702,89 +712,184 @@ tr:hover td { background: var(--surface2); }
   .home-hero { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ── MOBILE — shared by @media and .is-mobile class ── */
-/* These rules apply when screen ≤580px OR JS detects mobile/PWA */
-@media (max-width: 580px), body.is-mobile {
-  main { padding: 12px 12px 0; padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px)); }
-  header { padding: 0 12px 0 12px; height: 50px; padding-top: env(safe-area-inset-top, 0px); }
-  .logo { font-size: 18px; }
+/* ── MOBILE — applied by media query (small screen) ── */
+@media (max-width: 580px) {
+  /* main content sits above tab bar */
+  main {
+    padding: 16px 14px 0;
+    padding-bottom: calc(var(--tab-bar-h, 58px) + env(safe-area-inset-bottom, 0px) + 8px);
+  }
+  header { padding: 0 14px; height: 52px; padding-top: env(safe-area-inset-top, 0px); }
+  .logo { font-size: 20px; }
   .logo-sub { display: none; }
   .nav-tabs { display: none !important; }
-  .btn-scan { padding: 6px 10px; font-size: 12px; }
-  .home-hero { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .hero-stat { padding: 12px 14px; }
-  .hero-stat-val { font-size: 30px; }
-  .stats-bar { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .fixture-grid { grid-template-columns: 1fr; gap: 10px; }
-  .card-footer { flex-wrap: wrap; gap: 6px; }
+  /* Tap targets */
+  .btn { padding: 11px 16px; font-size: 15px; min-height: 46px; }
+  .btn-sm { padding: 8px 12px; font-size: 13px; min-height: 38px; }
+  .btn-scan { padding: 8px 12px; font-size: 13px; }
+  /* Forms — 16px prevents iOS zoom on focus */
+  .form-input { font-size: 16px !important; padding: 12px 14px; min-height: 48px; }
+  .form-label { font-size: 13px; letter-spacing: 0.5px; }
+  .filter-select { font-size: 15px; padding: 10px 12px; min-height: 44px; }
+  .search-box input { font-size: 15px; }
+  /* Home */
+  .home-hero { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hero-stat { padding: 14px 16px; }
+  .hero-stat-val { font-size: 36px; }
+  .hero-stat-label { font-size: 11px; }
+  .stats-bar { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-value { font-size: 30px; }
+  .stat-label { font-size: 11px; }
+  /* Library cards */
+  .fixture-grid { grid-template-columns: 1fr; gap: 12px; }
+  .card-name { font-size: 17px; }
+  .card-meta { font-size: 14px; }
+  .card-loc { font-size: 13px; }
+  .sbadge { font-size: 11px; padding: 4px 10px; }
+  .fid { font-size: 12px; }
+  .card-co-info { font-size: 13px; }
+  .card-footer { flex-wrap: wrap; gap: 8px; }
   .card-footer .btn { flex: 1; min-width: 80px; justify-content: center; }
+  /* Home checked-out list */
   .co-user, .co-time { display: none; }
   .co-row { gap: 8px; grid-template-columns: auto 1fr; }
+  .co-name { font-size: 15px; }
+  .co-meta { font-size: 13px; }
+  /* Forms layout */
   .form-row { grid-template-columns: 1fr; }
   .toolbar { flex-wrap: wrap; gap: 8px; }
   .search-box { flex: 1 1 100%; }
   .filter-select { flex: 1; }
+  /* Modals — bottom-sheet */
   .modal-overlay { align-items: flex-end; padding: 0; }
-  .modal { border-radius: 20px 20px 0 0; max-height: 90vh; width: 100%; margin: 0; }
-  .modal-body { padding: 16px; }
-  .modal-footer { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+  .modal { border-radius: 22px 22px 0 0; max-height: 92vh; width: 100%; margin: 0; }
+  .modal-body { padding: 18px; font-size: 15px; }
+  .modal-footer { padding: 14px 18px; flex-wrap: wrap; gap: 8px; }
   .modal-footer .btn { flex: 1; justify-content: center; }
-  .admin-section { padding: 14px; }
+  .modal-title { font-size: 18px; }
+  /* Admin */
+  .admin-section { padding: 16px; }
+  .admin-section-title { font-size: 16px; }
   .user-row { flex-wrap: wrap; }
-  .ur-actions { flex: 1 1 100%; display: flex; gap: 6px; }
+  .ur-name { font-size: 15px; }
+  .ur-actions { flex: 1 1 100%; display: flex; gap: 8px; margin-top: 6px; }
   .ur-actions .btn { flex: 1; justify-content: center; }
   .print-grid { grid-template-columns: repeat(2,1fr); gap: 10px; }
   .setup-card { flex-direction: column; gap: 10px; }
-  .login-logo { font-size: 38px; }
-  .user-cards { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+  .setup-card-title { font-size: 16px; }
+  .setup-card-desc { font-size: 14px; }
+  /* Login */
+  .login-logo { font-size: 42px; }
+  .user-cards { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+  .ulc-name { font-size: 15px; }
+  .ulc-avatar { font-size: 34px; }
   .login-co-board { max-width: 100% !important; }
-  #sync-bar { bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
-  .checked-out-list { gap: 6px; }
-  .table-wrap { font-size: 12px; overflow-x: auto; }
-  .section-heading { font-size: 11px; }
-  #login-screen { padding: 20px 16px; padding-top: max(20px, env(safe-area-inset-top, 0px)); }
-  .pin-screen { max-width: 100%; }
-  .pin-key { font-size: 20px; }
-  /* Library page */
-  .history-table th:nth-child(1),
-  .history-table td:nth-child(1) { display: none; }
+  /* History */
+  .table-wrap { font-size: 14px; overflow-x: auto; }
+  table th, table td { padding: 10px; font-size: 14px; }
+  .section-heading { font-size: 13px; }
+  /* PIN pad — compact so it fits without scrolling */
+  #login-screen { padding: 20px 18px; padding-top: max(20px, env(safe-area-inset-top, 0px)); }
+  .pin-screen { max-width: 300px; }
+  .pin-pad { gap: 6px; margin-bottom: 12px; }
+  .pin-key { height: 46px; font-size: 20px; border-radius: 10px; min-height: unset; }
+  .pin-name { font-size: 18px; }
+  .pin-hint { font-size: 13px; }
+  .pin-dot { width: 12px; height: 12px; }
+  .pin-dots { gap: 12px; margin-bottom: 18px; }
+  .pin-header { margin-bottom: 16px; }
+  /* Comments — let inline max-height work, just ensure minimum size */
+  #ef-comment-list { min-height: 120px; }
+  /* Sync bar sits above tab bar */
+  #sync-bar { bottom: calc(var(--tab-bar-h, 58px) + env(safe-area-inset-bottom, 0px)); }
 }
 
+/* ── MOBILE (JS-detected: PWA/standalone/tablet-phone) ── */
+body.is-mobile main {
+  padding: 16px 14px 0;
+  padding-bottom: calc(var(--tab-bar-h, 58px) + env(safe-area-inset-bottom, 0px) + 8px);
+}
+body.is-mobile header { padding: 0 14px; height: 52px; padding-top: env(safe-area-inset-top, 0px); }
+body.is-mobile .logo { font-size: 20px; }
+body.is-mobile .logo-sub { display: none; }
+body.is-mobile .nav-tabs { display: none !important; }
+body.is-mobile .btn { padding: 11px 16px; font-size: 15px; min-height: 46px; }
+body.is-mobile .btn-sm { padding: 8px 12px; font-size: 13px; min-height: 38px; }
+body.is-mobile .form-input { font-size: 16px !important; padding: 12px 14px; min-height: 48px; }
+body.is-mobile .form-label { font-size: 13px; }
+body.is-mobile .filter-select { font-size: 15px; padding: 10px 12px; min-height: 44px; }
+body.is-mobile .search-box input { font-size: 15px; }
+body.is-mobile .home-hero { grid-template-columns: 1fr 1fr; gap: 10px; }
+body.is-mobile .hero-stat-val { font-size: 36px; }
+body.is-mobile .stats-bar { grid-template-columns: 1fr 1fr; gap: 10px; }
+body.is-mobile .fixture-grid { grid-template-columns: 1fr; gap: 12px; }
+body.is-mobile .card-name { font-size: 17px; }
+body.is-mobile .card-meta { font-size: 14px; }
+body.is-mobile .card-footer { flex-wrap: wrap; gap: 8px; }
+body.is-mobile .form-row { grid-template-columns: 1fr; }
+body.is-mobile .toolbar { flex-wrap: wrap; gap: 8px; }
+body.is-mobile .search-box { flex: 1 1 100%; }
+body.is-mobile .modal-overlay { align-items: flex-end; padding: 0; }
+body.is-mobile .modal { border-radius: 22px 22px 0 0; max-height: 92vh; width: 100%; margin: 0; }
+body.is-mobile .modal-body { padding: 18px; font-size: 15px; }
+body.is-mobile .modal-footer { padding: 14px 18px; flex-wrap: wrap; gap: 8px; }
+body.is-mobile .modal-footer .btn { flex: 1; justify-content: center; }
+body.is-mobile .modal-title { font-size: 18px; }
+body.is-mobile .admin-section { padding: 16px; }
+body.is-mobile .user-row { flex-wrap: wrap; }
+body.is-mobile .ur-actions { flex: 1 1 100%; display: flex; gap: 8px; margin-top: 6px; }
+body.is-mobile .ur-actions .btn { flex: 1; justify-content: center; }
+body.is-mobile .setup-card { flex-direction: column; gap: 10px; }
+body.is-mobile .login-logo { font-size: 42px; }
+body.is-mobile .user-cards { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+body.is-mobile .ulc-name { font-size: 15px; }
+body.is-mobile .login-co-board { max-width: 100% !important; }
+body.is-mobile .table-wrap { font-size: 14px; overflow-x: auto; }
+body.is-mobile .section-heading { font-size: 13px; }
+body.is-mobile #login-screen { padding: 20px 18px; padding-top: max(20px, env(safe-area-inset-top, 0px)); }
+body.is-mobile .pin-screen { max-width: 300px; }
+body.is-mobile .pin-pad { gap: 6px; margin-bottom: 12px; }
+body.is-mobile .pin-key { height: 46px; font-size: 20px; border-radius: 10px; min-height: unset; }
+body.is-mobile .pin-name { font-size: 18px; }
+body.is-mobile .pin-dots { gap: 12px; margin-bottom: 18px; }
+body.is-mobile .pin-header { margin-bottom: 16px; }
+body.is-mobile #sync-bar { bottom: calc(var(--tab-bar-h, 58px) + env(safe-area-inset-bottom, 0px)); }
+
 /* ── BOTTOM TAB BAR ── */
+:root { --tab-bar-h: 58px; }   /* default = tab bar height; JS updates it precisely */
+
 #bottom-tabs {
   display: none;
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  z-index: 300;
+  z-index: 500;   /* above sync bar */
   background: var(--surface);
   border-top: 1px solid var(--border);
-  /* safe-area-inset for iPhone home bar */
   padding-bottom: env(safe-area-inset-bottom, 0px);
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  /* equal width tabs */
   width: 100%;
 }
 #bottom-tabs::-webkit-scrollbar { display: none; }
 
 /* Show on small screens AND JS-detected mobile/PWA */
-@media (max-width: 580px) { #bottom-tabs { display: flex; } }
-body.is-mobile #bottom-tabs { display: flex; }
+@media (max-width: 580px) { body.app-visible #bottom-tabs { display: flex; } }
+body.is-mobile.app-visible #bottom-tabs { display: flex; }
 
 .btab {
   flex: 1;
   min-width: 0;
-  max-width: 100px;
+  max-width: 110px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 8px 2px 10px;
+  gap: 3px;
+  padding: 10px 4px 10px;
   cursor: pointer;
   color: var(--text3);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -794,9 +899,10 @@ body.is-mobile #bottom-tabs { display: flex; }
   transition: color 0.15s;
   white-space: nowrap;
   font-family: 'DM Sans', sans-serif;
-  min-height: 54px;
+  min-height: 58px;
+  position: relative;
 }
-.btab .btab-icon { font-size: 20px; line-height: 1.2; }
+.btab .btab-icon { font-size: 22px; line-height: 1.2; }
 .btab.active { color: var(--accent); }
 .btab.active .btab-icon { transform: translateY(-1px); }
 .btab.admin-btab { color: rgba(96,165,250,0.35); }
@@ -806,7 +912,7 @@ body.is-mobile #bottom-tabs { display: flex; }
   position: absolute;
   top: 0; left: 20%; right: 20%;
   height: 2px;
-  border-radius: 0 0 2px 2px;
+  border-radius: 0 0 3px 3px;
   background: transparent;
   transition: background 0.15s;
 }
@@ -833,7 +939,8 @@ body.is-mobile #bottom-tabs { display: flex; }
 .confirm-box p { font-size: 14px; color: var(--text2); margin-bottom: 14px; }
 
 /* Section divider */
-.divider { height: 1px; background: var(--border); margin: 24px 0; }
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+#page-admin .divider { display: none; }
 
 /* ── LOCATION COMBO ── */
 .loc-dropdown {
@@ -979,7 +1086,7 @@ body.is-mobile #bottom-tabs { display: flex; }
           <option value="transfer">Transferred</option>
         </select>
       </div>
-      <div class="table-wrap">
+      <div class="table-wrap" style="max-height:45vh;overflow-y:auto;">
         <table>
           <thead><tr><th>Date / Time</th><th>Fixture ID</th><th>Name</th><th>User</th><th>Action</th></tr></thead>
           <tbody id="history-tbody"></tbody>
@@ -1141,7 +1248,10 @@ body.is-mobile #bottom-tabs { display: flex; }
         <div id="setup-status-banner" style="border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;"></div>
 
         <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;">🔥 Firebase Sync</h2>
-        <p style="color:var(--text2);font-size:13px;margin-bottom:24px;line-height:1.7;">Sync LumaSamples across every device in real time. Free on Firebase's Spark plan — setup takes about 3 minutes.</p>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:16px;line-height:1.7;">Sync LumaSamples across every device in real time. Free on Firebase's Spark plan — setup takes about 3 minutes.</p>
+        <div id="setup-hardcoded-tip" style="display:none;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--text2);line-height:1.6;">
+          <strong style="color:var(--green);">💡 Pro tip:</strong> Once you've connected, open this HTML file, find <code style="font-family:'DM Mono',monospace;background:var(--surface3);padding:1px 5px;border-radius:3px;">HARDCODED_FB_PROJECT_ID</code> near the top of the &lt;script&gt; section, and paste your Project ID there. Every device will then auto-connect on load — no setup needed.
+        </div>
 
         <!-- Step 1 -->
         <div class="setup-card">
@@ -1438,18 +1548,16 @@ body.is-mobile #bottom-tabs { display: flex; }
       </div>
       <!-- Comments / Notes accordion -->
       <details id="ef-comments-details" style="margin-top:4px;">
-        <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);padding:10px 0;list-style:none;display:flex;align-items:center;gap:8px;border-top:1px solid var(--border);">
-          <span id="ef-comments-toggle-icon">▸</span> Notes &amp; Comment History
-          <span id="ef-comments-count" style="font-size:11px;font-weight:400;color:var(--text3);"></span>
+        <summary style="cursor:pointer;font-size:15px;font-weight:600;color:var(--text2);padding:14px 0;list-style:none;display:flex;align-items:center;gap:8px;border-top:1px solid var(--border);">
+          <span id="ef-comments-toggle-icon" style="font-size:12px;">▸</span> 💬 Notes &amp; Comment History
+          <span id="ef-comments-count" style="font-size:13px;font-weight:400;color:var(--text3);"></span>
         </summary>
-        <div style="margin-top:10px;">
-          <!-- Add comment -->
-          <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <div style="margin-top:12px;">
+          <div style="display:flex;gap:8px;margin-bottom:14px;">
             <input class="form-input" id="ef-new-comment" placeholder="Add a comment or note..." style="flex:1;">
             <button class="btn btn-blue btn-sm" onclick="addFixtureComment()">Post</button>
           </div>
-          <!-- Comment + checkout history list -->
-          <div id="ef-comment-list" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;"></div>
+          <div id="ef-comment-list" style="display:flex;flex-direction:column;gap:10px;max-height:500px;overflow-y:auto;font-size:14px;"></div>
         </div>
       </details>
     </div>
@@ -1491,6 +1599,14 @@ const KEY_HISTORY   = 'luma:history';
 const KEY_COUNTER   = 'luma:counter';
 const KEY_LOCATIONS = 'luma:locations';
 const KEY_FB_CONFIG = 'luma:fbConfig';  // Firebase config JSON
+
+// ── HARDCODED FIREBASE CONFIG ─────────────────────────────
+// An admin can paste the projectId here once and every device
+// will auto-connect without any setup. Leave null to use the
+// Sync Setup tab manually.
+// Example: const HARDCODED_FB_PROJECT_ID = 'lumasamples-abc12';
+const HARDCODED_FB_PROJECT_ID = null;
+// ─────────────────────────────────────────────────────────
 
 const DEFAULT_LOCATIONS = ['Shelf A-1','Shelf A-2','Shelf B-1','Shelf B-2','Shelf B-3','Shelf C-1','Shelf C-2','Storage Room','Display Floor','Front Desk','Back Office'];
 
@@ -1550,7 +1666,22 @@ async function localLoad() {
   try { const r = await storeGet(KEY_HISTORY);    history   = r ? JSON.parse(r) : []; } catch { history = []; }
   try { const r = await storeGet(KEY_COUNTER);    fixtureCounter = r ? parseInt(r) : 42; } catch { fixtureCounter = 42; }
   try { const r = await storeGet(KEY_LOCATIONS);  locations = r ? JSON.parse(r) : [...DEFAULT_LOCATIONS]; } catch { locations = [...DEFAULT_LOCATIONS]; }
-  try { const r = await storeGet(KEY_FB_CONFIG);  fbConfig = r ? JSON.parse(r) : null; } catch { fbConfig = null; }
+  try {
+    const r = await storeGet(KEY_FB_CONFIG);
+    fbConfig = r ? JSON.parse(r) : null;
+  } catch { fbConfig = null; }
+  // Fall back to hardcoded project ID if no saved config
+  if (!fbConfig && HARDCODED_FB_PROJECT_ID) {
+    fbConfig = {
+      apiKey: 'lumasamples-autokey',
+      authDomain: HARDCODED_FB_PROJECT_ID + '.firebaseapp.com',
+      databaseURL: 'https://' + HARDCODED_FB_PROJECT_ID + '-default-rtdb.firebaseio.com',
+      projectId: HARDCODED_FB_PROJECT_ID,
+      storageBucket: HARDCODED_FB_PROJECT_ID + '.appspot.com',
+      messagingSenderId: '000000000000',
+      appId: '1:000000000000:web:000000000000',
+    };
+  }
 }
 
 async function localSave() {
@@ -1694,12 +1825,23 @@ async function connectFirebase(configInput) {
   try {
     fbConfig = config;
     await fbInit(config);
-    await fbPushAll();
+    // Check if Firebase already has data — if so pull it, otherwise push local
+    const existingSnap = await fbGet('lumasamples');
+    if (existingSnap && existingSnap.exists()) {
+      setSyncStatus('syncing', 'Pulling data from Firebase…');
+      applyRemoteData(existingSnap.val());
+      await localSave();
+    } else {
+      // New / empty database — push local data up
+      await fbPushAll();
+    }
     fbStartListening();
     await storeSet(KEY_FB_CONFIG, JSON.stringify(config));
     notify('✓ Connected — real-time sync active!', 'success');
     renderSetupPage();
     renderGsStatus();
+    renderLoginScreen();
+    refreshCurrentPage();
   } catch(e) {
     setSyncStatus('error', 'Connection failed: ' + e.message);
     notify('Firebase failed: ' + e.message, 'error');
@@ -1790,12 +1932,25 @@ async function loadData() {
   await localLoad();
   ensureAdmin();
   bumpCounter();
-  await localSave();
   if (fbConfig) {
-    // Firebase config saved — reconnect silently in background
-    fbInit(fbConfig)
-      .then(() => { fbStartListening(); setSyncStatus('synced', 'Firebase connected'); })
-      .catch(e => setSyncStatus('error', 'Firebase reconnect failed: ' + e.message));
+    // Firebase config saved — reconnect and PULL remote data before rendering
+    setSyncStatus('syncing', 'Connecting to Firebase…');
+    try {
+      await fbInit(fbConfig);
+      // Pull remote snapshot first so a new device gets real data
+      const snap = await fbGet('lumasamples');
+      if (snap && snap.exists()) {
+        applyRemoteData(snap.val());
+      }
+      await localSave();
+      fbStartListening();
+      setSyncStatus('synced', 'Firebase connected · ' + new Date().toLocaleTimeString());
+    } catch(e) {
+      setSyncStatus('error', 'Firebase reconnect failed: ' + e.message);
+      await localSave();
+    }
+  } else {
+    await localSave();
   }
 }
 
@@ -1949,6 +2104,7 @@ function loginSuccess(user) {
   detectAndApplyLayout();
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
+  document.body.classList.add('app-visible');
   // Header
   document.getElementById('chip-avatar').textContent = user.avatar;
   document.getElementById('chip-name').textContent = user.name;
@@ -1977,6 +2133,7 @@ function logOut() {
   stopScanner();
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = '';
+  document.body.classList.remove('app-visible');
   document.getElementById('pin-entry').style.display = 'none';
   document.getElementById('login-user-grid').style.display = 'grid';
   renderLoginScreen();
@@ -2155,17 +2312,17 @@ function fixtureCardHTML(f) {
           <button class="btn btn-blue btn-sm" onclick="openEditFixture('${f.id}');event.stopPropagation()" title="Edit fixture">✏️</button>
         </div>
         <div onclick="event.stopPropagation()">
-          <button onclick="toggleCardComments('${f.id}')" style="width:100%;background:none;border:none;border-top:1px solid var(--border);padding:5px 14px;text-align:left;font-size:11px;color:var(--text3);cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;">
-            <span id="card-cmttoggle-${f.id}">▸</span>
+          <button onclick="toggleCardComments('${f.id}')" style="width:100%;background:none;border:none;border-top:1px solid var(--border);padding:12px 16px;text-align:left;font-size:14px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:8px;font-family:'DM Sans',sans-serif;font-weight:500;">
+            <span id="card-cmttoggle-${f.id}" style="font-size:12px;">▸</span>
             💬 Notes &amp; History
-            <span style="font-size:10px;">(${(f.comments||[]).length})</span>
+            <span style="font-size:13px;color:var(--text3);">(${(f.comments||[]).length})</span>
           </button>
-          <div id="card-cmt-${f.id}" style="display:none;padding:8px 14px 10px;background:var(--surface2);border-top:1px solid var(--border);">
-            <div style="display:flex;gap:6px;margin-bottom:8px;">
-              <input class="form-input" id="card-cmt-input-${f.id}" placeholder="Add a comment..." style="flex:1;font-size:12px;padding:6px 10px;">
+          <div id="card-cmt-${f.id}" style="display:none;padding:12px 16px 14px;background:var(--surface2);border-top:1px solid var(--border);">
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+              <input class="form-input" id="card-cmt-input-${f.id}" placeholder="Add a comment..." style="flex:1;font-size:14px;padding:10px 12px;">
               <button class="btn btn-blue btn-sm" onclick="addCardComment('${f.id}')">Post</button>
             </div>
-            <div id="card-cmt-list-${f.id}" style="max-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;">
+            <div id="card-cmt-list-${f.id}" style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;font-size:14px;">
               ${buildCommentListHTML(f)}
             </div>
           </div>
@@ -2243,7 +2400,7 @@ function buildCommentListHTML(f) {
   return entries.map(c => {
     const icon = c.action==='checkout'?'↗':c.action==='return'?'↙':c.action==='transfer'?'⇄':'💬';
     const clr  = c.action==='checkout'?'var(--red)':c.action==='return'?'var(--green)':'var(--text2)';
-    return `<div style="font-size:11px;padding:4px 0;border-bottom:1px solid var(--border);"><span style="color:${clr};font-weight:600;">${icon} ${c.userName}</span> <span style="color:var(--text3);font-size:10px;">${timeAgo(c.ts)}</span>${c.text?` · <span style="color:var(--text2);">${c.text}</span>`:''}</div>`;
+    return `<div style="font-size:14px;padding:7px 0;border-bottom:1px solid var(--border);"><span style="color:${clr};font-weight:600;">${icon} ${c.userName}</span> <span style="color:var(--text3);font-size:12px;">${timeAgo(c.ts)}</span>${c.text?` · <span style="color:var(--text2);">${c.text}</span>`:''}</div>`;
   }).join('');
 }
 
@@ -2964,9 +3121,13 @@ function renderSetupPage() {
     if (connectCard)    connectCard.style.display = 'none';
     if (connectedBlock) connectedBlock.style.display = 'block';
     if (urlEl) urlEl.textContent = `Project: ${fbConfig?.projectId||''}  ·  ${fbConfig?.databaseURL||''}`;
+    const tip = document.getElementById('setup-hardcoded-tip');
+    if (tip) tip.style.display = HARDCODED_FB_PROJECT_ID ? 'none' : 'block';
   } else {
     if (connectCard)    connectCard.style.display = 'flex';
     if (connectedBlock) connectedBlock.style.display = 'none';
+    const tip = document.getElementById('setup-hardcoded-tip');
+    if (tip) tip.style.display = 'none';
   }
 }
 
@@ -3076,9 +3237,19 @@ document.addEventListener('keydown', e => {
 function detectAndApplyLayout() {
   const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
     || window.innerWidth <= 580
-    || (window.navigator.standalone === true)           // iOS saved-to-home
-    || window.matchMedia('(display-mode: standalone)').matches; // Android PWA
+    || (window.navigator.standalone === true)
+    || window.matchMedia('(display-mode: standalone)').matches;
   document.body.classList.toggle('is-mobile', isMobile);
+  // Set --tab-bar-h immediately (sync) so sync-bar bottom offset is always correct.
+  // Also run after next paint in case flex layout hasn't resolved yet.
+  const setTabH = () => {
+    const tabBar = document.getElementById('bottom-tabs');
+    if (!tabBar) return;
+    const h = tabBar.offsetHeight || 58;
+    document.documentElement.style.setProperty('--tab-bar-h', h + 'px');
+  };
+  setTabH();
+  requestAnimationFrame(setTabH);
 }
 
 async function init() {
