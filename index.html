@@ -42,6 +42,25 @@
   --radius-sm: 9px;
   --shadow: 0 4px 24px rgba(0,0,0,0.4);
 }
+body.light-mode {
+  --bg: #f5f5f0;
+  --surface: #ffffff;
+  --surface2: #eeeee8;
+  --surface3: #e4e4dc;
+  --accent: #d4a800;
+  --accent-dim: rgba(212,168,0,0.12);
+  --text: #1a1a18;
+  --text2: #555550;
+  --text3: #999990;
+  --border: #ddddd8;
+  --border2: #cccccc;
+  --green: #16a34a;
+  --green-dim: rgba(22,163,74,0.1);
+  --red: #dc2626;
+  --red-dim: rgba(220,38,38,0.1);
+  --blue: #2563eb;
+  --shadow: 0 4px 24px rgba(0,0,0,0.12);
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
@@ -89,9 +108,9 @@ body {
   position: absolute;
   top: -180px; left: 50%; transform: translateX(-50%);
   width: 900px; height: 900px;
-  background: radial-gradient(circle, rgba(245,200,66,0.22) 0%, rgba(245,200,66,0.10) 28%, rgba(245,200,66,0.03) 55%, transparent 72%);
+  background: radial-gradient(circle, rgba(245,200,66,0.38) 0%, rgba(245,200,66,0.18) 28%, rgba(245,200,66,0.06) 55%, transparent 72%);
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
 }
 #login-screen::after { display: none; }
 .login-logo {
@@ -227,7 +246,21 @@ header {
   position: sticky;
   top: 0;
   z-index: 100;
+  overflow: hidden;
 }
+header::before {
+  content: '';
+  position: absolute;
+  top: -60px; left: 0;
+  width: 340px; height: 200px;
+  background: radial-gradient(ellipse at 20% 50%, rgba(245,200,66,0.14) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+body.light-mode header::before {
+  background: radial-gradient(ellipse at 20% 50%, rgba(212,168,0,0.12) 0%, transparent 70%);
+}
+header > * { position: relative; z-index: 1; }
 .logo {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 24px;
@@ -1206,6 +1239,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
       <div id="header-sync-dot" style="width:9px;height:9px;border-radius:50%;background:var(--red);flex-shrink:0;margin-left:2px;" title="Not connected"></div>
     </div>
     <div class="header-right">
+          <button id="header-theme-btn" onclick="toggleTheme()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text2);padding:4px 6px;border-radius:6px;line-height:1;" title="Toggle theme">☀</button>
       <!-- Sync button — always visible -->
       <button class="btn btn-sync no-print" id="header-sync-btn" onclick="manualSync()" title="Sync with Firebase">⇅</button>
       <!-- User chip — avatar + name only, no role badge -->
@@ -1227,7 +1261,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     <div class="nav-tab admin-tab" id="tab-add" data-page="add" onclick="showPage('add',this)" style="display:none;"><span class="tab-icon">➕</span> Add Fixture</div>
     <div class="nav-tab admin-tab" id="tab-print" data-page="print" onclick="showPage('print',this)" style="display:none;"><span class="tab-icon">🖨</span> Print QR</div>
     <div class="nav-tab admin-tab" id="tab-admin" data-page="admin" onclick="showPage('admin',this)" style="display:none;"><span class="tab-icon">⚙️</span> Admin</div>
-    <div class="nav-tab" id="tab-setup" data-page="setup" onclick="showPage('setup',this)"><span class="tab-icon">🔗</span> Sync Setup</div>
+    <div class="nav-tab" id="tab-setup" data-page="setup" onclick="showPage('setup',this)"><span class="tab-icon">⚙️</span> Settings</div>
   </div>
 
   <main>
@@ -1250,7 +1284,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
       <div class="toolbar">
         <div class="search-box">
           <span style="color:var(--text3);">🔍</span>
-          <input type="text" id="search-input" placeholder="Search fixtures..." oninput="renderLibrary()">
+          <input type="text" id="search-input" placeholder="Search fixtures..." oninput="debounce('lib',renderLibrary,150)()">
         </div>
         <select class="filter-select" id="filter-status" onchange="renderLibrary()">
           <option value="">All Status</option>
@@ -1404,13 +1438,25 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 
     <!-- ADMIN PAGE (admin only) -->
     <div class="page" id="page-admin">
-      <!-- Firebase Sync -->
+      <!-- Firebase Sync (inline summary) -->
       <div class="admin-section">
         <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
           <span>🔥 Firebase Sync</span>
-          <div style="display:flex;gap:8px;" id="fb-action-btns"></div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div id="fb-action-btns"></div>
+            <button class="btn btn-secondary btn-sm" onclick="showPage('setup',document.getElementById('tab-setup'))">Manage →</button>
+          </div>
         </div>
         <div id="fb-status-block" style="font-size:13px;color:var(--text2);margin-top:4px;"></div>
+      </div>
+      <div class="divider"></div>
+      <!-- Appearance -->
+      <div class="admin-section">
+        <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>🎨 Appearance</span>
+          <button class="btn btn-secondary btn-sm" onclick="toggleTheme()" id="admin-theme-btn">☀ Light Mode</button>
+        </div>
+        <p style="font-size:13px;color:var(--text2);margin-top:4px;">Toggle between dark and light mode.</p>
       </div>
       <div class="divider"></div>
       <!-- User Management -->
@@ -1457,7 +1503,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
         <div class="toolbar">
           <div class="search-box" style="flex:1;">
             <span style="color:var(--text3);">🔍</span>
-            <input type="text" id="admin-search" placeholder="Search fixtures to manage..." oninput="renderAdminFixtures()">
+            <input type="text" id="admin-search" placeholder="Search fixtures to manage..." oninput="debounce('adm',renderAdminFixtures,150)()">
           </div>
         </div>
         <div class="table-wrap">
@@ -1539,6 +1585,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
         <h2 style="font-size:20px;font-weight:700;color:#fff;">📦 Cases &amp; Boxes</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-secondary" id="case-print-select-btn" onclick="toggleCasePrintMode()">☑ Select to Print</button>
+          <button class="btn btn-blue" onclick="openBatchAddFixturesToCase()">+ Add Fixtures to Case</button>
           <button class="btn btn-primary" onclick="openAddContainerModal()">+ New Case</button>
         </div>
       </div>
@@ -1558,7 +1605,11 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
         <!-- Status banner -->
         <div id="setup-status-banner" style="border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;"></div>
 
-        <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;color:#ffffff;">🔥 Firebase Sync</h2>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <h2 style="font-size:20px;font-weight:700;color:#ffffff;">⚙️ Settings</h2>
+          <button class="btn btn-secondary btn-sm" onclick="toggleTheme()" id="settings-theme-btn">☀ Light Mode</button>
+        </div>
+        <h3 style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--text);">🔥 Firebase Sync</h3>
         <p style="color:var(--text2);font-size:13px;margin-bottom:20px;line-height:1.7;">Connect LumaSamples to Firebase to sync in real time across all devices.</p>
 
         <!-- Connect form (hidden when connected) -->
@@ -1655,7 +1706,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     <span class="btab-icon">⚙️</span>Admin
   </button>
   <button class="btab"        id="btab-setup"   onclick="showPage('setup',this)">
-    <span class="btab-icon">🔗</span>Sync
+    <span class="btab-icon">⚙️</span>Settings
   </button>
 </div>
 
@@ -3153,6 +3204,7 @@ function renderPrintPage() {
       <div class="pname">${f.name}</div>
       <div class="pbrand">${[f.partNo,f.brand,f.fixtureType||f.category].filter(Boolean).join(' · ')}</div>
       <button class="print-card-btn no-print" onclick="event.stopPropagation();printSingleQR('${f.id}')">🖨 Print</button>
+      <button class="print-card-btn no-print" onclick="event.stopPropagation();copyQRLink('fixture','${f.id}')" title="Copy QR link" style="font-size:11px;padding:4px 6px;">🔗 Copy</button>
     </div>
   `).join('');
   fixtures.forEach(f=>{
@@ -3577,11 +3629,17 @@ async function clearHistory() {
   history = [];
   await storeSet(KEY_HISTORY, JSON.stringify([]));
   if (fbDb) {
-    try { await fbRemove('lumasamples/history'); } catch(e) {}
+    try {
+      await fbDb.ref('lumasamples/history').remove();
+      notify('✓ History cleared from Firebase + local storage', 'success');
+    } catch(e) {
+      notify('✓ Local history cleared (Firebase error: ' + e.message + ')', 'info');
+    }
+  } else {
+    notify('✓ Transaction history cleared', 'success');
   }
   document.getElementById('clear-history-confirm').style.display = 'none';
-  renderHistory && renderHistory();
-  notify('✓ Transaction history cleared', 'success');
+  if (typeof renderHistory === 'function') renderHistory();
 }
 
 function exportBackup() {
@@ -4148,16 +4206,25 @@ async function confirmCheckoutNote() {
   const note = document.getElementById('checkout-note-input').value.trim();
   closeModal('checkout-note-modal');
 
-  // Handle returns from bulkDoAll
-  const retFids  = window._bulkReturnFids  || [];
-  const swapFids = window._bulkSwapFids    || [];
+  // Capture return/swap fids before clearing state
+  const retFids  = (window._bulkReturnFids  || []).slice();
+  const swapFids = (window._bulkSwapFids    || []).slice();
+  const bulkCheckoutFids = checkoutNoteBulk.slice();
+  const singleFid = checkoutNoteFid;
+  // Clear state immediately
   window._bulkReturnFids = [];
   window._bulkSwapFids   = [];
+  checkoutNoteBulk = [];
+  checkoutNoteFid = null;
 
-  if (checkoutNoteBulk.length) {
-    await doBulkCheckout(checkoutNoteBulk, note);
-  } else if (checkoutNoteFid) {
-    await doCheckout(checkoutNoteFid, note);
+  if (bulkCheckoutFids.length && (retFids.length || swapFids.length)) {
+    window._skipBulkExit = true; // we'll do the exit ourselves after returns
+    await doBulkCheckout(bulkCheckoutFids, note);
+    window._skipBulkExit = false;
+  } else if (bulkCheckoutFids.length) {
+    await doBulkCheckout(bulkCheckoutFids, note);
+  } else if (singleFid) {
+    await doCheckout(singleFid, note);
   }
 
   // Returns
@@ -4188,11 +4255,15 @@ async function confirmCheckoutNote() {
 
   if (retFids.length || swapFids.length) {
     haptic('success');
+    exitBulkMode();
     refreshCurrentPage();
     const msgs = [];
     if (retFids.length)  msgs.push(`↙ ${retFids.length} returned`);
     if (swapFids.length) msgs.push(`⇄ ${swapFids.length} taken over`);
     if (msgs.length) notify(msgs.join(', '), 'success');
+  } else {
+    exitBulkMode();
+    refreshCurrentPage();
   }
 }
 
@@ -4277,8 +4348,7 @@ async function doBulkCheckout(fids, note) {
     count++;
   }
   haptic('success');
-  exitBulkMode();
-  refreshCurrentPage();
+  if (!window._skipBulkExit) { exitBulkMode(); refreshCurrentPage(); }
   notify(`✓ Checked out ${count} fixture${count!==1?'s':''}` + (note ? ` — "${note}"` : ''), 'success');
 }
 
@@ -4360,6 +4430,12 @@ function updateBulkBar() {
     } else if (!availFids.length && otherOutFids.length && !myOutFids.length && !availFids.length) {
       actionBtn.textContent = '⇄ Take Over';
       actionBtn.className = 'btn btn-warning btn-sm';
+    } else if (availFids.length && myOutFids.length && !otherOutFids.length) {
+      actionBtn.textContent = '↗ Check Out / ↙ Return';
+      actionBtn.className = 'btn btn-primary btn-sm';
+    } else if (availFids.length && otherOutFids.length) {
+      actionBtn.textContent = '↗ Check Out / ⇄ Take Over';
+      actionBtn.className = 'btn btn-primary btn-sm';
     } else {
       actionBtn.textContent = '✦ Do All';
       actionBtn.className = 'btn btn-primary btn-sm';
@@ -4841,6 +4917,7 @@ function openContainerDetail(cid) {
     ` : '<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px 0;">No fixtures assigned to this case yet.<br><span style="font-size:12px;">Edit a fixture and set its Case/Box field.</span></div>'}
     <div style="margin-top:16px;">
       <button class="btn btn-secondary btn-sm" onclick="printContainerLabel('${cid}')">🖨 Print Case Label</button>
+    <button class="btn btn-secondary btn-sm" onclick="copyQRLink('container','${cid}')">🔗 Copy Link</button>
     </div>
   `;
   openModal('container-detail-modal');
@@ -5359,7 +5436,190 @@ function fixtureUrl(id) {
   return base + '?f=' + encodeURIComponent(id);
 }
 
+// ═══════════════════════════════════════════════════════
+//  DEBOUNCE UTILITY
+// ═══════════════════════════════════════════════════════
+const _debTimers = {};
+function debounce(key, fn, delay) {
+  return function(...args) {
+    clearTimeout(_debTimers[key]);
+    _debTimers[key] = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+//  THEME TOGGLE (dark / light)
+// ═══════════════════════════════════════════════════════
+function applyTheme(mode) {
+  document.body.classList.toggle('light-mode', mode === 'light');
+  localStorage.setItem('luma:theme', mode);
+  // Update all theme buttons
+  const label = mode === 'light' ? '🌙 Dark Mode' : '☀ Light Mode';
+  ['admin-theme-btn','settings-theme-btn','header-theme-btn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = label;
+  });
+  // Fix login halo for light mode
+  const ls = document.getElementById('login-screen');
+  if (ls) ls.style.background = mode === 'light' ? '' : '';
+}
+
+function toggleTheme() {
+  const current = localStorage.getItem('luma:theme') || 'dark';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('luma:theme') || 'dark';
+  applyTheme(saved);
+}
+
+// ═══════════════════════════════════════════════════════
+//  COPY QR LINK TO CLIPBOARD
+// ═══════════════════════════════════════════════════════
+async function copyQRLink(type, id) {
+  const url = type === 'container' ? containerUrl(id) : fixtureUrl(id);
+  try {
+    await navigator.clipboard.writeText(url);
+    haptic('success');
+    notify('🔗 Link copied to clipboard', 'success');
+  } catch(e) {
+    // Fallback for older browsers/iOS
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    ta.style.cssText = 'position:fixed;opacity:0;';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); notify('🔗 Link copied', 'success'); haptic('success'); }
+    catch(e2) { notify('Could not copy: ' + url, 'info'); }
+    document.body.removeChild(ta);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  BATCH ADD FIXTURES TO CASE MODAL
+// ═══════════════════════════════════════════════════════
+let bafcSelectedCase = null;
+let bafcSelectedFixtures = new Set();
+
+function openBatchAddFixturesToCase() {
+  bafcSelectedCase = null;
+  bafcSelectedFixtures.clear();
+  // Build modal dynamically
+  let existing = document.getElementById('bafc-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'bafc-modal';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:580px;">
+      <div class="modal-header">
+        <div class="modal-title">📦 Add Fixtures to a Case</div>
+        <button class="modal-close" onclick="document.getElementById('bafc-modal').remove()">×</button>
+      </div>
+      <div class="modal-body" style="max-height:75vh;overflow-y:auto;">
+        <div class="form-group">
+          <label class="form-label">Select Case</label>
+          <div style="position:relative;">
+            <select class="form-input" id="bafc-case-select" onchange="bafcOnCaseChange()"
+              style="-webkit-appearance:none;appearance:none;background:var(--surface2);cursor:pointer;padding-right:32px;">
+              <option value="">— Choose a case —</option>
+              ${containers.map(c => {
+                const n = fixtures.filter(f => f.containerId === c.id).length;
+                return `<option value="${c.id}">${c.name} (${c.id}) · ${n} fixture${n!==1?'s':''}</option>`;
+              }).join('')}
+            </select>
+            <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;font-size:12px;">▾</span>
+          </div>
+        </div>
+        <div class="form-group" id="bafc-fixtures-group" style="display:none;">
+          <label class="form-label">Available Unassigned Fixtures</label>
+          <div class="search-box" style="margin-bottom:8px;">
+            <span style="color:var(--text3);">🔍</span>
+            <input type="text" id="bafc-search" style="flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14px;padding:8px 0;" placeholder="Search..." oninput="renderBafcList()">
+          </div>
+          <div id="bafc-fixture-list" style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);"></div>
+          <div id="bafc-selected-count" style="font-size:12px;color:var(--text3);margin-top:6px;">0 fixtures selected</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('bafc-modal').remove()">Cancel</button>
+        <button class="btn btn-primary" id="bafc-add-btn" onclick="bafcConfirm()" style="display:none;">Add to Case</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.style.display = 'flex';
+}
+
+function bafcOnCaseChange() {
+  const sel = document.getElementById('bafc-case-select');
+  bafcSelectedCase = sel.value || null;
+  bafcSelectedFixtures.clear();
+  const group = document.getElementById('bafc-fixtures-group');
+  const addBtn = document.getElementById('bafc-add-btn');
+  if (bafcSelectedCase) {
+    group.style.display = '';
+    renderBafcList();
+  } else {
+    group.style.display = 'none';
+    if (addBtn) addBtn.style.display = 'none';
+  }
+}
+
+function renderBafcList() {
+  const q = (document.getElementById('bafc-search')?.value || '').toLowerCase();
+  const avail = fixtures.filter(f =>
+    !f.containerId && f.status === 'available' &&
+    [f.id, f.name, f.brand, f.location, f.fixtureType].join(' ').toLowerCase().includes(q)
+  );
+  const list = document.getElementById('bafc-fixture-list');
+  const countEl = document.getElementById('bafc-selected-count');
+  const addBtn = document.getElementById('bafc-add-btn');
+  if (!avail.length) {
+    list.innerHTML = '<div style="padding:14px;color:var(--text3);font-size:13px;text-align:center;">No unassigned available fixtures found.</div>';
+  } else {
+    list.innerHTML = avail.map(f => {
+      const sel = bafcSelectedFixtures.has(f.id);
+      return `<div onclick="bafcToggle('${f.id}')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer;background:${sel?'rgba(245,200,66,0.06)':'none'};">
+        <div style="width:18px;height:18px;border:2px solid ${sel?'var(--accent)':'var(--border2)'};border-radius:4px;background:${sel?'var(--accent)':'none'};display:flex;align-items:center;justify-content:center;font-size:11px;color:#000;flex-shrink:0;">${sel?'✓':''}</div>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);background:var(--accent-dim);padding:2px 6px;border-radius:4px;">${f.id}</span>
+        <span style="flex:1;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.name}</span>
+        ${f.location ? `<span style="font-size:11px;color:var(--text3);white-space:nowrap;">📍${f.location}</span>` : ''}
+      </div>`;
+    }).join('');
+  }
+  if (countEl) countEl.textContent = bafcSelectedFixtures.size + ' fixture' + (bafcSelectedFixtures.size !== 1 ? 's' : '') + ' selected';
+  if (addBtn) addBtn.style.display = bafcSelectedFixtures.size > 0 ? '' : 'none';
+  if (addBtn) addBtn.textContent = `Add ${bafcSelectedFixtures.size || ''} to Case`;
+}
+
+function bafcToggle(fid) {
+  haptic('light');
+  if (bafcSelectedFixtures.has(fid)) bafcSelectedFixtures.delete(fid);
+  else bafcSelectedFixtures.add(fid);
+  renderBafcList();
+}
+
+async function bafcConfirm() {
+  if (!bafcSelectedCase || !bafcSelectedFixtures.size) return;
+  const c = containers.find(x => x.id === bafcSelectedCase);
+  let count = 0;
+  for (const fid of bafcSelectedFixtures) {
+    const f = fixtures.find(x => x.id === fid);
+    if (f) { f.containerId = bafcSelectedCase; await saveData({ fixture: f }); count++; }
+  }
+  const modal = document.getElementById('bafc-modal');
+  if (modal) modal.remove();
+  renderContainersPage();
+  haptic('success');
+  notify(`✓ Added ${count} fixture${count!==1?'s':''} to ${c?.name || bafcSelectedCase}`, 'success');
+}
+
+
 async function init() {
+  initTheme();
   detectAndApplyLayout();
   window.addEventListener('resize', detectAndApplyLayout);
   // Check for container scan (?box=BOX-xxxx)
