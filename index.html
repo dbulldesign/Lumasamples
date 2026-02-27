@@ -617,8 +617,8 @@ tr:hover td { background: var(--surface2); }
 /* ── PRINT ── */
 .print-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
 .print-card { background: white; border-radius: 10px; padding: 14px; text-align: center; position: relative; display:flex; flex-direction:column; align-items:center; }
-.print-card .pqr-wrap { display:flex; justify-content:center; align-items:center; width:48px; height:48px; margin:0 auto; }
-.print-card .pqr-wrap canvas, .print-card .pqr-wrap img { width:48px !important; height:48px !important; display:block; }
+.print-card .pqr-wrap { display:flex; justify-content:center; align-items:center; width:60px; height:60px; margin:0 auto; }
+.print-card .pqr-wrap canvas, .print-card .pqr-wrap img { width:60px !important; height:60px !important; display:block; }
 .print-card .pname { font-size: 11px; font-weight: 700; color: #111; margin-top: 6px; font-family: 'DM Sans', sans-serif; }
 .print-card .pid { font-family: 'DM Mono', monospace; font-size: 10px; color: #555; }
 .print-card .pbrand { font-size: 9px; color: #888; }
@@ -627,7 +627,7 @@ tr:hover td { background: var(--surface2); }
 @media print {
   .no-print { display: none !important; }
   .print-card { page-break-inside: avoid; }
-  .print-card .pqr-wrap canvas, .print-card .pqr-wrap img { width:48px !important; height:48px !important; }
+  .print-card .pqr-wrap canvas, .print-card .pqr-wrap img { width:60px !important; height:60px !important; }
 }
 
 /* ── EMPTY STATE ── */
@@ -2461,7 +2461,7 @@ function openLoginDetail(fid) {
   setTimeout(() => {
     const el = document.getElementById('ldm-qr-' + f.id);
     if (el && !el.querySelector('canvas')) {
-      new QRCode(el, { text: fixtureUrl(f.id), width: 100, height: 100, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+      new QRCode(el, { text: fixtureUrl(f.id), width: 125, height: 125, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
     }
   }, 60);
 }
@@ -2940,7 +2940,7 @@ function openDetailModal(fid) {
   setTimeout(() => {
     const el = document.getElementById('detail-qr-'+f.id);
     if (el && !el.querySelector('canvas')) {
-      new QRCode(el, { text:fixtureUrl(f.id), width:110, height:110, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
+      new QRCode(el, { text:fixtureUrl(f.id), width:138, height:138, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
     }
   }, 60);
 }
@@ -3016,7 +3016,7 @@ async function addFixture() {
   document.getElementById('new-qr-name-text').textContent = f.name;
   const qrEl = document.getElementById('new-qr-code');
   qrEl.innerHTML = '';
-  new QRCode(qrEl, { text:fixtureUrl(f.id), width:150, height:150, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
+  new QRCode(qrEl, { text:fixtureUrl(f.id), width:188, height:188, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
   // Reset form
   ['new-name','new-brand','new-partno','new-wattage','new-voltage','new-location','new-specsheet','new-output-wattage'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('new-fixtype').value='';
@@ -3044,7 +3044,7 @@ function renderPrintPage() {
     setTimeout(()=>{
       const el = document.getElementById('pqr-'+f.id);
       if (el && !el.querySelector('canvas')) {
-        new QRCode(el,{text:fixtureUrl(f.id),width:48,height:48,colorDark:'#111',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});
+        new QRCode(el,{text:fixtureUrl(f.id),width:60,height:60,colorDark:'#111',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});
       }
     },50);
   });
@@ -3055,7 +3055,7 @@ function printSingleQR(fid) {
   if (!f) return;
   const tmp = document.createElement('div');
   document.body.appendChild(tmp);
-  new QRCode(tmp, { text: fixtureUrl(f.id), width: 96, height: 96, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+  new QRCode(tmp, { text: fixtureUrl(f.id), width: 150, height: 150, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
   setTimeout(() => {
     const canvas = tmp.querySelector('canvas');
     const imgSrc = canvas ? canvas.toDataURL() : '';
@@ -3068,7 +3068,7 @@ function printSingleQR(fid) {
     const sEl = document.createElement('style');
     sEl.textContent = [
       '#print-single-overlay{display:flex!important;flex-direction:column;align-items:center;justify-content:center;}',
-      '.pso-qr{width:0.5in;height:0.5in;display:block;margin:0 auto;}',
+      '.pso-qr{width:0.625in;height:0.625in;display:block;margin:0 auto;}',
       '.pso-id{font-size:6pt;font-family:monospace;color:#444;margin-top:3pt;text-align:center;}',
       '.pso-name{font-size:6pt;font-weight:bold;color:#111;margin-top:1pt;text-align:center;}',
       '.pso-info{font-size:5pt;color:#777;margin-top:1pt;text-align:center;}',
@@ -4348,10 +4348,10 @@ async function printSelectedQR() {
   const styleEl = document.createElement('style');
   styleEl.textContent = [
     '#print-single-overlay { display:flex !important; flex-wrap:wrap; align-items:flex-start; padding:8pt; gap:6pt; }',
-    '.pso-label { display:flex;flex-direction:column;align-items:center;width:0.6in;page-break-inside:avoid; }',
-    '.pso-qr { width:0.5in;height:0.5in;display:block; }',
+    '.pso-label { display:flex;flex-direction:column;align-items:center;width:0.75in;page-break-inside:avoid; }',
+    '.pso-qr { width:0.625in;height:0.625in;display:block; }',
     '.pso-id { font-size:5pt;font-family:monospace;color:#444;margin-top:2pt;text-align:center; }',
-    '.pso-name { font-size:5pt;font-weight:bold;color:#111;margin-top:1pt;text-align:center;max-width:0.6in;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }',
+    '.pso-name { font-size:5pt;font-weight:bold;color:#111;margin-top:1pt;text-align:center;max-width:0.75in;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }',
     '@media print { body > *:not(#print-single-overlay) { display:none !important; } #pso-back { display:none !important; } }',
     '#pso-back { position:fixed;top:16px;left:16px;padding:8px 16px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;z-index:10000; }'
   ].join(' ');
@@ -4369,7 +4369,7 @@ async function printSelectedQR() {
     if (!f) { resolve(null); return; }
     const tmp = document.createElement('div');
     document.body.appendChild(tmp);
-    new QRCode(tmp, { text: fixtureUrl(f.id), width: 96, height: 96, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+    new QRCode(tmp, { text: fixtureUrl(f.id), width: 150, height: 150, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
     setTimeout(() => {
       const canvas = tmp.querySelector('canvas');
       const imgSrc = canvas ? canvas.toDataURL() : '';
@@ -4460,7 +4460,7 @@ function renderContainersPage() {
     setTimeout(() => {
       const el = document.getElementById('cqr-thumb-' + c.id);
       if (el && !el.querySelector('canvas')) {
-        new QRCode(el, { text: containerUrl(c.id), width: 40, height: 40, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+        new QRCode(el, { text: containerUrl(c.id), width: 50, height: 50, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
       }
     }, 60);
   });
@@ -4529,7 +4529,7 @@ function openContainerDetail(cid) {
   setTimeout(() => {
     const el = document.getElementById('cd-qr-wrap-' + cid);
     if (el && !el.querySelector('canvas')) {
-      new QRCode(el, { text: containerUrl(cid), width: 120, height: 120, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+      new QRCode(el, { text: containerUrl(cid), width: 150, height: 150, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
     }
   }, 80);
 }
@@ -4550,7 +4550,7 @@ function printContainerLabel(cid) {
   if (!c) return;
   const tmp = document.createElement('div');
   document.body.appendChild(tmp);
-  new QRCode(tmp, { text: containerUrl(cid), width: 96, height: 96, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+  new QRCode(tmp, { text: containerUrl(cid), width: 150, height: 150, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
   setTimeout(() => {
     const canvas = tmp.querySelector('canvas');
     const imgSrc = canvas ? canvas.toDataURL() : '';
@@ -4561,7 +4561,7 @@ function printContainerLabel(cid) {
     const csEl = document.createElement('style');
     csEl.textContent = [
       '#print-single-overlay{display:flex!important;flex-direction:column;align-items:center;justify-content:center;}',
-      '.pso-qr{width:1in;height:1in;display:block;margin:0 auto;}',
+      '.pso-qr{width:1.25in;height:1.25in;display:block;margin:0 auto;}',
       '.pso-id{font-size:8pt;font-family:monospace;color:#444;margin-top:4pt;text-align:center;}',
       '.pso-name{font-size:10pt;font-weight:bold;color:#111;margin-top:2pt;text-align:center;}',
       '@media print{body > *:not(#print-single-overlay){display:none!important;}#pso-back{display:none!important;}}',
