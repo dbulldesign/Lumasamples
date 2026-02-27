@@ -1207,11 +1207,11 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
   <div class="nav-tabs" id="nav-tabs">
     <div class="nav-tab active" data-page="home" onclick="showPage('home',this)"><span class="tab-icon">🏠</span> Home</div>
     <div class="nav-tab" data-page="library" onclick="showPage('library',this)"><span class="tab-icon">📦</span> Library</div>
+    <div class="nav-tab" id="tab-containers" data-page="containers" onclick="showPage('containers',this)"><span class="tab-icon">🧳</span> Cases</div>
     <div class="nav-tab" data-page="history" onclick="showPage('history',this)"><span class="tab-icon">📋</span> History</div>
     <div class="nav-tab admin-tab" id="tab-add" data-page="add" onclick="showPage('add',this)" style="display:none;"><span class="tab-icon">➕</span> Add Fixture</div>
     <div class="nav-tab admin-tab" id="tab-print" data-page="print" onclick="showPage('print',this)" style="display:none;"><span class="tab-icon">🖨</span> Print QR</div>
     <div class="nav-tab admin-tab" id="tab-admin" data-page="admin" onclick="showPage('admin',this)" style="display:none;"><span class="tab-icon">⚙️</span> Admin</div>
-    <div class="nav-tab" id="tab-containers" data-page="containers" onclick="showPage('containers',this)"><span class="tab-icon">📦</span> Cases</div>
     <div class="nav-tab" id="tab-setup" data-page="setup" onclick="showPage('setup',this)"><span class="tab-icon">🔗</span> Sync Setup</div>
   </div>
 
@@ -1612,6 +1612,9 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
   <button class="btab"        id="btab-library" onclick="showPage('library',this)">
     <span class="btab-icon">📦</span>Library
   </button>
+  <button class="btab" id="btab-containers" onclick="showPage('containers',this)">
+    <span class="btab-icon">🧳</span>Cases
+  </button>
   <button class="btab"        id="btab-history" onclick="showPage('history',this)">
     <span class="btab-icon">📋</span>History
   </button>
@@ -1623,9 +1626,6 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
   </button>
   <button class="btab admin-btab" id="btab-admin" onclick="showPage('admin',this)" style="display:none;">
     <span class="btab-icon">⚙️</span>Admin
-  </button>
-  <button class="btab" id="btab-containers" onclick="showPage('containers',this)">
-    <span class="btab-icon">📦</span>Cases
   </button>
   <button class="btab"        id="btab-setup"   onclick="showPage('setup',this)">
     <span class="btab-icon">🔗</span>Sync
