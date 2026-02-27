@@ -3064,35 +3064,23 @@ function printSingleQR(fid) {
     // Create a print overlay in the same window so iOS can return after printing
     const overlay = document.createElement('div');
     overlay.id = 'print-single-overlay';
-    overlay.innerHTML = `
-      <style>
-        #print-single-overlay {
-          display:none;
-          position:fixed;inset:0;background:#fff;z-index:9999;
-          flex-direction:column;align-items:center;justify-content:center;
-          font-family:Arial,sans-serif;
-        }
-        @media print {
-          body > *:not(#print-single-overlay) { display:none !important; }
-          #print-single-overlay { display:flex !important; }
-          #pso-back { display:none !important; }
-        }
-        #pso-back {
-          position:fixed;top:16px;left:16px;padding:8px 16px;
-          background:#111;color:#fff;border:none;border-radius:8px;
-          font-size:14px;cursor:pointer;z-index:10000;
-        }
-        .pso-qr { width:0.5in;height:0.5in;display:block;margin:0 auto; }
-        .pso-id { font-size:6pt;font-family:monospace;color:#444;margin-top:3pt;text-align:center; }
-        .pso-name { font-size:6pt;font-weight:bold;color:#111;margin-top:1pt;text-align:center; }
-        .pso-info { font-size:5pt;color:#777;margin-top:1pt;text-align:center; }
-      </style>
-      <button id="pso-back" onclick="document.getElementById('print-single-overlay').remove()">← Back</button>
-      ${imgSrc ? `<img class="pso-qr" src="${imgSrc}">` : ''}
-      <div class="pso-id">${f.id}</div>
-      <div class="pso-name">${f.name}</div>
-      ${info ? `<div class="pso-info">${info}</div>` : ''}
-    `;
+    overlay.style.cssText = 'display:none;position:fixed;inset:0;background:#fff;z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif;';
+    const sEl = document.createElement('style');
+    sEl.textContent = [
+      '#print-single-overlay{display:flex!important;flex-direction:column;align-items:center;justify-content:center;}',
+      '.pso-qr{width:0.5in;height:0.5in;display:block;margin:0 auto;}',
+      '.pso-id{font-size:6pt;font-family:monospace;color:#444;margin-top:3pt;text-align:center;}',
+      '.pso-name{font-size:6pt;font-weight:bold;color:#111;margin-top:1pt;text-align:center;}',
+      '.pso-info{font-size:5pt;color:#777;margin-top:1pt;text-align:center;}',
+      '@media print{body > *:not(#print-single-overlay){display:none!important;}#pso-back{display:none!important;}}',
+      '#pso-back{position:fixed;top:16px;left:16px;padding:8px 16px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;z-index:10000;}'
+    ].join(' ');
+    overlay.appendChild(sEl);
+    const bk = document.createElement('button'); bk.id = 'pso-back'; bk.textContent = '\u2190 Back'; bk.onclick = () => overlay.remove(); overlay.appendChild(bk);
+    if (imgSrc) { const img = document.createElement('img'); img.className = 'pso-qr'; img.src = imgSrc; overlay.appendChild(img); }
+    const idDiv = document.createElement('div'); idDiv.className = 'pso-id'; idDiv.textContent = f.id; overlay.appendChild(idDiv);
+    const nmDiv = document.createElement('div'); nmDiv.className = 'pso-name'; nmDiv.textContent = f.name; overlay.appendChild(nmDiv);
+    if (info) { const inDiv = document.createElement('div'); inDiv.className = 'pso-info'; inDiv.textContent = info; overlay.appendChild(inDiv); }
     overlay.style.display = 'flex';
     document.body.appendChild(overlay);
     // Remove overlay after printing
@@ -4352,10 +4340,29 @@ function clearPrintSelection() {
 async function printSelectedQR() {
   if (!printSelected.size) { notify('No labels selected', 'error'); return; }
   const ids = [...printSelected];
-  // Build a print overlay with all selected QR codes
   const overlay = document.createElement('div');
   overlay.id = 'print-single-overlay';
-  overlay.style.cssText = 'display:none;position:fixed;inset:0;background:#fff;z-index:9999;flex-wrap:wrap;align-items:flex-start;justify-content:flex-start;padding:10pt;gap:6pt;font-family:Arial,sans-serif;';
+  overlay.style.cssText = 'display:none;position:fixed;inset:0;background:#fff;z-index:9999;font-family:Arial,sans-serif;';
+
+  // Inject print styles programmatically to avoid </style> inside JS string
+  const styleEl = document.createElement('style');
+  styleEl.textContent = [
+    '#print-single-overlay { display:flex !important; flex-wrap:wrap; align-items:flex-start; padding:8pt; gap:6pt; }',
+    '.pso-label { display:flex;flex-direction:column;align-items:center;width:0.6in;page-break-inside:avoid; }',
+    '.pso-qr { width:0.5in;height:0.5in;display:block; }',
+    '.pso-id { font-size:5pt;font-family:monospace;color:#444;margin-top:2pt;text-align:center; }',
+    '.pso-name { font-size:5pt;font-weight:bold;color:#111;margin-top:1pt;text-align:center;max-width:0.6in;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }',
+    '@media print { body > *:not(#print-single-overlay) { display:none !important; } #pso-back { display:none !important; } }',
+    '#pso-back { position:fixed;top:16px;left:16px;padding:8px 16px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;z-index:10000; }'
+  ].join(' ');
+  overlay.appendChild(styleEl);
+
+  const backBtn = document.createElement('button');
+  backBtn.id = 'pso-back';
+  backBtn.textContent = '\u2190 Back';
+  backBtn.onclick = () => overlay.remove();
+  overlay.appendChild(backBtn);
+
   // Generate QR canvases
   const qrPromises = ids.map(fid => new Promise(resolve => {
     const f = fixtures.find(x => x.id === fid);
@@ -4371,23 +4378,15 @@ async function printSelectedQR() {
     }, 200);
   }));
   const items = await Promise.all(qrPromises);
-  const labelStyle = `<style>
-    #print-single-overlay { display:flex !important; flex-wrap:wrap; align-items:flex-start; padding:8pt; gap:6pt; }
-    .pso-label { display:flex;flex-direction:column;align-items:center;width:0.6in;page-break-inside:avoid; }
-    .pso-qr { width:0.5in;height:0.5in;display:block; }
-    .pso-id { font-size:5pt;font-family:monospace;color:#444;margin-top:2pt;text-align:center; }
-    .pso-name { font-size:5pt;font-weight:bold;color:#111;margin-top:1pt;text-align:center;max-width:0.6in;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
-    @media print { body > *:not(#print-single-overlay) { display:none !important; } #pso-back { display:none !important; } }
-    #pso-back { position:fixed;top:16px;left:16px;padding:8px 16px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;z-index:10000; }
-  </style>`;
-  overlay.innerHTML = labelStyle + '<button id="pso-back" onclick="document.getElementById('print-single-overlay').remove()">← Back</button>' +
-    items.filter(Boolean).map(({f, imgSrc}) => `
-      <div class="pso-label">
-        ${imgSrc ? `<img class="pso-qr" src="${imgSrc}">` : ''}
-        <div class="pso-id">${f.id}</div>
-        <div class="pso-name">${f.name}</div>
-      </div>
-    `).join('');
+  items.filter(Boolean).forEach(({ f, imgSrc }) => {
+    const label = document.createElement('div');
+    label.className = 'pso-label';
+    if (imgSrc) { const img = document.createElement('img'); img.className = 'pso-qr'; img.src = imgSrc; label.appendChild(img); }
+    const idEl = document.createElement('div'); idEl.className = 'pso-id'; idEl.textContent = f.id; label.appendChild(idEl);
+    const nmEl = document.createElement('div'); nmEl.className = 'pso-name'; nmEl.textContent = f.name; label.appendChild(nmEl);
+    overlay.appendChild(label);
+  });
+
   overlay.style.display = 'flex';
   document.body.appendChild(overlay);
   window.addEventListener('afterprint', () => { const el = document.getElementById('print-single-overlay'); if (el) el.remove(); }, { once: true });
@@ -4558,20 +4557,21 @@ function printContainerLabel(cid) {
     document.body.removeChild(tmp);
     const overlay = document.createElement('div');
     overlay.id = 'print-single-overlay';
-    overlay.innerHTML = `
-      <style>
-        #print-single-overlay { display:none;position:fixed;inset:0;background:#fff;z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif; }
-        @media print { body > *:not(#print-single-overlay){display:none!important;} #pso-back{display:none!important;} #print-single-overlay{display:flex!important;} }
-        #pso-back{position:fixed;top:16px;left:16px;padding:8px 16px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;z-index:10000;}
-        .pso-qr{width:1in;height:1in;display:block;margin:0 auto;}
-        .pso-id{font-size:8pt;font-family:monospace;color:#444;margin-top:4pt;text-align:center;}
-        .pso-name{font-size:10pt;font-weight:bold;color:#111;margin-top:2pt;text-align:center;}
-      </style>
-      <button id="pso-back" onclick="document.getElementById('print-single-overlay').remove()">← Back</button>
-      ${imgSrc ? `<img class="pso-qr" src="${imgSrc}">` : ''}
-      <div class="pso-id">${c.id}</div>
-      <div class="pso-name">${c.name}</div>
-    `;
+    overlay.style.cssText = 'display:none;position:fixed;inset:0;background:#fff;z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif;';
+    const csEl = document.createElement('style');
+    csEl.textContent = [
+      '#print-single-overlay{display:flex!important;flex-direction:column;align-items:center;justify-content:center;}',
+      '.pso-qr{width:1in;height:1in;display:block;margin:0 auto;}',
+      '.pso-id{font-size:8pt;font-family:monospace;color:#444;margin-top:4pt;text-align:center;}',
+      '.pso-name{font-size:10pt;font-weight:bold;color:#111;margin-top:2pt;text-align:center;}',
+      '@media print{body > *:not(#print-single-overlay){display:none!important;}#pso-back{display:none!important;}}',
+      '#pso-back{position:fixed;top:16px;left:16px;padding:8px 16px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;z-index:10000;}'
+    ].join(' ');
+    overlay.appendChild(csEl);
+    const cbk = document.createElement('button'); cbk.id = 'pso-back'; cbk.textContent = '\u2190 Back'; cbk.onclick = () => overlay.remove(); overlay.appendChild(cbk);
+    if (imgSrc) { const img = document.createElement('img'); img.className = 'pso-qr'; img.src = imgSrc; overlay.appendChild(img); }
+    const cidDiv = document.createElement('div'); cidDiv.className = 'pso-id'; cidDiv.textContent = c.id; overlay.appendChild(cidDiv);
+    const cnmDiv = document.createElement('div'); cnmDiv.className = 'pso-name'; cnmDiv.textContent = c.name; overlay.appendChild(cnmDiv);
     overlay.style.display = 'flex';
     document.body.appendChild(overlay);
     window.addEventListener('afterprint', () => { const el = document.getElementById('print-single-overlay'); if (el) el.remove(); }, { once: true });
