@@ -87,19 +87,13 @@ body {
 #login-screen::before {
   content: '';
   position: absolute;
-  top: -160px; left: 50%; transform: translateX(-50%);
-  width: 700px; height: 700px;
-  background: radial-gradient(circle, rgba(245,200,66,0.18) 0%, rgba(245,200,66,0.06) 35%, transparent 70%);
+  top: -180px; left: 50%; transform: translateX(-50%);
+  width: 900px; height: 900px;
+  background: radial-gradient(circle, rgba(245,200,66,0.22) 0%, rgba(245,200,66,0.10) 28%, rgba(245,200,66,0.03) 55%, transparent 72%);
   pointer-events: none;
+  z-index: 0;
 }
-#login-screen::after {
-  content: '';
-  position: absolute;
-  top: -60px; left: 50%; transform: translateX(-50%);
-  width: 300px; height: 300px;
-  background: radial-gradient(circle, rgba(245,200,66,0.10) 0%, transparent 65%);
-  pointer-events: none;
-}
+#login-screen::after { display: none; }
 .login-logo {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 52px;
@@ -298,8 +292,15 @@ header {
 
 /* ── MAIN ── */
 main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+#page-history { height: calc(100vh - 180px); }
+/* On mobile, account for bottom tab bar (~64px) */
+@media (max-width: 580px) { #page-history { height: calc(100vh - 220px); } }
+body.is-mobile #page-history { height: calc(100vh - 220px); }
 .page { display: none; }
 .page.active { display: block; }
+#page-history.active { display: flex; flex-direction: column; }
+#page-history .table-wrap { flex: 1; overflow-y: auto; max-height: none !important; }
+#page-history table { height: 100%; }
 
 /* ── HOMEPAGE: CURRENTLY OUT ── */
 .home-hero {
@@ -315,6 +316,10 @@ main { padding: 24px; max-width: 1400px; margin: 0 auto; }
   border-radius: var(--radius);
   padding: 20px 22px;
 }
+.hero-stat.green  { background: rgba(74,222,128,0.06);  border-color: rgba(74,222,128,0.2); }
+.hero-stat.red    { background: rgba(248,113,113,0.06); border-color: rgba(248,113,113,0.2); }
+.hero-stat.accent { background: rgba(245,200,66,0.06);  border-color: rgba(245,200,66,0.2); }
+.hero-stat.blue   { background: rgba(96,165,250,0.06);  border-color: rgba(96,165,250,0.2); }
 .hero-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text3); font-family: 'DM Mono', monospace; margin-bottom: 6px; }
 .hero-stat-val { font-size: 42px; font-family: 'Bebas Neue', sans-serif; line-height: 1; }
 .hero-stat-val.accent { color: var(--accent); }
@@ -400,8 +405,16 @@ main { padding: 24px; max-width: 1400px; margin: 0 auto; }
   border-radius: var(--radius-sm);
   padding: 14px 18px;
 }
+.stat-card.green  { background: rgba(74,222,128,0.06);  border-color: rgba(74,222,128,0.2); }
+.stat-card.red    { background: rgba(248,113,113,0.06); border-color: rgba(248,113,113,0.2); }
+.stat-card.accent { background: rgba(245,200,66,0.06);  border-color: rgba(245,200,66,0.2); }
+.stat-card.blue   { background: rgba(96,165,250,0.06);  border-color: rgba(96,165,250,0.2); }
 .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); font-family: 'DM Mono', monospace; }
 .stat-value { font-size: 28px; font-family: 'Bebas Neue', sans-serif; margin-top: 2px; }
+.stat-value.green { color: var(--green); }
+.stat-value.red { color: var(--red); }
+.stat-value.accent { color: var(--accent); }
+.stat-value.blue { color: var(--blue); }
 
 /* ── TOOLBAR ── */
 .toolbar { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
@@ -1083,7 +1096,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
     </div>
 
     <!-- HISTORY PAGE -->
-    <div class="page" id="page-history">
+    <div class="page" id="page-history" style="display:none;flex-direction:column;">
       <div class="toolbar" style="margin-bottom:18px;">
         <h2 style="font-size:20px;font-weight:700;flex:1;color:#ffffff;">Transaction History</h2>
         <select class="filter-select" id="hist-user-filter" onchange="renderHistory()">
@@ -1098,7 +1111,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
           <option value="transfer">Transferred</option>
         </select>
       </div>
-      <div class="table-wrap" style="max-height:45vh;overflow-y:auto;">
+      <div class="table-wrap" style="flex:1;overflow-y:auto;">
         <table>
           <thead><tr><th class="resizable" style="width:140px;">Date / Time</th><th class="resizable" style="width:90px;">Fixture ID</th><th class="resizable">Name</th><th class="resizable" style="width:100px;">User</th><th class="resizable" style="width:90px;">Action</th></tr></thead>
           <tbody id="history-tbody"></tbody>
@@ -1393,7 +1406,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
 </div>
 
 <!-- ═════════════ DEEP LINK SCAN LANDING ═════════════ -->
-<!-- Shown when opened via QR scan (?f=LUM-xxxx) from native camera -->
+<!-- Shown when opened via QR scan (?f=FL-xxxx) from native camera -->
 <div id="scan-landing" style="display:none;position:fixed;inset:0;z-index:9000;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;">
   <!-- Header bar -->
   <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:10;">
@@ -1403,8 +1416,8 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
   <!-- Fixture card -->
   <div id="scan-landing-body" style="padding:20px 16px;max-width:500px;margin:0 auto;"></div>
   <!-- Action sheet — user picker -->
-  <div id="scan-action-sheet" style="display:none;position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,0.6);display:none;" onclick="if(event.target===this)closeScanActionSheet()">
-    <div id="scan-action-inner" style="position:absolute;bottom:0;left:0;right:0;background:var(--surface2);border-top:1px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 16px 32px;max-height:85vh;overflow-y:auto;">
+  <div id="scan-action-sheet" style="display:none;position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,0.6);" onclick="if(event.target===this)closeScanActionSheet()">
+    <div id="scan-action-inner" style="position:absolute;bottom:0;left:0;right:0;background:var(--surface2);border-top:1px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 16px 32px;max-height:85vh;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;">
       <div id="scan-action-content"></div>
     </div>
   </div>
@@ -1438,7 +1451,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
       <div style="margin-top:14px;">
         <label class="form-label">Or Enter ID Manually</label>
         <div style="display:flex;gap:8px;">
-          <input class="form-input" id="manual-id-input" placeholder="e.g. LUM-0042" style="flex:1;">
+          <input class="form-input" id="manual-id-input" placeholder="e.g. FL-0042" style="flex:1;">
           <button class="btn btn-secondary" onclick="processManualId()">Go</button>
         </div>
       </div>
@@ -1730,11 +1743,11 @@ const ADMIN_DEFAULTS = [
   { id: 'admin-1', name: 'Admin', pin: '4116', role: 'admin', avatar: '⚙️' }
 ];
 const SAMPLE_FIXTURES = [
-  { id:'LUM-0001', name:'Arco Pendant LED', brand:'Flos', category:'Pendant', wattage:'18W', finish:'Polished Chrome', location:'Shelf A-1', notes:'Dimmable 0-10V', status:'available', checkedOutBy:null, checkedOutAt:null },
-  { id:'LUM-0002', name:'Zuma Recessed Trim', brand:'Halo', category:'Recessed', wattage:'9W', finish:'Matte White', location:'Shelf A-2', notes:'4" aperture', status:'available', checkedOutBy:null, checkedOutAt:null },
-  { id:'LUM-0003', name:'Volta Wall Sconce', brand:'Visual Comfort', category:'Wall', wattage:'12W', finish:'Aged Brass', location:'Shelf B-1', notes:'Up/down light', status:'available', checkedOutBy:null, checkedOutAt:null },
-  { id:'LUM-0004', name:'Nova Track Head', brand:'Juno', category:'Track', wattage:'15W', finish:'Matte Black', location:'Shelf B-2', notes:'Adjustable beam', status:'available', checkedOutBy:null, checkedOutAt:null },
-  { id:'LUM-0005', name:'Serene Strip Light', brand:'Lutron', category:'Linear', wattage:'20W/m', finish:'N/A', location:'Shelf C-1', notes:'Color tunable 2700-6500K', status:'available', checkedOutBy:null, checkedOutAt:null },
+  { id:'FL-0001', name:'Arco Pendant LED', brand:'Flos', category:'Pendant', wattage:'18W', finish:'Polished Chrome', location:'Shelf A-1', notes:'Dimmable 0-10V', status:'available', checkedOutBy:null, checkedOutAt:null },
+  { id:'FL-0002', name:'Zuma Recessed Trim', brand:'Halo', category:'Recessed', wattage:'9W', finish:'Matte White', location:'Shelf A-2', notes:'4" aperture', status:'available', checkedOutBy:null, checkedOutAt:null },
+  { id:'FL-0003', name:'Volta Wall Sconce', brand:'Visual Comfort', category:'Wall', wattage:'12W', finish:'Aged Brass', location:'Shelf B-1', notes:'Up/down light', status:'available', checkedOutBy:null, checkedOutAt:null },
+  { id:'FL-0004', name:'Nova Track Head', brand:'Juno', category:'Track', wattage:'15W', finish:'Matte Black', location:'Shelf B-2', notes:'Adjustable beam', status:'available', checkedOutBy:null, checkedOutAt:null },
+  { id:'FL-0005', name:'Serene Strip Light', brand:'Lutron', category:'Linear', wattage:'20W/m', finish:'N/A', location:'Shelf C-1', notes:'Color tunable 2700-6500K', status:'available', checkedOutBy:null, checkedOutAt:null },
 ];
 
 // ═══════════════════════════════════════════════════════
@@ -2137,7 +2150,7 @@ function openLoginDetail(fid) {
         <table style="font-size:13px;border-collapse:collapse;width:100%;">
           ${f.partNo   ? `<tr><td style="padding:5px 0;color:var(--text3);width:90px;">Part #</td><td style="padding:5px 0;font-family:'DM Mono',monospace;">${f.partNo}</td></tr>` : ''}
           ${f.brand    ? `<tr><td style="padding:5px 0;color:var(--text3);width:90px;">Brand</td><td style="padding:5px 0;">${f.brand}</td></tr>` : ''}
-          ${f.category ? `<tr><td style="padding:5px 0;color:var(--text3);">Type</td><td style="padding:5px 0;">${f.category}</td></tr>` : ''}
+          ${(f.fixtureType||f.category) ? `<tr><td style="padding:5px 0;color:var(--text3);">Fixture Type</td><td style="padding:5px 0;">${f.fixtureType||f.category}</td></tr>` : ''}
           ${f.wattage  ? `<tr><td style="padding:5px 0;color:var(--text3);">Wattage</td><td style="padding:5px 0;">${f.wattage}</td></tr>` : ''}
           ${f.finish   ? `<tr><td style="padding:5px 0;color:var(--text3);">Finish</td><td style="padding:5px 0;">${f.finish}</td></tr>` : ''}
           ${f.location ? `<tr><td style="padding:5px 0;color:var(--text3);">Location</td><td style="padding:5px 0;">${f.location}</td></tr>` : ''}
@@ -2316,10 +2329,10 @@ function renderHome() {
   const myOut  = fixtures.filter(f => f.checkedOutBy === currentUser?.id).length;
 
   document.getElementById('home-hero').innerHTML = `
-    <div class="hero-stat"><div class="hero-stat-label">Available</div><div class="hero-stat-val green">${avail}</div></div>
-    <div class="hero-stat"><div class="hero-stat-label">Checked Out</div><div class="hero-stat-val red">${out}</div></div>
-    <div class="hero-stat"><div class="hero-stat-label">Total Fixtures</div><div class="hero-stat-val accent">${total}</div></div>
-    <div class="hero-stat"><div class="hero-stat-label">My Checkouts</div><div class="hero-stat-val blue">${myOut}</div></div>
+    <div class="hero-stat green"><div class="hero-stat-label">Available</div><div class="hero-stat-val green">${avail}</div></div>
+    <div class="hero-stat red"><div class="hero-stat-label">Checked Out</div><div class="hero-stat-val red">${out}</div></div>
+    <div class="hero-stat accent"><div class="hero-stat-label">Total Fixtures</div><div class="hero-stat-val accent">${total}</div></div>
+    <div class="hero-stat blue"><div class="hero-stat-label">My Checkouts</div><div class="hero-stat-val blue">${myOut}</div></div>
   `;
 
   // My checkouts strip
@@ -2394,10 +2407,10 @@ function renderStats() {
   const total = fixtures.length;
   const out   = fixtures.filter(f => f.status === 'out').length;
   document.getElementById('stats-bar').innerHTML = `
-    <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value accent">${total}</div></div>
-    <div class="stat-card"><div class="stat-label">Available</div><div class="stat-value green">${total-out}</div></div>
-    <div class="stat-card"><div class="stat-label">Checked Out</div><div class="stat-value red">${out}</div></div>
-    <div class="stat-card"><div class="stat-label">My Checkouts</div><div class="stat-value" style="color:var(--blue);">${fixtures.filter(f=>f.checkedOutBy===currentUser?.id).length}</div></div>
+    <div class="stat-card accent"><div class="stat-label">Total</div><div class="stat-value accent">${total}</div></div>
+    <div class="stat-card green"><div class="stat-label">Available</div><div class="stat-value green">${total-out}</div></div>
+    <div class="stat-card red"><div class="stat-label">Checked Out</div><div class="stat-value red">${out}</div></div>
+    <div class="stat-card blue"><div class="stat-label">My Checkouts</div><div class="stat-value blue">${fixtures.filter(f=>f.checkedOutBy===currentUser?.id).length}</div></div>
   `;
 }
 
@@ -2601,7 +2614,7 @@ function openDetailModal(fid) {
         <div style="margin-bottom:10px;"><span class="fid">${f.id}</span> <span class="sbadge ${f.status==='available'?'available':'out'}" style="margin-left:8px;">${f.status==='available'?'Available':'Checked Out'}</span></div>
         <div style="font-size:18px;font-weight:700;margin-bottom:12px;">${f.name}</div>
         <table style="font-size:13px;border-collapse:collapse;">
-          ${drow('Part #',f.partNo)}${drow('Brand',f.brand)}${drow('Type',f.category)}${drow('Wattage',f.wattage)}${drow('Finish',f.finish)}${drow('Location',f.location)}${drow('Notes',f.notes)}${drowLink('Spec Sheet',f.specSheet)}
+          ${drow('Part #',f.partNo)}${drow('Brand',f.brand)}${drow('Fixture Type', f.fixtureType || f.category)}${drow('Wattage',f.wattage)}${drow('Finish',f.finish)}${drow('Location',f.location)}${drow('Notes',f.notes)}${drowLink('Spec Sheet',f.specSheet)}
           ${u?`<tr><td style="padding:5px 0;color:var(--text3);width:80px;">With</td><td style="padding:5px 0;color:var(--red);">${u.avatar} ${u.name} · ${timeAgo(f.checkedOutAt)}</td></tr>`:''}
         </table>
       </div>
@@ -2668,7 +2681,7 @@ function renderHistory() {
 // ═══════════════════════════════════════════════════════
 //  ADD FIXTURE (admin)
 // ═══════════════════════════════════════════════════════
-function genId() { return 'LUM-' + String(fixtureCounter).padStart(4,'0'); }
+function genId() { return 'FL-' + String(fixtureCounter).padStart(4,'0'); }
 
 function refreshAddId() {
   document.getElementById('new-fixture-id').value = genId();
@@ -3066,6 +3079,16 @@ function openEditFixture(fid) {
   renderFixtureComments(f);
   document.getElementById('ef-new-comment').value = '';
   openModal('edit-fixture-modal');
+  // Re-set fixtureType after modal is visible (ensures select value sticks)
+  setTimeout(() => {
+    populateFixTypeSelect('ef-fixtype');
+    const eft = document.getElementById('ef-fixtype');
+    if (eft) {
+      eft.value = f.fixtureType || '';
+      onFixTypeChange('ef-fixtype','ef-output-wattage-row');
+      document.getElementById('ef-output-wattage').value = f.outputWattage || '';
+    }
+  }, 0);
 }
 
 function renderFixtureComments(f) {
@@ -3651,9 +3674,17 @@ function renderScanLanding(f, fid) {
 
 function goToAppFromScan(fid) {
   document.getElementById('scan-landing').style.display = 'none';
-  document.getElementById('login-screen').style.display = '';
-  // Store the fid to auto-open after login
   sessionStorage.setItem('pendingScanFid', fid);
+  // If user already authenticated via PIN this session, skip login screen entirely
+  if (scanActionUser) {
+    sessionStorage.setItem('pendingScanUserId', scanActionUser.id);
+    // Trigger direct login — data already loaded
+    loginSuccess(scanActionUser);
+    return;
+  }
+  // No auth yet — show login screen with user list
+  document.getElementById('login-screen').style.display = '';
+  renderLoginScreen();
 }
 
 // ── Action sheet: pick user → enter PIN → execute ──
@@ -3695,61 +3726,86 @@ function selectScanUser(uid) {
 
 function showScanPinPad() {
   const content = document.getElementById('scan-action-content');
-  let pinBuf = '';
-  const update = () => {
-    document.getElementById('scan-pin-dots').textContent = '●'.repeat(pinBuf.length) + '○'.repeat(Math.max(0, 4 - pinBuf.length));
+
+  // pinBuf lives on window._scanPinBuf so executeScanAction can reset it on wrong PIN
+  window._scanPinBuf = '';
+
+  content.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <button id="scan-pin-back" style="background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px 8px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">← Back</button>
+      <div style="font-size:17px;font-weight:600;color:var(--text);">Enter PIN</div>
+      <button id="scan-pin-close" style="background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer;padding:4px 8px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">×</button>
+    </div>
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:36px;margin-bottom:4px;">${scanActionUser.avatar}</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text);">${scanActionUser.name}</div>
+      <div id="scan-pin-dots" style="font-size:24px;letter-spacing:10px;margin-top:16px;color:var(--accent);min-height:36px;">○○○○</div>
+      <div id="scan-pin-error" style="font-size:14px;color:var(--red);margin-top:6px;min-height:20px;"></div>
+    </div>
+    <div class="pin-pad" style="max-width:300px;margin:0 auto;" id="scan-pin-grid"></div>
+  `;
+
+  document.getElementById('scan-pin-back').addEventListener('click', showScanUserPicker);
+  document.getElementById('scan-pin-close').addEventListener('click', closeScanActionSheet);
+
+  const updateDots = () => {
+    const el = document.getElementById('scan-pin-dots');
+    if (!el) return;
+    const len = window._scanPinBuf.length;
+    el.textContent = '●'.repeat(len) + '○'.repeat(Math.max(0, 4 - len));
   };
+
   const press = (d) => {
-    if (d === 'del') { pinBuf = pinBuf.slice(0, -1); update(); return; }
-    if (pinBuf.length >= 6) return;
-    pinBuf += d;
-    update();
-    if (pinBuf.length >= 4) {
-      // Check PIN after brief pause to show last dot
-      setTimeout(() => executeScanAction(pinBuf), 120);
+    if (d === 'del') {
+      window._scanPinBuf = window._scanPinBuf.slice(0, -1);
+      updateDots();
+      return;
+    }
+    if (window._scanPinBuf.length >= 6) return;
+    window._scanPinBuf += d;
+    updateDots();
+    if (window._scanPinBuf.length >= 4) {
+      setTimeout(() => executeScanAction(window._scanPinBuf), 150);
     }
   };
-  content.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-      <button onclick="showScanUserPicker()" style="background:none;border:none;color:var(--text3);font-size:15px;cursor:pointer;padding:0;">← Back</button>
-      <div style="font-size:17px;font-weight:600;color:var(--text);">Enter PIN</div>
-      <button onclick="closeScanActionSheet()" style="background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:0;">×</button>
-    </div>
-    <div style="text-align:center;margin-bottom:24px;">
-      <div style="font-size:32px;margin-bottom:6px;">${scanActionUser.avatar}</div>
-      <div style="font-size:15px;font-weight:600;color:var(--text);">${scanActionUser.name}</div>
-      <div id="scan-pin-dots" style="font-size:22px;letter-spacing:8px;margin-top:16px;color:var(--accent);">○○○○</div>
-      <div id="scan-pin-error" style="font-size:13px;color:var(--red);margin-top:8px;min-height:20px;"></div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;margin:0 auto;">
-      ${['1','2','3','4','5','6','7','8','9','','0','del'].map(k => k === '' ? '<div></div>' : `
-        <button onclick="(${press.toString()})('${k}')" style="height:56px;background:var(--surface3);border:1px solid var(--border2);border-radius:12px;font-size:${k==='del'?'20px':'22px'};font-weight:500;color:var(--text);cursor:pointer;font-family:inherit;">
-          ${k === 'del' ? '⌫' : k}
-        </button>
-      `).join('')}
-    </div>
-  `;
-  // Wire up buttons properly (onclick string approach for grid)
-  content.querySelectorAll('button[data-k]') && null;
-  // Re-render with proper event listeners instead of inline toString
-  const grid = content.querySelector('div[style*="grid"]');
-  grid.innerHTML = '';
+
+  // Build keys using .pin-key CSS class — exactly matches main login pad,
+  // has touch-action:manipulation and -webkit-tap-highlight-color:transparent built in.
+  // touchend + preventDefault stops iOS from firing a delayed synthetic click (no double-fire).
+  const grid = document.getElementById('scan-pin-grid');
   ['1','2','3','4','5','6','7','8','9','','0','del'].forEach(k => {
     if (k === '') { grid.appendChild(document.createElement('div')); return; }
     const btn = document.createElement('button');
+    btn.className = 'pin-key' + (k === 'del' ? ' del' : '');
     btn.textContent = k === 'del' ? '⌫' : k;
-    btn.style.cssText = `height:56px;background:var(--surface3);border:1px solid var(--border2);border-radius:12px;font-size:${k==='del'?'20':'22'}px;font-weight:500;color:var(--text);cursor:pointer;font-family:inherit;`;
-    btn.addEventListener('click', () => press(k));
+    btn.type = 'button';
+    let didTouch = false;
+    btn.addEventListener('touchend', (e) => {
+      e.preventDefault(); // kills the synthetic mouse-click iOS would fire 300ms later
+      didTouch = true;
+      press(k);
+      setTimeout(() => { didTouch = false; }, 600);
+    }, { passive: false });
+    btn.addEventListener('click', () => { if (!didTouch) press(k); }); // desktop fallback only
     grid.appendChild(btn);
   });
 }
 
+
 async function executeScanAction(pin) {
   if (pin !== scanActionUser.pin) {
+    window._scanPinBuf = ''; // reset so user can try again without reopening
     const errEl = document.getElementById('scan-pin-error');
     if (errEl) errEl.textContent = 'Incorrect PIN — try again';
     const dots = document.getElementById('scan-pin-dots');
-    if (dots) { dots.style.color = 'var(--red)'; setTimeout(() => { dots.style.color = 'var(--accent)'; }, 600); }
+    if (dots) {
+      dots.style.color = 'var(--red)';
+      setTimeout(() => {
+        dots.style.color = 'var(--accent)';
+        dots.textContent = '○○○○';
+        if (errEl) errEl.textContent = '';
+      }, 800);
+    }
     return;
   }
 
@@ -3788,6 +3844,8 @@ async function executeScanAction(pin) {
   }
 
   closeScanActionSheet();
+  // Store the verified user so "Open in App" can auto-login
+  sessionStorage.setItem('scanAuthUserId', user.id);
   // Re-render the landing with updated fixture state
   renderScanLanding(f, f.id);
   // Show success toast
@@ -3808,6 +3866,7 @@ function checkPendingScan() {
   const fid = sessionStorage.getItem('pendingScanFid');
   if (fid) {
     sessionStorage.removeItem('pendingScanFid');
+    sessionStorage.removeItem('pendingScanUserId'); // already consumed via goToAppFromScan
     setTimeout(() => openDetailModal(fid), 400);
   }
 }
@@ -3821,7 +3880,7 @@ function fixtureUrl(id) {
 async function init() {
   detectAndApplyLayout();
   window.addEventListener('resize', detectAndApplyLayout);
-  // Check for native camera QR scan link (?f=LUM-xxxx)
+  // Check for native camera QR scan link (?f=FL-xxxx)
   const isDeepLink = await handleScanLanding();
   if (isDeepLink) return; // Landing page handles everything
   await loadData();
