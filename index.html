@@ -979,13 +979,12 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
 ══════════════════════════════════════════ */
 .fixture-card.selected { border-color: var(--accent) !important; box-shadow: 0 0 0 2px rgba(245,200,66,0.3); }
 .fixture-card .select-check {
-  display: none; position: absolute; top: 10px; right: 10px;
+  display: none;
   width: 22px; height: 22px; border: 2px solid var(--border2);
-  border-radius: 6px; background: var(--surface2);
+  border-radius: 6px; background: var(--surface2); flex-shrink: 0;
   align-items: center; justify-content: center; font-size: 13px;
-  cursor: pointer; z-index: 2; transition: all 0.15s;
+  cursor: pointer; transition: all 0.15s;
 }
-.select-mode .fixture-card { position: relative; cursor: pointer; }
 .select-mode .fixture-card .select-check { display: flex; }
 .select-mode .fixture-card.selected .select-check { background: var(--accent); border-color: var(--accent); color: #000; }
 .bulk-bar {
@@ -1601,7 +1600,9 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 <!-- ── BULK CHECKOUT BAR ── -->
 <div class="bulk-bar" id="bulk-bar">
   <span class="bulk-bar-count" id="bulk-count">0 selected</span>
-  <button class="btn btn-success btn-sm" onclick="bulkCheckout()">↗ Check Out Selected</button>
+  <button class="btn btn-success btn-sm" id="bulk-checkout-btn" onclick="bulkCheckout()">↗ Check Out</button>
+  <button class="btn btn-danger btn-sm" id="bulk-return-btn" onclick="bulkReturn()" style="display:none;">↙ Return</button>
+  <button class="btn btn-warning btn-sm" id="bulk-swap-btn" onclick="bulkSwap()" style="display:none;">⇄ Take Over</button>
   <button class="btn btn-secondary btn-sm" onclick="toggleBulkMode()">Cancel</button>
 </div>
 <!-- ── BOTTOM TAB BAR (mobile) ── -->
@@ -1678,7 +1679,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
       <div class="modal-title">📦 New Case / Box</div>
       <button class="modal-close" onclick="closeModal('add-container-modal')">×</button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body" style="max-height:80vh;overflow-y:auto;">
       <div class="form-group">
         <label class="form-label">Case Name</label>
         <input class="form-input" id="nc-name" placeholder="e.g. Road Case A, Living Room Kit">
@@ -1687,9 +1688,14 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
         <label class="form-label">Description <span style="color:var(--text3);font-weight:400;">(optional)</span></label>
         <input class="form-input" id="nc-desc" placeholder="e.g. Pendant samples for showroom">
       </div>
-      <div id="nc-qr-preview" style="display:none;text-align:center;margin-top:14px;">
-        <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">Case QR Code</div>
-        <div id="nc-qr-el" style="display:inline-block;background:#fff;border-radius:8px;padding:12px;"></div>
+      <div class="form-group">
+        <label class="form-label">Add Fixtures <span style="color:var(--text3);font-weight:400;">(optional — unassigned only)</span></label>
+        <div class="search-box" style="margin-bottom:8px;">
+          <span style="color:var(--text3);">🔍</span>
+          <input type="text" id="nc-fixture-search" class="" style="flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14px;padding:8px 0;" placeholder="Search fixtures..." oninput="renderNcFixturePicker()">
+        </div>
+        <div id="nc-fixture-list" style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);"></div>
+        <div id="nc-selected-count" style="font-size:12px;color:var(--text3);margin-top:6px;">0 fixtures selected</div>
       </div>
     </div>
     <div class="modal-footer">
@@ -1785,7 +1791,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
       </div>
       <div class="form-group">
         <label class="form-label">Avatar</label>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="avatar-picker">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;max-height:120px;overflow-y:auto;" id="avatar-picker">
           <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">💡</span>
           <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔦</span>
           <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌟</span>
@@ -1796,6 +1802,36 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
           <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌙</span>
           <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔧</span>
           <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🏠</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">👷</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🧑‍🎨</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🪩</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎪</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌈</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔮</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🛠️</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎭</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🏆</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🥇</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🦁</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🐯</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🦊</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🐺</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🦅</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌊</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔥</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">❄️</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌿</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🍀</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎸</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎹</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎺</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎻</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🥁</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎵</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎶</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎤</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎬</span>
+          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">📸</span>
         </div>
       </div>
     </div>
@@ -1829,6 +1865,51 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
           <option value="user">User</option>
           <option value="admin">Admin</option>
         </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Avatar</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;max-height:120px;overflow-y:auto;" id="eu-avatar-picker">
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">💡</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔦</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌟</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">⚡</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎨</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🏗️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎯</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌙</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔧</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🏠</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">👷</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🧑‍🎨</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🪩</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎪</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌈</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔮</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🛠️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎭</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🏆</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🥇</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🦁</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🐯</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🦊</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🐺</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🦅</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌊</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔥</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">❄️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌿</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🍀</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎸</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎹</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎺</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎻</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🥁</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎵</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎶</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎤</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎬</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">📸</span>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -2752,10 +2833,12 @@ function fixtureCardHTML(f) {
   const isAdmin = currentUser?.role === 'admin';
   return `
     <div class="fixture-card ${f.status}" data-fid="${f.id}" onclick="if(bulkMode){toggleCardSelect('${f.id}');}else{openDetailModal('${f.id}');}">
-      <div class="select-check" id="check-${f.id}"></div>
       <div class="card-top">
         <div class="fid">${f.id}</div>
-        <div class="sbadge ${f.status==='available'?'available':'out'}">${f.status==='available'?'Available':'Out'}</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="sbadge ${f.status==='available'?'available':'out'}">${f.status==='available'?'Available':'Out'}</div>
+          <div class="select-check" id="check-${f.id}"></div>
+        </div>
       </div>
       <div class="card-body">
         <div class="card-name">${f.name}</div>
@@ -2913,7 +2996,7 @@ function openDetailModal(fid) {
         <div style="margin-bottom:10px;"><span class="fid">${f.id}</span> <span class="sbadge ${f.status==='available'?'available':'out'}" style="margin-left:8px;">${f.status==='available'?'Available':'Checked Out'}</span></div>
         <div style="font-size:18px;font-weight:700;margin-bottom:12px;">${f.name}</div>
         <table style="font-size:13px;border-collapse:collapse;">
-          ${drow('Part #',f.partNo)}${drow('Brand',f.brand)}${drow('Fixture Type', f.fixtureType || f.category)}${drow('Wattage',f.wattage)}${drow('Finish',f.finish)}${drow('Location',f.location)}${drow('Notes',f.notes)}${drowLink('Spec Sheet',f.specSheet)}
+          ${drow('Part #',f.partNo)}${drow('Brand',f.brand)}${drow('Fixture Type', f.fixtureType || f.category)}${drow('Wattage',f.wattage)}${drow('Finish',f.finish)}${drow('Location',f.location)}${drowCase('Case',f.containerId)}${drow('Notes',f.notes)}${drowLink('Spec Sheet',f.specSheet)}
           ${u?`<tr><td style="padding:5px 0;color:var(--text3);width:80px;">With</td><td style="padding:5px 0;color:var(--red);">${u.avatar} ${u.name} · ${timeAgo(f.checkedOutAt)}</td></tr>`:''}
         </table>
       </div>
@@ -2946,6 +3029,12 @@ function openDetailModal(fid) {
 }
 
 function drow(l,v) { return v ? `<tr><td style="padding:5px 0;color:var(--text3);width:80px;">${l}</td><td style="padding:5px 0;">${v}</td></tr>` : ''; }
+function drowCase(l, cid) {
+  if (!cid) return '';
+  const c = containers.find(x => x.id === cid);
+  if (!c) return '';
+  return `<tr><td style="padding:5px 0;color:var(--text3);width:80px;">${l}</td><td style="padding:5px 0;"><span style="cursor:pointer;color:var(--blue);font-size:13px;" onclick="closeModal('detail-modal');setTimeout(()=>openContainerDetail('${cid}'),100);">📦 ${c.name}</span></td></tr>`;
+}
 function drowLink(l,v) { return v ? `<tr><td style="padding:5px 0;color:var(--text3);width:80px;">${l}</td><td style="padding:5px 0;"><a href="${v}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:5px;font-size:13px;">📄 View Spec Sheet <span style="font-size:10px;opacity:0.7;">↗</span></a></td></tr>` : ''; }
 
 // ═══════════════════════════════════════════════════════
@@ -3166,6 +3255,7 @@ async function saveEditUser() {
   u.name = name;
   u.role = role;
   if (pin) u.pin = pin;
+  u.avatar = selectedEditAv || u.avatar || '💡';
   await saveData({ user: u });
   closeModal('edit-user-modal');
   renderUserList();
@@ -4055,6 +4145,53 @@ async function doCheckout(fid, note) {
   notify(`✓ Checked out: ${f.name}` + (note ? ` — "${note}"` : ''), 'success');
 }
 
+async function bulkReturn() {
+  const myOutFids = [...bulkSelected].filter(id => {
+    const f = fixtures.find(x => x.id === id);
+    return f && f.status === 'out' && (f.checkedOutBy === currentUser?.id || currentUser?.role === 'admin');
+  });
+  if (!myOutFids.length) { notify('No returnable fixtures selected', 'error'); return; }
+  for (const fid of myOutFids) {
+    const f = fixtures.find(x => x.id === fid);
+    if (!f) continue;
+    const ts = new Date().toISOString();
+    if (!f.comments) f.comments = [];
+    f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: '', action: 'return' });
+    f.status = 'available'; f.checkedOutBy = null; f.checkedOutAt = null;
+    const h = { ts, fixtureId: f.id, fixtureName: f.name, userId: currentUser.id, userName: currentUser.name, action: 'return' };
+    history.unshift(h);
+    await saveData({ fixture: f, historyEntry: h });
+  }
+  haptic('success');
+  exitBulkMode();
+  refreshCurrentPage();
+  notify(`✓ Returned ${myOutFids.length} fixture${myOutFids.length!==1?'s':''}`, 'success');
+}
+
+async function bulkSwap() {
+  const otherOutFids = [...bulkSelected].filter(id => {
+    const f = fixtures.find(x => x.id === id);
+    return f && f.status === 'out' && f.checkedOutBy !== currentUser?.id;
+  });
+  if (!otherOutFids.length) { notify('No fixtures to take over', 'error'); return; }
+  for (const fid of otherOutFids) {
+    const f = fixtures.find(x => x.id === fid);
+    if (!f) continue;
+    const prev = users.find(x => x.id === f.checkedOutBy);
+    const ts = new Date().toISOString();
+    if (!f.comments) f.comments = [];
+    f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: `taken from ${prev?.name||'unknown'}`, action: 'transfer' });
+    f.checkedOutBy = currentUser.id; f.checkedOutAt = ts;
+    const h = { ts, fixtureId: f.id, fixtureName: f.name, userId: currentUser.id, userName: currentUser.name, action: 'transfer' };
+    history.unshift(h);
+    await saveData({ fixture: f, historyEntry: h });
+  }
+  haptic('success');
+  exitBulkMode();
+  refreshCurrentPage();
+  notify(`⇄ Took over ${otherOutFids.length} fixture${otherOutFids.length!==1?'s':''}`, 'success');
+}
+
 async function doBulkCheckout(fids, note) {
   let count = 0;
   for (const fid of fids) {
@@ -4127,6 +4264,17 @@ function updateBulkBar() {
   const count = bulkSelected.size;
   const el = document.getElementById('bulk-count');
   if (el) el.textContent = count + ' selected';
+  // Show/hide action buttons based on what's selected
+  const selectedList = [...bulkSelected];
+  const hasAvail = selectedList.some(id => { const f = fixtures.find(x=>x.id===id); return f && f.status==='available'; });
+  const hasMyOut = selectedList.some(id => { const f = fixtures.find(x=>x.id===id); return f && f.status==='out' && f.checkedOutBy===currentUser?.id; });
+  const hasOtherOut = selectedList.some(id => { const f = fixtures.find(x=>x.id===id); return f && f.status==='out' && f.checkedOutBy!==currentUser?.id; });
+  const coBtn = document.getElementById('bulk-checkout-btn');
+  const retBtn = document.getElementById('bulk-return-btn');
+  const swapBtn = document.getElementById('bulk-swap-btn');
+  if (coBtn) coBtn.style.display = hasAvail ? '' : 'none';
+  if (retBtn) retBtn.style.display = (hasMyOut || (currentUser?.role==='admin' && hasOtherOut)) ? '' : 'none';
+  if (swapBtn) swapBtn.style.display = hasOtherOut ? '' : 'none';
 }
 
 function bulkCheckout() {
@@ -4466,13 +4614,43 @@ function renderContainersPage() {
   });
 }
 
+let ncSelectedFixtures = new Set();
+
 function openAddContainerModal() {
   document.getElementById('nc-name').value = '';
   document.getElementById('nc-desc').value = '';
-  document.getElementById('nc-qr-preview').style.display = 'none';
-  document.getElementById('nc-qr-el').innerHTML = '';
+  document.getElementById('nc-fixture-search').value = '';
+  ncSelectedFixtures.clear();
   openModal('add-container-modal');
-  setTimeout(() => document.getElementById('nc-name').focus(), 100);
+  setTimeout(() => { renderNcFixturePicker(); document.getElementById('nc-name').focus(); }, 100);
+}
+
+function renderNcFixturePicker() {
+  const q = (document.getElementById('nc-fixture-search').value || '').toLowerCase();
+  // Only show fixtures not already in a case
+  const avail = fixtures.filter(f => !f.containerId && [f.id,f.name,f.brand,f.location].join(' ').toLowerCase().includes(q));
+  const list = document.getElementById('nc-fixture-list');
+  const countEl = document.getElementById('nc-selected-count');
+  if (!avail.length) {
+    list.innerHTML = '<div style="padding:12px 14px;color:var(--text3);font-size:13px;">No unassigned fixtures found.</div>';
+  } else {
+    list.innerHTML = avail.map(f => {
+      const sel = ncSelectedFixtures.has(f.id);
+      return `<div onclick="toggleNcFixture('${f.id}')" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;background:${sel?'rgba(245,200,66,0.06)':'none'};">
+        <div style="width:18px;height:18px;border:2px solid ${sel?'var(--accent)':'var(--border2)'};border-radius:4px;background:${sel?'var(--accent)':'none'};display:flex;align-items:center;justify-content:center;font-size:11px;color:#000;flex-shrink:0;">${sel?'✓':''}</div>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);background:var(--accent-dim);padding:2px 6px;border-radius:4px;">${f.id}</span>
+        <span style="flex:1;font-size:13px;font-weight:500;">${f.name}</span>
+        ${f.location?`<span style="font-size:11px;color:var(--text3);">${f.location}</span>`:''}
+      </div>`;
+    }).join('');
+  }
+  countEl.textContent = ncSelectedFixtures.size + ' fixture' + (ncSelectedFixtures.size!==1?'s':'') + ' selected';
+}
+
+function toggleNcFixture(fid) {
+  if (ncSelectedFixtures.has(fid)) ncSelectedFixtures.delete(fid);
+  else ncSelectedFixtures.add(fid);
+  renderNcFixturePicker();
 }
 
 async function addContainer() {
@@ -4482,11 +4660,18 @@ async function addContainer() {
   containerCounter++;
   const c = { id, name, desc: document.getElementById('nc-desc').value.trim(), createdAt: new Date().toISOString() };
   containers.push(c);
+  // Assign selected fixtures to this case
+  if (ncSelectedFixtures.size) {
+    for (const fid of ncSelectedFixtures) {
+      const f = fixtures.find(x => x.id === fid);
+      if (f) { f.containerId = id; await saveData({ fixture: f }); }
+    }
+    ncSelectedFixtures.clear();
+  }
   await saveContainers();
   closeModal('add-container-modal');
   renderContainersPage();
   notify('✓ Case created: ' + name, 'success');
-  // Open detail immediately so user can see the QR
   setTimeout(() => openContainerDetail(id), 200);
 }
 
