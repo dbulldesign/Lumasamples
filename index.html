@@ -1035,6 +1035,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
       <div class="user-chip" id="user-chip" onclick="logOut()">
         <span class="chip-avatar" id="chip-avatar"></span>
         <span id="chip-name"></span>
+        <span class="role-badge" id="chip-role" style="display:none;"></span>
       </div>
       <button class="btn btn-scan" onclick="openScanModal()">📷</button>
     </div>
@@ -1389,6 +1390,24 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
   <button class="btab"        id="btab-setup"   onclick="showPage('setup',this)">
     <span class="btab-icon">🔗</span>Sync
   </button>
+</div>
+
+<!-- ═════════════ DEEP LINK SCAN LANDING ═════════════ -->
+<!-- Shown when opened via QR scan (?f=LUM-xxxx) from native camera -->
+<div id="scan-landing" style="display:none;position:fixed;inset:0;z-index:9000;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;">
+  <!-- Header bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:10;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--accent);">LumaSamples</div>
+    <div id="scan-landing-sync-dot" style="width:8px;height:8px;border-radius:50%;background:var(--red);" title=""></div>
+  </div>
+  <!-- Fixture card -->
+  <div id="scan-landing-body" style="padding:20px 16px;max-width:500px;margin:0 auto;"></div>
+  <!-- Action sheet — user picker -->
+  <div id="scan-action-sheet" style="display:none;position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,0.6);display:none;" onclick="if(event.target===this)closeScanActionSheet()">
+    <div id="scan-action-inner" style="position:absolute;bottom:0;left:0;right:0;background:var(--surface2);border-top:1px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 16px 32px;max-height:85vh;overflow-y:auto;">
+      <div id="scan-action-content"></div>
+    </div>
+  </div>
 </div>
 
 <!-- ═════════════ LOGIN DETAIL MODAL ═════════════ -->
@@ -2137,7 +2156,7 @@ function openLoginDetail(fid) {
   setTimeout(() => {
     const el = document.getElementById('ldm-qr-' + f.id);
     if (el && !el.querySelector('canvas')) {
-      new QRCode(el, { text: f.id, width: 100, height: 100, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+      new QRCode(el, { text: fixtureUrl(f.id), width: 100, height: 100, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
     }
   }, 60);
 }
@@ -2247,6 +2266,7 @@ function loginSuccess(user) {
     if (el) el.style.display = isAdmin ? '' : 'none';
   });
   showPage('home', document.querySelector('[data-page="home"]'));
+  checkPendingScan();
 }
 
 function logOut() {
@@ -2608,7 +2628,7 @@ function openDetailModal(fid) {
   setTimeout(() => {
     const el = document.getElementById('detail-qr-'+f.id);
     if (el && !el.querySelector('canvas')) {
-      new QRCode(el, { text:f.id, width:110, height:110, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
+      new QRCode(el, { text:fixtureUrl(f.id), width:110, height:110, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
     }
   }, 60);
 }
@@ -2684,7 +2704,7 @@ async function addFixture() {
   document.getElementById('new-qr-name-text').textContent = f.name;
   const qrEl = document.getElementById('new-qr-code');
   qrEl.innerHTML = '';
-  new QRCode(qrEl, { text:f.id, width:150, height:150, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
+  new QRCode(qrEl, { text:fixtureUrl(f.id), width:150, height:150, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
   // Reset form
   ['new-name','new-brand','new-partno','new-wattage','new-voltage','new-location','new-specsheet','new-output-wattage'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('new-fixtype').value='';
@@ -2711,7 +2731,7 @@ function renderPrintPage() {
     setTimeout(()=>{
       const el = document.getElementById('pqr-'+f.id);
       if (el && !el.querySelector('canvas')) {
-        new QRCode(el,{text:f.id,width:48,height:48,colorDark:'#111',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});
+        new QRCode(el,{text:fixtureUrl(f.id),width:48,height:48,colorDark:'#111',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});
       }
     },50);
   });
@@ -2722,7 +2742,7 @@ function printSingleQR(fid) {
   if (!f) return;
   const tmp = document.createElement('div');
   document.body.appendChild(tmp);
-  new QRCode(tmp, { text: f.id, width: 96, height: 96, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+  new QRCode(tmp, { text: fixtureUrl(f.id), width: 96, height: 96, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
   setTimeout(() => {
     const canvas = tmp.querySelector('canvas');
     const imgSrc = canvas ? canvas.toDataURL() : '';
@@ -3525,9 +3545,285 @@ function detectAndApplyLayout() {
   requestAnimationFrame(setTabH);
 }
 
+// ═══════════════════════════════════════════════════════
+//  DEEP LINK / NATIVE CAMERA QR SCAN LANDING
+// ═══════════════════════════════════════════════════════
+
+// State for the scan landing action flow
+let scanActionFid = null;
+let scanActionType = null; // 'checkout' | 'return' | 'swap'
+let scanActionUser = null;
+
+function getScanParam() {
+  return new URLSearchParams(window.location.search).get('f');
+}
+
+function cleanScanUrl() {
+  // Remove ?f= from URL without reload so back button works cleanly
+  if (window.history && window.history.replaceState) {
+    const clean = window.location.pathname + window.location.hash;
+    window.history.replaceState({}, '', clean);
+  }
+}
+
+async function handleScanLanding() {
+  const fid = getScanParam();
+  if (!fid) return false; // Not a scan link, normal startup
+
+  // Show landing overlay immediately
+  document.getElementById('scan-landing').style.display = 'block';
+  document.getElementById('login-screen').style.display = 'none';
+
+  // Sync dot on landing page
+  const dot = document.getElementById('scan-landing-sync-dot');
+
+  // Load data (Firebase or local)
+  await loadData();
+
+  // Update sync dot
+  if (fbDb) { dot.style.background = 'var(--green)'; dot.title = 'Live'; }
+  else { dot.style.background = 'var(--text3)'; dot.title = 'Offline'; }
+
+  // Find fixture
+  const f = fixtures.find(x => x.id === fid);
+  renderScanLanding(f, fid);
+  cleanScanUrl();
+  return true;
+}
+
+function renderScanLanding(f, fid) {
+  const body = document.getElementById('scan-landing-body');
+  if (!f) {
+    body.innerHTML = `
+      <div style="text-align:center;padding:60px 20px;">
+        <div style="font-size:48px;margin-bottom:16px;">🔍</div>
+        <div style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px;">Fixture not found</div>
+        <div style="font-size:14px;color:var(--text3);">ID: ${fid}</div>
+        <button class="btn btn-secondary" style="margin-top:24px;" onclick="document.getElementById('scan-landing').style.display='none';document.getElementById('login-screen').style.display='';">← Back</button>
+      </div>`;
+    return;
+  }
+
+  const co = f.checkedOutBy ? users.find(x => x.id === f.checkedOutBy) : null;
+  const avail = f.status === 'available';
+  const typeLabel = f.fixtureType || f.category || '';
+
+  body.innerHTML = `
+    <div style="margin-bottom:6px;display:flex;align-items:center;gap:10px;">
+      <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);letter-spacing:1px;">${f.id}</span>
+      <span class="sbadge ${avail ? 'available' : 'out'}">${avail ? 'Available' : 'Checked Out'}</span>
+    </div>
+    <div style="font-size:24px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.2;">${f.name}</div>
+    ${f.brand ? `<div style="font-size:14px;color:var(--text3);margin-bottom:16px;">${f.brand}${typeLabel ? ' · ' + typeLabel : ''}</div>` : ''}
+
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:20px;">
+      <table style="font-size:13px;border-collapse:collapse;width:100%;">
+        ${f.wattage    ? `<tr><td style="padding:5px 0;color:var(--text3);width:100px;">Wattage</td><td style="padding:5px 0;">${f.wattage}</td></tr>` : ''}
+        ${f.voltage    ? `<tr><td style="padding:5px 0;color:var(--text3);">Voltage</td><td style="padding:5px 0;">${f.voltage}</td></tr>` : ''}
+        ${f.partNo     ? `<tr><td style="padding:5px 0;color:var(--text3);">Part #</td><td style="padding:5px 0;font-family:'DM Mono',monospace;font-size:12px;">${f.partNo}</td></tr>` : ''}
+        ${f.location   ? `<tr><td style="padding:5px 0;color:var(--text3);">Location</td><td style="padding:5px 0;">📍 ${f.location}</td></tr>` : ''}
+        ${f.finish     ? `<tr><td style="padding:5px 0;color:var(--text3);">Finish</td><td style="padding:5px 0;">${f.finish}</td></tr>` : ''}
+        ${co           ? `<tr><td style="padding:8px 0 0;color:var(--text3);">With</td><td style="padding:8px 0 0;color:var(--red);font-weight:600;">${co.avatar} ${co.name} · ${timeAgo(f.checkedOutAt)}</td></tr>` : ''}
+      </table>
+      ${f.specSheet ? `<a href="${f.specSheet}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;color:var(--accent);font-size:13px;text-decoration:none;margin-top:10px;">📄 View Spec Sheet ↗</a>` : ''}
+    </div>
+
+    <!-- Action buttons -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      ${avail ? `
+        <button class="btn btn-success" style="width:100%;justify-content:center;padding:14px;font-size:16px;" onclick="startScanAction('${f.id}','checkout')">
+          ↗ Check Out
+        </button>
+      ` : `
+        <button class="btn btn-danger" style="width:100%;justify-content:center;padding:14px;font-size:16px;" onclick="startScanAction('${f.id}','return')">
+          ↙ Return to Stock
+        </button>
+        <button class="btn btn-warning" style="width:100%;justify-content:center;padding:14px;font-size:15px;" onclick="startScanAction('${f.id}','swap')">
+          ⇄ Swap / Take Over
+        </button>
+      `}
+      <button class="btn btn-secondary" style="width:100%;justify-content:center;padding:12px;font-size:14px;margin-top:4px;" onclick="goToAppFromScan('${f.id}')">
+        Open in App
+      </button>
+    </div>
+  `;
+}
+
+function goToAppFromScan(fid) {
+  document.getElementById('scan-landing').style.display = 'none';
+  document.getElementById('login-screen').style.display = '';
+  // Store the fid to auto-open after login
+  sessionStorage.setItem('pendingScanFid', fid);
+}
+
+// ── Action sheet: pick user → enter PIN → execute ──
+
+function startScanAction(fid, type) {
+  scanActionFid = fid;
+  scanActionType = type;
+  scanActionUser = null;
+  showScanUserPicker();
+}
+
+function showScanUserPicker() {
+  const sheet = document.getElementById('scan-action-sheet');
+  const content = document.getElementById('scan-action-content');
+  const labels = { checkout: 'Who is checking this out?', return: 'Who is returning this?', swap: 'Who is taking over?' };
+  content.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div style="font-size:17px;font-weight:600;color:var(--text);">${labels[scanActionType]}</div>
+      <button onclick="closeScanActionSheet()" style="background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:0;">×</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;">
+      ${users.map(u => `
+        <div onclick="selectScanUser('${u.id}')" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:var(--surface3);border:1px solid var(--border2);border-radius:12px;cursor:pointer;transition:all 0.15s;" onmousedown="this.style.borderColor='var(--accent)'" onmouseup="this.style.borderColor='var(--border2)'">
+          <span style="font-size:28px;">${u.avatar}</span>
+          <span style="font-size:12px;font-weight:500;color:var(--text);text-align:center;word-break:break-word;">${u.name}</span>
+          <span style="font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">${u.role}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  sheet.style.display = 'block';
+}
+
+function selectScanUser(uid) {
+  scanActionUser = users.find(u => u.id === uid);
+  if (!scanActionUser) return;
+  showScanPinPad();
+}
+
+function showScanPinPad() {
+  const content = document.getElementById('scan-action-content');
+  let pinBuf = '';
+  const update = () => {
+    document.getElementById('scan-pin-dots').textContent = '●'.repeat(pinBuf.length) + '○'.repeat(Math.max(0, 4 - pinBuf.length));
+  };
+  const press = (d) => {
+    if (d === 'del') { pinBuf = pinBuf.slice(0, -1); update(); return; }
+    if (pinBuf.length >= 6) return;
+    pinBuf += d;
+    update();
+    if (pinBuf.length >= 4) {
+      // Check PIN after brief pause to show last dot
+      setTimeout(() => executeScanAction(pinBuf), 120);
+    }
+  };
+  content.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <button onclick="showScanUserPicker()" style="background:none;border:none;color:var(--text3);font-size:15px;cursor:pointer;padding:0;">← Back</button>
+      <div style="font-size:17px;font-weight:600;color:var(--text);">Enter PIN</div>
+      <button onclick="closeScanActionSheet()" style="background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:0;">×</button>
+    </div>
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:32px;margin-bottom:6px;">${scanActionUser.avatar}</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text);">${scanActionUser.name}</div>
+      <div id="scan-pin-dots" style="font-size:22px;letter-spacing:8px;margin-top:16px;color:var(--accent);">○○○○</div>
+      <div id="scan-pin-error" style="font-size:13px;color:var(--red);margin-top:8px;min-height:20px;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;margin:0 auto;">
+      ${['1','2','3','4','5','6','7','8','9','','0','del'].map(k => k === '' ? '<div></div>' : `
+        <button onclick="(${press.toString()})('${k}')" style="height:56px;background:var(--surface3);border:1px solid var(--border2);border-radius:12px;font-size:${k==='del'?'20px':'22px'};font-weight:500;color:var(--text);cursor:pointer;font-family:inherit;">
+          ${k === 'del' ? '⌫' : k}
+        </button>
+      `).join('')}
+    </div>
+  `;
+  // Wire up buttons properly (onclick string approach for grid)
+  content.querySelectorAll('button[data-k]') && null;
+  // Re-render with proper event listeners instead of inline toString
+  const grid = content.querySelector('div[style*="grid"]');
+  grid.innerHTML = '';
+  ['1','2','3','4','5','6','7','8','9','','0','del'].forEach(k => {
+    if (k === '') { grid.appendChild(document.createElement('div')); return; }
+    const btn = document.createElement('button');
+    btn.textContent = k === 'del' ? '⌫' : k;
+    btn.style.cssText = `height:56px;background:var(--surface3);border:1px solid var(--border2);border-radius:12px;font-size:${k==='del'?'20':'22'}px;font-weight:500;color:var(--text);cursor:pointer;font-family:inherit;`;
+    btn.addEventListener('click', () => press(k));
+    grid.appendChild(btn);
+  });
+}
+
+async function executeScanAction(pin) {
+  if (pin !== scanActionUser.pin) {
+    const errEl = document.getElementById('scan-pin-error');
+    if (errEl) errEl.textContent = 'Incorrect PIN — try again';
+    const dots = document.getElementById('scan-pin-dots');
+    if (dots) { dots.style.color = 'var(--red)'; setTimeout(() => { dots.style.color = 'var(--accent)'; }, 600); }
+    return;
+  }
+
+  const f = fixtures.find(x => x.id === scanActionFid);
+  if (!f) return;
+  const user = scanActionUser;
+  const ts = new Date().toISOString();
+  if (!f.comments) f.comments = [];
+
+  if (scanActionType === 'checkout') {
+    f.status = 'out';
+    f.checkedOutBy = user.id;
+    f.checkedOutAt = ts;
+    f.comments.push({ ts, userId: user.id, userName: user.name, text: '', action: 'checkout' });
+    const ev = { ts, fixtureId: f.id, fixtureName: f.name, userId: user.id, userName: user.name, action: 'checkout' };
+    history.unshift(ev);
+    await saveData({ fixture: f, historyEntry: ev });
+
+  } else if (scanActionType === 'return') {
+    f.comments.push({ ts, userId: user.id, userName: user.name, text: '', action: 'return' });
+    f.status = 'available';
+    f.checkedOutBy = null;
+    f.checkedOutAt = null;
+    const ev = { ts, fixtureId: f.id, fixtureName: f.name, userId: user.id, userName: user.name, action: 'return' };
+    history.unshift(ev);
+    await saveData({ fixture: f, historyEntry: ev });
+
+  } else if (scanActionType === 'swap') {
+    const prev = users.find(x => x.id === f.checkedOutBy);
+    f.comments.push({ ts, userId: user.id, userName: user.name, text: `taken from ${prev?.name||'unknown'}`, action: 'transfer' });
+    f.checkedOutBy = user.id;
+    f.checkedOutAt = ts;
+    const ev = { ts, fixtureId: f.id, fixtureName: f.name, userId: user.id, userName: user.name, action: 'transfer' };
+    history.unshift(ev);
+    await saveData({ fixture: f, historyEntry: ev });
+  }
+
+  closeScanActionSheet();
+  // Re-render the landing with updated fixture state
+  renderScanLanding(f, f.id);
+  // Show success toast
+  const msgs = { checkout: `✓ Checked out to ${user.name}`, return: `✓ Returned by ${user.name}`, swap: `✓ Transferred to ${user.name}` };
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+  toast.textContent = msgs[scanActionType];
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+function closeScanActionSheet() {
+  document.getElementById('scan-action-sheet').style.display = 'none';
+}
+
+// ─── Handle pending scan after login (from "Open in App" button) ───
+function checkPendingScan() {
+  const fid = sessionStorage.getItem('pendingScanFid');
+  if (fid) {
+    sessionStorage.removeItem('pendingScanFid');
+    setTimeout(() => openDetailModal(fid), 400);
+  }
+}
+
+// Returns the URL that encodes a fixture scan link
+function fixtureUrl(id) {
+  const base = window.location.href.split('?')[0].split('#')[0];
+  return base + '?f=' + encodeURIComponent(id);
+}
+
 async function init() {
   detectAndApplyLayout();
   window.addEventListener('resize', detectAndApplyLayout);
+  // Check for native camera QR scan link (?f=LUM-xxxx)
+  const isDeepLink = await handleScanLanding();
+  if (isDeepLink) return; // Landing page handles everything
   await loadData();
   renderLoginScreen();
 }
