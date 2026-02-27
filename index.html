@@ -1112,6 +1112,22 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
    BATCH PRINT SELECTION
 ══════════════════════════════════════════ */
 .print-card.print-selected { outline: 2px solid var(--accent); border-radius: 6px; }
+/* case print cards on containers page */
+.case-print-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; transition: background 0.1s, border-color 0.15s;
+  margin-bottom: 8px;
+}
+.case-print-card:hover { border-color: var(--border2); }
+.case-print-card.cpc-selected { border-color: var(--accent); background: rgba(245,200,66,0.05); }
+.cpc-check {
+  width: 20px; height: 20px; border: 2px solid var(--border2);
+  border-radius: 5px; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; flex-shrink: 0; transition: all 0.15s;
+}
+.case-print-card.cpc-selected .cpc-check { background: var(--accent); border-color: var(--accent); color: #000; }
 .print-card .pcheck {
   display: none; position: absolute; top: 4px; right: 4px;
   width: 18px; height: 18px; border: 2px solid var(--border2);
@@ -1519,11 +1535,20 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     </div>
     <!-- CONTAINERS PAGE -->
     <div class="page" id="page-containers">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
         <h2 style="font-size:20px;font-weight:700;color:#fff;">📦 Cases &amp; Boxes</h2>
-        <button class="btn btn-primary" onclick="openAddContainerModal()">+ New Case</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="case-print-select-btn" onclick="toggleCasePrintMode()">☑ Select to Print</button>
+          <button class="btn btn-primary" onclick="openAddContainerModal()">+ New Case</button>
+        </div>
       </div>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;">Each case has its own QR code. Scan a case QR to see all fixtures inside it. Tag fixtures to a case by editing them.</p>
+      <div id="case-print-bar" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span id="case-print-count" style="flex:1;font-size:13px;color:var(--text2);">0 selected</span>
+        <button class="btn btn-secondary btn-sm" onclick="selectAllCases()">Select All</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearCaseSelection()">Clear</button>
+        <button class="btn btn-primary btn-sm" onclick="printSelectedCases()">🖨 Print Selected</button>
+      </div>
+      <p id="containers-desc" style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;">Each case has its own QR code. Scan a case QR to see all fixtures inside it. Tag fixtures to a case by editing them.</p>
       <div id="containers-list"></div>
     </div>
     <!-- SETUP PAGE -->
@@ -1599,10 +1624,11 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 </div>
 <!-- ── BULK CHECKOUT BAR ── -->
 <div class="bulk-bar" id="bulk-bar">
-  <span class="bulk-bar-count" id="bulk-count">0 selected</span>
-  <button class="btn btn-success btn-sm" id="bulk-checkout-btn" onclick="bulkCheckout()">↗ Check Out</button>
-  <button class="btn btn-danger btn-sm" id="bulk-return-btn" onclick="bulkReturn()" style="display:none;">↙ Return</button>
-  <button class="btn btn-warning btn-sm" id="bulk-swap-btn" onclick="bulkSwap()" style="display:none;">⇄ Take Over</button>
+  <div style="flex:1;min-width:0;">
+    <div class="bulk-bar-count" id="bulk-count">0 selected</div>
+    <div id="bulk-summary" style="font-size:11px;color:var(--text3);margin-top:2px;"></div>
+  </div>
+  <button class="btn btn-primary btn-sm" id="bulk-action-btn" onclick="bulkDoAll()" style="display:none;">✦ Do All</button>
   <button class="btn btn-secondary btn-sm" onclick="toggleBulkMode()">Cancel</button>
 </div>
 <!-- ── BOTTOM TAB BAR (mobile) ── -->
@@ -4121,10 +4147,52 @@ function openBulkCheckoutNote(fids) {
 async function confirmCheckoutNote() {
   const note = document.getElementById('checkout-note-input').value.trim();
   closeModal('checkout-note-modal');
+
+  // Handle returns from bulkDoAll
+  const retFids  = window._bulkReturnFids  || [];
+  const swapFids = window._bulkSwapFids    || [];
+  window._bulkReturnFids = [];
+  window._bulkSwapFids   = [];
+
   if (checkoutNoteBulk.length) {
     await doBulkCheckout(checkoutNoteBulk, note);
   } else if (checkoutNoteFid) {
     await doCheckout(checkoutNoteFid, note);
+  }
+
+  // Returns
+  for (const fid of retFids) {
+    const f = fixtures.find(x => x.id === fid);
+    if (!f) continue;
+    const ts = new Date().toISOString();
+    if (!f.comments) f.comments = [];
+    f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: '', action: 'return' });
+    f.status = 'available'; f.checkedOutBy = null; f.checkedOutAt = null;
+    const h = { ts, fixtureId: f.id, fixtureName: f.name, userId: currentUser.id, userName: currentUser.name, action: 'return' };
+    history.unshift(h);
+    await saveData({ fixture: f, historyEntry: h });
+  }
+  // Swaps / take-overs
+  for (const fid of swapFids) {
+    const f = fixtures.find(x => x.id === fid);
+    if (!f) continue;
+    const prev = users.find(x => x.id === f.checkedOutBy);
+    const ts = new Date().toISOString();
+    if (!f.comments) f.comments = [];
+    f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: `taken from ${prev?.name||'unknown'}`, action: 'transfer' });
+    f.checkedOutBy = currentUser.id; f.checkedOutAt = ts;
+    const h = { ts, fixtureId: f.id, fixtureName: f.name, userId: currentUser.id, userName: currentUser.name, action: 'transfer' };
+    history.unshift(h);
+    await saveData({ fixture: f, historyEntry: h });
+  }
+
+  if (retFids.length || swapFids.length) {
+    haptic('success');
+    refreshCurrentPage();
+    const msgs = [];
+    if (retFids.length)  msgs.push(`↙ ${retFids.length} returned`);
+    if (swapFids.length) msgs.push(`⇄ ${swapFids.length} taken over`);
+    if (msgs.length) notify(msgs.join(', '), 'success');
   }
 }
 
@@ -4262,28 +4330,80 @@ function toggleCardSelect(fid) {
 
 function updateBulkBar() {
   const count = bulkSelected.size;
-  const el = document.getElementById('bulk-count');
-  if (el) el.textContent = count + ' selected';
-  // Show/hide action buttons based on what's selected
+  const countEl = document.getElementById('bulk-count');
+  if (countEl) countEl.textContent = count + ' selected';
+
   const selectedList = [...bulkSelected];
-  const hasAvail = selectedList.some(id => { const f = fixtures.find(x=>x.id===id); return f && f.status==='available'; });
-  const hasMyOut = selectedList.some(id => { const f = fixtures.find(x=>x.id===id); return f && f.status==='out' && f.checkedOutBy===currentUser?.id; });
-  const hasOtherOut = selectedList.some(id => { const f = fixtures.find(x=>x.id===id); return f && f.status==='out' && f.checkedOutBy!==currentUser?.id; });
-  const coBtn = document.getElementById('bulk-checkout-btn');
-  const retBtn = document.getElementById('bulk-return-btn');
-  const swapBtn = document.getElementById('bulk-swap-btn');
-  if (coBtn) coBtn.style.display = hasAvail ? '' : 'none';
-  if (retBtn) retBtn.style.display = (hasMyOut || (currentUser?.role==='admin' && hasOtherOut)) ? '' : 'none';
-  if (swapBtn) swapBtn.style.display = hasOtherOut ? '' : 'none';
+  const availFids   = selectedList.filter(id => { const f = fixtures.find(x=>x.id===id); return f && f.status==='available'; });
+  const myOutFids   = selectedList.filter(id => { const f = fixtures.find(x=>x.id===id); return f && f.status==='out' && f.checkedOutBy===currentUser?.id; });
+  const otherOutFids = selectedList.filter(id => { const f = fixtures.find(x=>x.id===id); return f && f.status==='out' && f.checkedOutBy!==currentUser?.id; });
+
+  const parts = [];
+  if (availFids.length)    parts.push(`↗ ${availFids.length} check out`);
+  if (myOutFids.length)    parts.push(`↙ ${myOutFids.length} return`);
+  if (otherOutFids.length) parts.push(`⇄ ${otherOutFids.length} take over`);
+
+  const summaryEl = document.getElementById('bulk-summary');
+  if (summaryEl) summaryEl.textContent = parts.join('  ·  ');
+
+  const actionBtn = document.getElementById('bulk-action-btn');
+  if (actionBtn) {
+    const hasAny = availFids.length || myOutFids.length || otherOutFids.length;
+    actionBtn.style.display = hasAny && count > 0 ? '' : 'none';
+    // Label the button based on what actions will happen
+    if (availFids.length && !myOutFids.length && !otherOutFids.length) {
+      actionBtn.textContent = '↗ Check Out';
+      actionBtn.className = 'btn btn-success btn-sm';
+    } else if (!availFids.length && (myOutFids.length || otherOutFids.length) && !otherOutFids.length) {
+      actionBtn.textContent = '↙ Return';
+      actionBtn.className = 'btn btn-danger btn-sm';
+    } else if (!availFids.length && otherOutFids.length && !myOutFids.length && !availFids.length) {
+      actionBtn.textContent = '⇄ Take Over';
+      actionBtn.className = 'btn btn-warning btn-sm';
+    } else {
+      actionBtn.textContent = '✦ Do All';
+      actionBtn.className = 'btn btn-primary btn-sm';
+    }
+  }
 }
 
-function bulkCheckout() {
-  const availFids = [...bulkSelected].filter(fid => {
-    const f = fixtures.find(x => x.id === fid);
-    return f && f.status === 'available';
-  });
-  if (!availFids.length) { notify('No available fixtures selected', 'error'); return; }
-  openBulkCheckoutNote(availFids);
+function bulkCheckout() { bulkDoAll(); } // legacy compat
+
+function bulkDoAll() {
+  const selectedList = [...bulkSelected];
+  const availFids    = selectedList.filter(id => { const f = fixtures.find(x=>x.id===id); return f && f.status==='available'; });
+  const myOutFids    = selectedList.filter(id => { const f = fixtures.find(x=>x.id===id); return f && f.status==='out' && f.checkedOutBy===currentUser?.id; });
+  const otherOutFids = selectedList.filter(id => { const f = fixtures.find(x=>x.id===id); return f && f.status==='out' && f.checkedOutBy!==currentUser?.id; });
+
+  if (!availFids.length && !myOutFids.length && !otherOutFids.length) {
+    notify('Nothing to do with selected fixtures', 'error'); return;
+  }
+  // Store all three lists on the note state
+  checkoutNoteFid = null;
+  checkoutNoteBulk = availFids;
+  window._bulkReturnFids  = myOutFids;
+  window._bulkSwapFids    = otherOutFids;
+
+  // Build a summary for the note modal
+  const parts = [];
+  if (availFids.length)    parts.push(`↗ Check out ${availFids.length}`);
+  if (myOutFids.length)    parts.push(`↙ Return ${myOutFids.length}`);
+  if (otherOutFids.length) parts.push(`⇄ Take over ${otherOutFids.length}`);
+
+  // If only returns/swaps and no checkouts, skip the note modal
+  if (!availFids.length) {
+    confirmCheckoutNote();
+    return;
+  }
+  // Open note modal with summary
+  document.getElementById('checkout-note-title').textContent = parts.join(' · ');
+  const names = availFids.slice(0,2).map(id => { const f = fixtures.find(x=>x.id===id); return f ? f.name : id; });
+  document.getElementById('checkout-note-fixture-info').innerHTML =
+    `<div style="font-size:12px;color:var(--text3);margin-bottom:6px;">${parts.join(' · ')}</div>` +
+    names.join(', ') + (availFids.length > 2 ? ` <span style="color:var(--text3);">+${availFids.length-2} more</span>` : '');
+  document.getElementById('checkout-note-input').value = '';
+  openModal('checkout-note-modal');
+  setTimeout(() => document.getElementById('checkout-note-input').focus(), 100);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -4581,6 +4701,19 @@ function renderContainersPage() {
   el.innerHTML = containers.map(c => {
     const fixturesInBox = fixtures.filter(f => f.containerId === c.id);
     const out = fixturesInBox.filter(f => f.status === 'out').length;
+    const isSel = casePrintSelected.has(c.id);
+    if (casePrintMode) {
+      // Compact selectable row for print-select mode
+      return `
+        <div class="case-print-card ${isSel ? 'cpc-selected' : ''}" id="cpc-${c.id}" onclick="toggleCasePrint('${c.id}')">
+          <div class="cpc-check">${isSel ? '✓' : ''}</div>
+          <div id="cqr-thumb-${c.id}" style="background:#fff;border-radius:5px;padding:4px;flex-shrink:0;"></div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:600;">${c.name}</div>
+            <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;">${c.id} · ${fixturesInBox.length} fixture${fixturesInBox.length!==1?'s':''}</div>
+          </div>
+        </div>`;
+    }
     return `
       <div class="container-card" onclick="openContainerDetail('${c.id}')">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
@@ -4762,6 +4895,110 @@ function printContainerLabel(cid) {
     window.addEventListener('afterprint', () => { const el = document.getElementById('print-single-overlay'); if (el) el.remove(); }, { once: true });
     setTimeout(() => window.print(), 150);
   }, 250);
+}
+
+// ═══════════════════════════════════════════════════════
+//  CASE PRINT SELECT MODE
+// ═══════════════════════════════════════════════════════
+let casePrintMode = false;
+let casePrintSelected = new Set();
+
+function toggleCasePrintMode() {
+  casePrintMode = !casePrintMode;
+  casePrintSelected.clear();
+  const btn = document.getElementById('case-print-select-btn');
+  const bar = document.getElementById('case-print-bar');
+  const desc = document.getElementById('containers-desc');
+  if (casePrintMode) {
+    btn.textContent = '\u2715 Cancel';
+    bar.style.display = 'flex';
+    if (desc) desc.style.display = 'none';
+  } else {
+    btn.textContent = '\u2611 Select to Print';
+    bar.style.display = 'none';
+    if (desc) desc.style.display = '';
+  }
+  renderContainersPage();
+}
+
+function toggleCasePrint(cid) {
+  haptic('light');
+  if (casePrintSelected.has(cid)) casePrintSelected.delete(cid);
+  else casePrintSelected.add(cid);
+  const card = document.getElementById('cpc-' + cid);
+  if (card) {
+    card.classList.toggle('cpc-selected', casePrintSelected.has(cid));
+    const chk = card.querySelector('.cpc-check');
+    if (chk) chk.textContent = casePrintSelected.has(cid) ? '\u2713' : '';
+  }
+  const el = document.getElementById('case-print-count');
+  if (el) el.textContent = casePrintSelected.size + ' selected';
+}
+
+function selectAllCases() {
+  containers.forEach(c => casePrintSelected.add(c.id));
+  renderContainersPage();
+  const el = document.getElementById('case-print-count');
+  if (el) el.textContent = casePrintSelected.size + ' selected';
+}
+
+function clearCaseSelection() {
+  casePrintSelected.clear();
+  renderContainersPage();
+  const el = document.getElementById('case-print-count');
+  if (el) el.textContent = '0 selected';
+}
+
+async function printSelectedCases() {
+  if (!casePrintSelected.size) { notify('No cases selected', 'error'); return; }
+  const ids = [...casePrintSelected];
+  const overlay = document.createElement('div');
+  overlay.id = 'print-single-overlay';
+  overlay.style.cssText = 'display:none;position:fixed;inset:0;background:#fff;z-index:9999;font-family:Arial,sans-serif;';
+
+  const sEl = document.createElement('style');
+  sEl.textContent = [
+    '#print-single-overlay { display:flex !important; flex-wrap:wrap; align-items:flex-start; padding:8pt; gap:6pt; }',
+    '.pso-label { display:flex;flex-direction:column;align-items:center;width:1.3in;page-break-inside:avoid; }',
+    '.pso-qr { width:1.25in;height:1.25in;display:block; }',
+    '.pso-id { font-size:6pt;font-family:monospace;color:#444;margin-top:3pt;text-align:center; }',
+    '.pso-name { font-size:7pt;font-weight:bold;color:#111;margin-top:1pt;text-align:center;max-width:1.3in;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }',
+    '@media print { body > *:not(#print-single-overlay) { display:none !important; } #pso-back { display:none !important; } }',
+    '#pso-back { position:fixed;top:16px;left:16px;padding:8px 16px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;z-index:10000; }'
+  ].join(' ');
+  overlay.appendChild(sEl);
+
+  const bk = document.createElement('button');
+  bk.id = 'pso-back'; bk.textContent = '\u2190 Back'; bk.onclick = () => overlay.remove();
+  overlay.appendChild(bk);
+
+  const qrPromises = ids.map(cid => new Promise(resolve => {
+    const c = containers.find(x => x.id === cid);
+    if (!c) { resolve(null); return; }
+    const tmp = document.createElement('div');
+    document.body.appendChild(tmp);
+    new QRCode(tmp, { text: containerUrl(cid), width: 120, height: 120, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+    setTimeout(() => {
+      const canvas = tmp.querySelector('canvas');
+      const imgSrc = canvas ? canvas.toDataURL() : '';
+      document.body.removeChild(tmp);
+      resolve({ c, imgSrc });
+    }, 200);
+  }));
+  const items = await Promise.all(qrPromises);
+  items.filter(Boolean).forEach(({ c, imgSrc }) => {
+    const label = document.createElement('div');
+    label.className = 'pso-label';
+    if (imgSrc) { const img = document.createElement('img'); img.className = 'pso-qr'; img.src = imgSrc; label.appendChild(img); }
+    const idEl = document.createElement('div'); idEl.className = 'pso-id'; idEl.textContent = c.id; label.appendChild(idEl);
+    const nmEl = document.createElement('div'); nmEl.className = 'pso-name'; nmEl.textContent = c.name; label.appendChild(nmEl);
+    overlay.appendChild(label);
+  });
+
+  overlay.style.display = 'flex';
+  document.body.appendChild(overlay);
+  window.addEventListener('afterprint', () => { const el = document.getElementById('print-single-overlay'); if (el) el.remove(); }, { once: true });
+  setTimeout(() => window.print(), 300);
 }
 
 // Handle container QR scan landing
