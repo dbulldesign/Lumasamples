@@ -554,7 +554,7 @@ body.is-mobile #page-history { height: calc(100vh - 220px); }
 
 /* ── FORM ── */
 .form-group { margin-bottom: 14px; }
-.form-label { display: block; font-size: 11px; font-weight: 500; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'DM Mono', monospace; }
+.form-label { display: block; font-size: 11px; font-weight: 500; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'DM Mono', monospace; }
 .form-input {
   width: 100%; background: var(--surface2); border: 1px solid var(--border);
   border-radius: var(--radius-sm); padding: 10px 12px;
@@ -974,6 +974,155 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
 .loc-option:last-child { border-bottom: none; }
 .loc-option:hover { background: var(--surface3); color: var(--text); }
 .loc-option.add-new { color: var(--accent); font-style: italic; }
+/* ══════════════════════════════════════════
+   BULK CHECKOUT / SELECT MODE
+══════════════════════════════════════════ */
+.fixture-card.selected { border-color: var(--accent) !important; box-shadow: 0 0 0 2px rgba(245,200,66,0.3); }
+.fixture-card .select-check {
+  display: none; position: absolute; top: 10px; right: 10px;
+  width: 22px; height: 22px; border: 2px solid var(--border2);
+  border-radius: 6px; background: var(--surface2);
+  align-items: center; justify-content: center; font-size: 13px;
+  cursor: pointer; z-index: 2; transition: all 0.15s;
+}
+.select-mode .fixture-card { position: relative; cursor: pointer; }
+.select-mode .fixture-card .select-check { display: flex; }
+.select-mode .fixture-card.selected .select-check { background: var(--accent); border-color: var(--accent); color: #000; }
+.bulk-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 600;
+  background: var(--surface); border-top: 1px solid var(--border2);
+  padding: 12px 20px; display: none; align-items: center; gap: 12px;
+  flex-wrap: wrap;
+}
+body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+.bulk-bar.visible { display: flex; }
+.bulk-bar-count { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
+
+/* ══════════════════════════════════════════
+   GLOBAL SEARCH OVERLAY
+══════════════════════════════════════════ */
+#global-search-overlay {
+  display: none; position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(6px);
+  padding: 20px;
+  align-items: flex-start; justify-content: center;
+  padding-top: 80px;
+}
+#global-search-overlay.open { display: flex; }
+.gs-box {
+  width: 100%; max-width: 620px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.gs-input-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+}
+.gs-input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text); font-size: 16px; font-family: 'DM Sans', sans-serif;
+}
+.gs-input::placeholder { color: var(--text3); }
+.gs-results { max-height: 60vh; overflow-y: auto; }
+.gs-result {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.1s;
+}
+.gs-result:hover { background: var(--surface3); }
+.gs-result-id { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--accent); background: var(--accent-dim); padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+.gs-result-name { font-size: 14px; font-weight: 600; flex: 1; }
+.gs-result-meta { font-size: 11px; color: var(--text3); }
+.gs-empty { padding: 40px; text-align: center; color: var(--text3); font-size: 14px; }
+.gs-section-label { padding: 8px 16px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+/* ══════════════════════════════════════════
+   SAVED FILTERS
+══════════════════════════════════════════ */
+.saved-filters-bar {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;
+  align-items: center;
+}
+.saved-filter-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 4px 10px 4px 12px;
+  font-size: 11px; color: var(--text2); cursor: pointer;
+  transition: all 0.15s; white-space: nowrap;
+}
+.saved-filter-chip:hover { border-color: var(--accent); color: var(--accent); }
+.saved-filter-chip.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.saved-filter-chip .sfc-del { color: var(--text3); font-size: 13px; line-height: 1; margin-left: 2px; }
+.saved-filter-chip .sfc-del:hover { color: var(--red); }
+.save-filter-btn {
+  background: none; border: 1px dashed var(--border2);
+  border-radius: 20px; padding: 4px 10px;
+  font-size: 11px; color: var(--text3); cursor: pointer; white-space: nowrap;
+}
+.save-filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ══════════════════════════════════════════
+   SORT BAR
+══════════════════════════════════════════ */
+.sort-select {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 12px;
+  color: var(--text2); font-size: 13px;
+  font-family: 'DM Sans', sans-serif; outline: none; cursor: pointer;
+}
+
+/* ══════════════════════════════════════════
+   CHECKOUT NOTE MODAL
+══════════════════════════════════════════ */
+#checkout-note-modal .modal { max-width: 420px; }
+
+/* ══════════════════════════════════════════
+   USAGE STATS (admin)
+══════════════════════════════════════════ */
+.usage-stat-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.usage-stat-row:last-child { border-bottom: none; }
+.usage-bar-wrap { flex: 1; background: var(--surface3); border-radius: 4px; height: 6px; overflow: hidden; }
+.usage-bar { height: 6px; border-radius: 4px; background: var(--accent); }
+.usage-count { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); white-space: nowrap; }
+
+/* ══════════════════════════════════════════
+   CONTAINERS (cases/boxes)
+══════════════════════════════════════════ */
+.container-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--blue); border-radius: var(--radius);
+  padding: 16px; margin-bottom: 12px; cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.15s;
+}
+.container-card:hover { border-color: var(--border2); box-shadow: var(--shadow); }
+.container-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.container-meta { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.container-fixtures { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.container-fixture-pill {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 6px; padding: 3px 8px; font-size: 11px;
+  font-family: 'DM Mono', monospace; color: var(--text2);
+}
+
+/* ══════════════════════════════════════════
+   BATCH PRINT SELECTION
+══════════════════════════════════════════ */
+.print-card.print-selected { outline: 2px solid var(--accent); border-radius: 6px; }
+.print-card .pcheck {
+  display: none; position: absolute; top: 4px; right: 4px;
+  width: 18px; height: 18px; border: 2px solid var(--border2);
+  border-radius: 4px; background: #fff; align-items: center; justify-content: center;
+  font-size: 11px; cursor: pointer; color: #000;
+}
+.print-select-mode .print-card { position: relative; cursor: pointer; }
+.print-select-mode .print-card .pcheck { display: flex; }
+.print-select-mode .print-card.print-selected .pcheck { background: var(--accent); border-color: var(--accent); }
+
 </style>
 </head>
 <body>
@@ -1050,6 +1199,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
         <span id="chip-name"></span>
         <span class="role-badge" id="chip-role" style="display:none;"></span>
       </div>
+      <button class="btn btn-secondary no-print" onclick="openGlobalSearch()" title="Global Search" style="font-size:16px;padding:6px 10px;min-width:36px;">🔍</button>
       <button class="btn btn-scan" onclick="openScanModal()">📷</button>
     </div>
   </header>
@@ -1061,6 +1211,7 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
     <div class="nav-tab admin-tab" id="tab-add" data-page="add" onclick="showPage('add',this)" style="display:none;"><span class="tab-icon">➕</span> Add Fixture</div>
     <div class="nav-tab admin-tab" id="tab-print" data-page="print" onclick="showPage('print',this)" style="display:none;"><span class="tab-icon">🖨</span> Print QR</div>
     <div class="nav-tab admin-tab" id="tab-admin" data-page="admin" onclick="showPage('admin',this)" style="display:none;"><span class="tab-icon">⚙️</span> Admin</div>
+    <div class="nav-tab" id="tab-containers" data-page="containers" onclick="showPage('containers',this)"><span class="tab-icon">📦</span> Cases</div>
     <div class="nav-tab" id="tab-setup" data-page="setup" onclick="showPage('setup',this)"><span class="tab-icon">🔗</span> Sync Setup</div>
   </div>
 
@@ -1078,6 +1229,9 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
     <!-- LIBRARY PAGE -->
     <div class="page" id="page-library">
       <div class="stats-bar" id="stats-bar"></div>
+      <div class="saved-filters-bar" id="saved-filters-bar">
+        <button class="save-filter-btn" onclick="saveCurrentFilter()" title="Save current filter">＋ Save Filter</button>
+      </div>
       <div class="toolbar">
         <div class="search-box">
           <span style="color:var(--text3);">🔍</span>
@@ -1091,12 +1245,20 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
         <select class="filter-select" id="filter-category" onchange="renderLibrary()">
           <option value="">All Types</option>
         </select>
+        <select class="sort-select" id="sort-select" onchange="renderLibrary()">
+          <option value="name">Sort: Name</option>
+          <option value="id">Sort: ID</option>
+          <option value="location">Sort: Location</option>
+          <option value="status">Sort: Status</option>
+          <option value="recent">Sort: Recent</option>
+        </select>
+        <button class="btn btn-secondary btn-sm no-print" id="bulk-toggle-btn" onclick="toggleBulkMode()" title="Select multiple">☑ Select</button>
       </div>
       <div class="fixture-grid" id="fixture-grid"></div>
     </div>
 
     <!-- HISTORY PAGE -->
-    <div class="page" id="page-history" style="display:none;flex-direction:column;">
+    <div class="page" id="page-history">
       <div class="toolbar" style="margin-bottom:18px;">
         <h2 style="font-size:20px;font-weight:700;flex:1;color:#ffffff;">Transaction History</h2>
         <select class="filter-select" id="hist-user-filter" onchange="renderHistory()">
@@ -1210,9 +1372,17 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
 
     <!-- PRINT QR PAGE (admin only) -->
     <div class="page" id="page-print">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
         <h2 style="font-size:20px;font-weight:700;color:#ffffff;">Print QR Labels</h2>
-        <button class="btn btn-primary" onclick="window.print()">🖨 Print All Labels</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary" onclick="togglePrintSelectMode()" id="print-select-btn">☑ Select</button>
+          <button class="btn btn-primary" id="print-action-btn" onclick="printAllQR()">🖨 Print All</button>
+        </div>
+      </div>
+      <div id="print-select-bar" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;align-items:center;gap:12px;">
+        <span id="print-selected-count" style="flex:1;font-size:13px;color:var(--text2);">0 selected</span>
+        <button class="btn btn-secondary btn-sm" onclick="selectAllForPrint()">Select All</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearPrintSelection()">Clear</button>
       </div>
       <div class="print-grid" id="print-grid"></div>
     </div>
@@ -1283,6 +1453,32 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
         </div>
       </div>
       <div class="divider"></div>
+      <!-- Usage Stats -->
+      <div class="admin-section">
+        <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>📊 Usage Stats</span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-secondary btn-sm" id="usage-tab-fixtures" onclick="showUsageTab('fixtures')" style="opacity:1;">By Fixture</button>
+            <button class="btn btn-secondary btn-sm" id="usage-tab-users" onclick="showUsageTab('users')" style="opacity:0.5;">By User</button>
+          </div>
+        </div>
+        <div id="usage-stats-body" style="margin-top:14px;"></div>
+      </div>
+      <div class="divider"></div>
+      <!-- CSV Import / Export -->
+      <div class="admin-section">
+        <div class="admin-section-title">📄 Fixture CSV Import / Export</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Export your fixture list as a spreadsheet, edit offline, then re-import. New fixtures are added; existing IDs are updated.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary" onclick="exportFixturesCSV()">⬇ Export Fixtures CSV</button>
+          <label class="btn btn-blue" style="cursor:pointer;">
+            ⬆ Import Fixtures CSV
+            <input type="file" accept=".csv" onchange="importFixturesCSV(this)" style="display:none;">
+          </label>
+        </div>
+        <div id="csv-status" style="margin-top:10px;font-size:12px;color:var(--text3);display:none;"></div>
+      </div>
+      <div class="divider"></div>
       <!-- Force Return -->
       <div class="admin-section">
         <div class="admin-section-title">🔁 Force Return</div>
@@ -1321,6 +1517,15 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
         </div>
         <div id="backup-status" style="margin-top:10px;font-size:12px;color:var(--text3);display:none;"></div>
       </div>
+    </div>
+    <!-- CONTAINERS PAGE -->
+    <div class="page" id="page-containers">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+        <h2 style="font-size:20px;font-weight:700;color:#fff;">📦 Cases &amp; Boxes</h2>
+        <button class="btn btn-primary" onclick="openAddContainerModal()">+ New Case</button>
+      </div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;">Each case has its own QR code. Scan a case QR to see all fixtures inside it. Tag fixtures to a case by editing them.</p>
+      <div id="containers-list"></div>
     </div>
     <!-- SETUP PAGE -->
     <div class="page" id="page-setup">
@@ -1380,6 +1585,25 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
   </main>
 </div>
 
+<!-- ── GLOBAL SEARCH OVERLAY ── -->
+<div id="global-search-overlay" onclick="if(event.target===this)closeGlobalSearch()">
+  <div class="gs-box">
+    <div class="gs-input-row">
+      <span style="font-size:18px;color:var(--text3);">🔍</span>
+      <input class="gs-input" id="gs-input" placeholder="Search fixtures, IDs, locations, brands..." oninput="runGlobalSearch()" autocomplete="off">
+      <button onclick="closeGlobalSearch()" style="background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:0 4px;">×</button>
+    </div>
+    <div class="gs-results" id="gs-results">
+      <div class="gs-empty">Start typing to search everything…</div>
+    </div>
+  </div>
+</div>
+<!-- ── BULK CHECKOUT BAR ── -->
+<div class="bulk-bar" id="bulk-bar">
+  <span class="bulk-bar-count" id="bulk-count">0 selected</span>
+  <button class="btn btn-success btn-sm" onclick="bulkCheckout()">↗ Check Out Selected</button>
+  <button class="btn btn-secondary btn-sm" onclick="toggleBulkMode()">Cancel</button>
+</div>
 <!-- ── BOTTOM TAB BAR (mobile) ── -->
 <div id="bottom-tabs">
   <button class="btab active" id="btab-home"    onclick="showPage('home',this)"   >
@@ -1399,6 +1623,9 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
   </button>
   <button class="btab admin-btab" id="btab-admin" onclick="showPage('admin',this)" style="display:none;">
     <span class="btab-icon">⚙️</span>Admin
+  </button>
+  <button class="btab" id="btab-containers" onclick="showPage('containers',this)">
+    <span class="btab-icon">📦</span>Cases
   </button>
   <button class="btab"        id="btab-setup"   onclick="showPage('setup',this)">
     <span class="btab-icon">🔗</span>Sync
@@ -1423,6 +1650,68 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
   </div>
 </div>
 
+<!-- ── CHECKOUT NOTE MODAL ── -->
+<div class="modal-overlay" id="checkout-note-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title" id="checkout-note-title">Check Out Fixture</div>
+      <button class="modal-close" onclick="closeModal('checkout-note-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="checkout-note-fixture-info" style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;font-size:13px;color:var(--text2);"></div>
+      <div class="form-group">
+        <label class="form-label">Job / Note <span style="color:var(--text3);font-weight:400;">(optional)</span></label>
+        <input class="form-input" id="checkout-note-input" placeholder="Taking for job… e.g. Office 3F, Living Room Sample" autocomplete="off"
+          onkeydown="if(event.key==='Enter')confirmCheckoutNote()">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('checkout-note-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="confirmCheckoutNote()">↗ Check Out</button>
+    </div>
+  </div>
+</div>
+<!-- ── ADD CONTAINER MODAL ── -->
+<div class="modal-overlay" id="add-container-modal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <div class="modal-title">📦 New Case / Box</div>
+      <button class="modal-close" onclick="closeModal('add-container-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Case Name</label>
+        <input class="form-input" id="nc-name" placeholder="e.g. Road Case A, Living Room Kit">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description <span style="color:var(--text3);font-weight:400;">(optional)</span></label>
+        <input class="form-input" id="nc-desc" placeholder="e.g. Pendant samples for showroom">
+      </div>
+      <div id="nc-qr-preview" style="display:none;text-align:center;margin-top:14px;">
+        <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">Case QR Code</div>
+        <div id="nc-qr-el" style="display:inline-block;background:#fff;border-radius:8px;padding:12px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('add-container-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addContainer()">✦ Create Case</button>
+    </div>
+  </div>
+</div>
+<!-- ── CONTAINER DETAIL MODAL ── -->
+<div class="modal-overlay" id="container-detail-modal">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-header">
+      <div class="modal-title" id="cd-title">Case Detail</div>
+      <button class="modal-close" onclick="closeModal('container-detail-modal')">×</button>
+    </div>
+    <div class="modal-body" id="cd-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('container-detail-modal')">Close</button>
+      <button class="btn btn-danger btn-sm" id="cd-delete-btn" onclick="">Delete Case</button>
+    </div>
+  </div>
+</div>
 <!-- ═════════════ LOGIN DETAIL MODAL ═════════════ -->
 <div class="modal-overlay" id="login-detail-modal">
   <div class="modal" style="max-width:420px;">
@@ -1871,6 +2160,7 @@ function applyRemoteData(data) {
   if (data.fixtureTypes) fixtureTypes = Array.isArray(data.fixtureTypes)
     ? data.fixtureTypes.filter(Boolean)
     : Object.values(data.fixtureTypes).filter(Boolean);
+  if (data.containers) containers = Object.values(data.containers);
   if (data.history)   history   = Object.values(data.history)
     .sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 500);
   if (data.counter) {
@@ -1893,6 +2183,7 @@ function normalizeFixture(f) {
     comments: f.comments||[],  // [{ts, userId, userName, text, action}]
     status: f.status||'available',
     checkedOutBy: f.checkedOutBy||null, checkedOutAt: f.checkedOutAt||null,
+    containerId: f.containerId||null,
   };
 }
 function normalizeUser(u) {
@@ -1906,6 +2197,7 @@ async function fbPushAll() {
   const sanitize = s => String(s).replace(/[.#$[\]\/\s]/g, '_');
   const snap = {
     fixtures:  Object.fromEntries(fixtures.map(f => [sanitize(f.id), f])),
+    containers: Object.fromEntries(containers.map(c => [sanitize(c.id), c])),
     users:     Object.fromEntries(users.map(u    => [sanitize(u.id), u])),
     locations:    Object.fromEntries(locations.map((l, i) => [sanitize(l) || 'loc' + i, l])),
     fixtureTypes: Object.fromEntries(fixtureTypes.map((t, i) => [sanitize(t) || 'type' + i, t])),
@@ -2215,6 +2507,7 @@ function pinPress(digit) {
   if (!digit) return;
   if (pinBuffer.length >= 4) return;
   pinBuffer += digit;
+  haptic('light');
   updatePinDots();
   if (pinBuffer.length === 4) {
     setTimeout(checkPin, 120);
@@ -2223,6 +2516,7 @@ function pinPress(digit) {
 
 function pinBackspace() {
   pinBuffer = pinBuffer.slice(0, -1);
+  haptic('light');
   updatePinDots();
 }
 
@@ -2252,6 +2546,7 @@ function adminQuickLogin() {
 }
 
 function loginSuccess(user) {
+  haptic('success');
   currentUser = user;
   detectAndApplyLayout();
   document.getElementById('login-screen').style.display = 'none';
@@ -2279,6 +2574,7 @@ function loginSuccess(user) {
     if (el) el.style.display = isAdmin ? '' : 'none';
   });
   showPage('home', document.querySelector('[data-page="home"]'));
+  loadContainers();
   checkPendingScan();
 }
 
@@ -2314,6 +2610,9 @@ function showPage(name, tabEl) {
   if (name === 'library') { renderStats(); renderLibrary(); populateFilters(); }
   if (name === 'history') { populateHistFilters(); renderHistory(); }
   if (name === 'add')     { refreshAddId(); populateFixTypeSelect('new-fixtype'); }
+  if (name === 'containers') renderContainersPage();
+  if (name === 'library') renderSavedFilters();
+  if (name === 'admin') { renderUsageStats(); renderForceReturn(); renderAdminFixtures(); }
   if (name === 'print')   renderPrintPage();
   if (name === 'admin')   { renderUserList(); renderAdminFixtures(); renderForceReturn(); renderLocationPreview(); renderAdminTypes(); renderGsStatus(); }
   if (name === 'setup')   { renderSetupPage(); }
@@ -2428,14 +2727,23 @@ function renderLibrary() {
   const q    = (document.getElementById('search-input').value||'').toLowerCase();
   const sf   = document.getElementById('filter-status').value;
   const cf   = document.getElementById('filter-category').value;
-  const list = fixtures.filter(f => {
+  let list = fixtures.filter(f => {
     const txt = [f.id,f.name,f.brand,f.category,f.fixtureType,f.finish,f.location].join(' ').toLowerCase();
     const typeMatch = !cf || f.fixtureType===cf || f.category===cf;
     return txt.includes(q) && (!sf || f.status===sf) && typeMatch;
   });
+  list = sortFixtures(list);
   const grid = document.getElementById('fixture-grid');
   if (!list.length) { grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔦</div><p>No fixtures found.</p></div>'; return; }
   grid.innerHTML = list.map(f => fixtureCardHTML(f)).join('');
+  // Re-apply bulk selection state
+  if (bulkMode) {
+    grid.classList.add('select-mode');
+    bulkSelected.forEach(fid => {
+      const card = grid.querySelector(`[data-fid="${fid}"]`);
+      if (card) { card.classList.add('selected'); const ch = card.querySelector('.select-check'); if(ch) ch.textContent='✓'; }
+    });
+  }
 }
 
 function fixtureCardHTML(f) {
@@ -2443,7 +2751,8 @@ function fixtureCardHTML(f) {
   const isMe = f.checkedOutBy === currentUser?.id;
   const isAdmin = currentUser?.role === 'admin';
   return `
-    <div class="fixture-card ${f.status}" onclick="openDetailModal('${f.id}')">
+    <div class="fixture-card ${f.status}" data-fid="${f.id}" onclick="if(bulkMode){toggleCardSelect('${f.id}');}else{openDetailModal('${f.id}');}">
+      <div class="select-check" id="check-${f.id}"></div>
       <div class="card-top">
         <div class="fid">${f.id}</div>
         <div class="sbadge ${f.status==='available'?'available':'out'}">${f.status==='available'?'Available':'Out'}</div>
@@ -2453,7 +2762,7 @@ function fixtureCardHTML(f) {
         <div class="card-meta">
           ${f.partNo?`<span style='font-family:"DM Mono",monospace;font-size:10px;color:var(--text3);'>🔢 ${f.partNo}</span>`:''}
           ${f.brand?`<span>🏷 ${f.brand}</span>`:''}
-          ${f.category?`<span>📦 ${f.category}</span>`:''}
+          ${(f.fixtureType||f.category)?`<span style="background:var(--surface3);border:1px solid var(--border2);border-radius:5px;padding:2px 7px;font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;">🔧 ${f.fixtureType||f.category}</span>`:''}
           ${f.wattage?`<span>⚡ ${f.wattage}</span>`:''}
         </div>
         ${f.location?`<div class="card-loc">📍 ${f.location}</div>`:''}
@@ -2498,17 +2807,7 @@ function fixtureCardHTML(f) {
 //  CHECKOUT / RETURN
 // ═══════════════════════════════════════════════════════
 async function quickCheckout(fid) {
-  const f = fixtures.find(x=>x.id===fid);
-  if (!f || f.status!=='available') return;
-  f.status = 'out';
-  f.checkedOutBy = currentUser.id;
-  f.checkedOutAt = new Date().toISOString();
-  if (!f.comments) f.comments = [];
-  f.comments.push({ ts: f.checkedOutAt, userId: currentUser.id, userName: currentUser.name, text: '', action: 'checkout' });
-  const hco = logEvent(f, 'checkout');
-  await saveData({ fixture: f, historyEntry: hco });
-  refreshCurrentPage();
-  notify(`✓ Checked out: ${f.name}`, 'success');
+  openCheckoutNote(fid);
 }
 
 async function quickReturn(fid) {
@@ -2732,12 +3031,13 @@ async function addFixture() {
 function renderPrintPage() {
   const grid = document.getElementById('print-grid');
   grid.innerHTML = fixtures.map(f=>`
-    <div class="print-card" id="pcard-${f.id}">
+    <div class="print-card" id="pcard-${f.id}" onclick="printSelectMode ? togglePrintCard('${f.id}') : null">
+      <div class="pcheck no-print" id="pcheck-${f.id}"></div>
       <div class="pqr-wrap" id="pqr-${f.id}"></div>
       <div class="pid">${f.id}</div>
       <div class="pname">${f.name}</div>
-      <div class="pbrand">${[f.partNo,f.brand,f.category].filter(Boolean).join(' · ')}</div>
-      <button class="print-card-btn no-print" onclick="printSingleQR('${f.id}')">🖨 Print</button>
+      <div class="pbrand">${[f.partNo,f.brand,f.fixtureType||f.category].filter(Boolean).join(' · ')}</div>
+      <button class="print-card-btn no-print" onclick="event.stopPropagation();printSingleQR('${f.id}')">🖨 Print</button>
     </div>
   `).join('');
   fixtures.forEach(f=>{
@@ -3079,15 +3379,18 @@ function openEditFixture(fid) {
   renderFixtureComments(f);
   document.getElementById('ef-new-comment').value = '';
   openModal('edit-fixture-modal');
-  // Re-set fixtureType after modal is visible (ensures select value sticks)
+  // Re-set fixtureType and container after modal is visible
   setTimeout(() => {
     populateFixTypeSelect('ef-fixtype');
+    populateContainerSelect();
     const eft = document.getElementById('ef-fixtype');
     if (eft) {
       eft.value = f.fixtureType || '';
       onFixTypeChange('ef-fixtype','ef-output-wattage-row');
       document.getElementById('ef-output-wattage').value = f.outputWattage || '';
     }
+    const csel = document.getElementById('ef-container');
+    if (csel) csel.value = f.containerId || '';
   }, 0);
 }
 
@@ -3147,6 +3450,7 @@ async function saveEditFixture() {
   f.fixtureType  = document.getElementById('ef-fixtype').value.trim();
   const isPSType = ['Power Supply','Driver','Transformer'].includes(f.fixtureType);
   f.outputWattage = isPSType ? document.getElementById('ef-output-wattage').value.trim() : '';
+  f.containerId = document.getElementById('ef-container') ? document.getElementById('ef-container').value : (f.containerId || null);
   if (f.location && !locations.includes(f.location)) {
     locations.push(f.location);
     locations.sort();
@@ -3568,6 +3872,760 @@ function detectAndApplyLayout() {
   requestAnimationFrame(setTabH);
 }
 
+
+// ═══════════════════════════════════════════════════════
+//  HAPTIC FEEDBACK
+// ═══════════════════════════════════════════════════════
+function haptic(style) {
+  if (navigator.vibrate) {
+    if (style === 'light') navigator.vibrate(10);
+    else if (style === 'success') navigator.vibrate([10, 30, 10]);
+    else if (style === 'error') navigator.vibrate([30, 20, 30]);
+    else navigator.vibrate(10);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  GLOBAL SEARCH
+// ═══════════════════════════════════════════════════════
+function openGlobalSearch() {
+  const ov = document.getElementById('global-search-overlay');
+  ov.classList.add('open');
+  setTimeout(() => document.getElementById('gs-input').focus(), 80);
+  runGlobalSearch();
+}
+function closeGlobalSearch() {
+  document.getElementById('global-search-overlay').classList.remove('open');
+}
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openGlobalSearch(); }
+  if (e.key === 'Escape') closeGlobalSearch();
+});
+
+function runGlobalSearch() {
+  const q = (document.getElementById('gs-input').value || '').toLowerCase().trim();
+  const res = document.getElementById('gs-results');
+  if (!q) {
+    res.innerHTML = '<div class="gs-empty">Start typing to search everything…</div>';
+    return;
+  }
+  const matched = fixtures.filter(f => {
+    const txt = [f.id, f.name, f.brand, f.fixtureType, f.category, f.location, f.partNo, f.notes].join(' ').toLowerCase();
+    return txt.includes(q);
+  }).slice(0, 20);
+
+  if (!matched.length) {
+    res.innerHTML = '<div class="gs-empty">No fixtures found for "' + q + '"</div>';
+    return;
+  }
+  res.innerHTML = '<div class="gs-section-label">Fixtures (' + matched.length + ')</div>' +
+    matched.map(f => {
+      const u = f.checkedOutBy ? users.find(x => x.id === f.checkedOutBy) : null;
+      return `<div class="gs-result" onclick="gsOpenFixture('${f.id}')">
+        <span class="gs-result-id">${f.id}</span>
+        <span class="gs-result-name">${f.name}</span>
+        <span class="gs-result-meta">${[f.fixtureType||f.category, f.location].filter(Boolean).join(' · ')} ${f.status==='out'?(u?'· 👤 '+u.name:'· Out'):'· Available'}</span>
+        <span class="sbadge ${f.status==='available'?'available':'out'}" style="flex-shrink:0;">${f.status==='available'?'✓':'Out'}</span>
+      </div>`;
+    }).join('');
+}
+
+function gsOpenFixture(fid) {
+  closeGlobalSearch();
+  // Navigate to library and open detail
+  showPage('library', document.querySelector('[data-page="library"]'));
+  setTimeout(() => openDetailModal(fid), 100);
+}
+
+// ═══════════════════════════════════════════════════════
+//  SAVED FILTERS
+// ═══════════════════════════════════════════════════════
+let savedFilters = JSON.parse(localStorage.getItem('luma:savedFilters') || '[]');
+
+function renderSavedFilters() {
+  const bar = document.getElementById('saved-filters-bar');
+  if (!bar) return;
+  const chips = savedFilters.map((sf, i) => `
+    <span class="saved-filter-chip" onclick="applySavedFilter(${i})" id="sfc-${i}">
+      ${sf.label}
+      <span class="sfc-del" onclick="event.stopPropagation();deleteSavedFilter(${i})" title="Remove">×</span>
+    </span>
+  `).join('');
+  bar.innerHTML = chips + '<button class="save-filter-btn" onclick="saveCurrentFilter()" title="Save current filter">＋ Save Filter</button>';
+}
+
+function saveCurrentFilter() {
+  const q = document.getElementById('search-input').value;
+  const status = document.getElementById('filter-status').value;
+  const type = document.getElementById('filter-category').value;
+  const sort = document.getElementById('sort-select').value;
+  if (!q && !status && !type) { notify('Set at least one filter to save', 'info'); return; }
+  const parts = [q, status, type].filter(Boolean);
+  const label = parts.join(' · ') || 'Filter';
+  const name = prompt('Name this filter:', label);
+  if (!name) return;
+  savedFilters.push({ label: name, q, status, type, sort });
+  localStorage.setItem('luma:savedFilters', JSON.stringify(savedFilters));
+  renderSavedFilters();
+  notify('Filter saved: ' + name, 'success');
+}
+
+function applySavedFilter(i) {
+  const sf = savedFilters[i];
+  if (!sf) return;
+  document.getElementById('search-input').value = sf.q || '';
+  document.getElementById('filter-status').value = sf.status || '';
+  const catSel = document.getElementById('filter-category');
+  if (catSel) catSel.value = sf.type || '';
+  document.getElementById('sort-select').value = sf.sort || 'name';
+  // Toggle active state
+  document.querySelectorAll('.saved-filter-chip').forEach((c, idx) => c.classList.toggle('active', idx === i));
+  renderLibrary();
+}
+
+function deleteSavedFilter(i) {
+  savedFilters.splice(i, 1);
+  localStorage.setItem('luma:savedFilters', JSON.stringify(savedFilters));
+  renderSavedFilters();
+}
+
+// ═══════════════════════════════════════════════════════
+//  SORT
+// ═══════════════════════════════════════════════════════
+function sortFixtures(list) {
+  const sort = (document.getElementById('sort-select') || {}).value || 'name';
+  return [...list].sort((a, b) => {
+    if (sort === 'name')     return a.name.localeCompare(b.name);
+    if (sort === 'id')       return a.id.localeCompare(b.id);
+    if (sort === 'location') return (a.location||'').localeCompare(b.location||'');
+    if (sort === 'status')   return a.status.localeCompare(b.status);
+    if (sort === 'recent') {
+      const ta = a.checkedOutAt ? new Date(a.checkedOutAt) : new Date(0);
+      const tb = b.checkedOutAt ? new Date(b.checkedOutAt) : new Date(0);
+      return tb - ta;
+    }
+    return 0;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  CHECKOUT NOTE MODAL
+// ═══════════════════════════════════════════════════════
+let checkoutNoteFid = null;
+let checkoutNoteBulk = [];
+
+function openCheckoutNote(fid) {
+  const f = fixtures.find(x => x.id === fid);
+  if (!f || f.status !== 'available') return;
+  checkoutNoteFid = fid;
+  checkoutNoteBulk = [];
+  document.getElementById('checkout-note-title').textContent = 'Check Out Fixture';
+  document.getElementById('checkout-note-fixture-info').innerHTML =
+    `<span class="fid">${f.id}</span> <strong style="margin-left:8px;">${f.name}</strong>` +
+    (f.brand ? `<span style="margin-left:8px;color:var(--text3);">${f.brand}</span>` : '');
+  document.getElementById('checkout-note-input').value = '';
+  openModal('checkout-note-modal');
+  setTimeout(() => document.getElementById('checkout-note-input').focus(), 100);
+}
+
+function openBulkCheckoutNote(fids) {
+  checkoutNoteFid = null;
+  checkoutNoteBulk = fids;
+  document.getElementById('checkout-note-title').textContent = `Check Out ${fids.length} Fixture${fids.length>1?'s':''}`;
+  const names = fids.slice(0,3).map(id => { const f = fixtures.find(x=>x.id===id); return f ? f.name : id; });
+  document.getElementById('checkout-note-fixture-info').innerHTML =
+    names.join(', ') + (fids.length > 3 ? ` <span style="color:var(--text3);">+${fids.length-3} more</span>` : '');
+  document.getElementById('checkout-note-input').value = '';
+  openModal('checkout-note-modal');
+  setTimeout(() => document.getElementById('checkout-note-input').focus(), 100);
+}
+
+async function confirmCheckoutNote() {
+  const note = document.getElementById('checkout-note-input').value.trim();
+  closeModal('checkout-note-modal');
+  if (checkoutNoteBulk.length) {
+    await doBulkCheckout(checkoutNoteBulk, note);
+  } else if (checkoutNoteFid) {
+    await doCheckout(checkoutNoteFid, note);
+  }
+}
+
+async function doCheckout(fid, note) {
+  const f = fixtures.find(x => x.id === fid);
+  if (!f || f.status !== 'available') return;
+  const ts = new Date().toISOString();
+  f.status = 'out';
+  f.checkedOutBy = currentUser.id;
+  f.checkedOutAt = ts;
+  if (!f.comments) f.comments = [];
+  f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: note || '', action: 'checkout' });
+  const hco = { ts, fixtureId: f.id, fixtureName: f.name, userId: currentUser.id, userName: currentUser.name, action: 'checkout', note };
+  history.unshift(hco);
+  await saveData({ fixture: f, historyEntry: hco });
+  haptic('success');
+  refreshCurrentPage();
+  notify(`✓ Checked out: ${f.name}` + (note ? ` — "${note}"` : ''), 'success');
+}
+
+async function doBulkCheckout(fids, note) {
+  let count = 0;
+  for (const fid of fids) {
+    const f = fixtures.find(x => x.id === fid);
+    if (!f || f.status !== 'available') continue;
+    const ts = new Date().toISOString();
+    f.status = 'out';
+    f.checkedOutBy = currentUser.id;
+    f.checkedOutAt = ts;
+    if (!f.comments) f.comments = [];
+    f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: note || '', action: 'checkout' });
+    const hco = { ts, fixtureId: f.id, fixtureName: f.name, userId: currentUser.id, userName: currentUser.name, action: 'checkout', note };
+    history.unshift(hco);
+    await saveData({ fixture: f, historyEntry: hco });
+    count++;
+  }
+  haptic('success');
+  exitBulkMode();
+  refreshCurrentPage();
+  notify(`✓ Checked out ${count} fixture${count!==1?'s':''}` + (note ? ` — "${note}"` : ''), 'success');
+}
+
+// ═══════════════════════════════════════════════════════
+//  BULK SELECT MODE
+// ═══════════════════════════════════════════════════════
+let bulkMode = false;
+let bulkSelected = new Set();
+
+function toggleBulkMode() {
+  bulkMode = !bulkMode;
+  bulkSelected.clear();
+  const grid = document.getElementById('fixture-grid');
+  const btn = document.getElementById('bulk-toggle-btn');
+  const bar = document.getElementById('bulk-bar');
+  if (bulkMode) {
+    grid.classList.add('select-mode');
+    btn.textContent = '✕ Cancel';
+    btn.classList.add('btn-danger');
+    bar.classList.add('visible');
+    updateBulkBar();
+  } else {
+    exitBulkMode();
+  }
+}
+
+function exitBulkMode() {
+  bulkMode = false;
+  bulkSelected.clear();
+  const grid = document.getElementById('fixture-grid');
+  const btn = document.getElementById('bulk-toggle-btn');
+  const bar = document.getElementById('bulk-bar');
+  if (grid) grid.classList.remove('select-mode');
+  if (btn) { btn.textContent = '☑ Select'; btn.classList.remove('btn-danger'); }
+  if (bar) bar.classList.remove('visible');
+  document.querySelectorAll('.fixture-card').forEach(c => c.classList.remove('selected'));
+}
+
+function toggleCardSelect(fid) {
+  haptic('light');
+  if (bulkSelected.has(fid)) bulkSelected.delete(fid);
+  else bulkSelected.add(fid);
+  const card = document.querySelector(`[data-fid="${fid}"]`);
+  if (card) card.classList.toggle('selected', bulkSelected.has(fid));
+  const check = document.getElementById('check-' + fid);
+  if (check) check.textContent = bulkSelected.has(fid) ? '✓' : '';
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const count = bulkSelected.size;
+  const el = document.getElementById('bulk-count');
+  if (el) el.textContent = count + ' selected';
+}
+
+function bulkCheckout() {
+  const availFids = [...bulkSelected].filter(fid => {
+    const f = fixtures.find(x => x.id === fid);
+    return f && f.status === 'available';
+  });
+  if (!availFids.length) { notify('No available fixtures selected', 'error'); return; }
+  openBulkCheckoutNote(availFids);
+}
+
+// ═══════════════════════════════════════════════════════
+//  USAGE STATS (admin)
+// ═══════════════════════════════════════════════════════
+let usageTab = 'fixtures';
+
+function showUsageTab(tab) {
+  usageTab = tab;
+  document.getElementById('usage-tab-fixtures').style.opacity = tab === 'fixtures' ? '1' : '0.5';
+  document.getElementById('usage-tab-users').style.opacity = tab === 'users' ? '1' : '0.5';
+  renderUsageStats();
+}
+
+function renderUsageStats() {
+  const el = document.getElementById('usage-stats-body');
+  if (!el) return;
+  if (usageTab === 'fixtures') {
+    const counts = {};
+    history.filter(h => h.action === 'checkout').forEach(h => {
+      counts[h.fixtureId] = (counts[h.fixtureId] || { name: h.fixtureName, count: 0 });
+      counts[h.fixtureId].count++;
+    });
+    const sorted = Object.entries(counts).sort((a,b) => b[1].count - a[1].count).slice(0, 20);
+    if (!sorted.length) { el.innerHTML = '<div style="color:var(--text3);font-size:13px;">No checkout history yet.</div>'; return; }
+    const max = sorted[0][1].count;
+    el.innerHTML = sorted.map(([id, d]) => `
+      <div class="usage-stat-row">
+        <span class="fid" style="min-width:70px;">${id}</span>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;">${d.name}</span>
+        <div class="usage-bar-wrap" style="min-width:80px;max-width:140px;">
+          <div class="usage-bar" style="width:${Math.round((d.count/max)*100)}%;"></div>
+        </div>
+        <span class="usage-count">${d.count}×</span>
+      </div>
+    `).join('');
+  } else {
+    const counts = {};
+    history.filter(h => h.action === 'checkout').forEach(h => {
+      if (!h.userId) return;
+      counts[h.userId] = (counts[h.userId] || { name: h.userName, count: 0, userId: h.userId });
+      counts[h.userId].count++;
+    });
+    const sorted = Object.entries(counts).sort((a,b) => b[1].count - a[1].count).slice(0, 20);
+    if (!sorted.length) { el.innerHTML = '<div style="color:var(--text3);font-size:13px;">No checkout history yet.</div>'; return; }
+    const max = sorted[0][1].count;
+    el.innerHTML = sorted.map(([uid, d]) => {
+      const u = users.find(x => x.id === uid);
+      return `
+        <div class="usage-stat-row">
+          <span style="font-size:18px;">${u ? u.avatar : '👤'}</span>
+          <span style="flex:1;font-size:13px;font-weight:500;">${d.name}</span>
+          <div class="usage-bar-wrap" style="min-width:80px;max-width:140px;">
+            <div class="usage-bar" style="width:${Math.round((d.count/max)*100)}%;background:var(--blue);"></div>
+          </div>
+          <span class="usage-count">${d.count}×</span>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  CSV EXPORT / IMPORT
+// ═══════════════════════════════════════════════════════
+function exportFixturesCSV() {
+  const cols = ['id','name','brand','partNo','fixtureType','wattage','voltage','outputWattage','location','specSheet','dateReceived','status','notes'];
+  const header = cols.join(',');
+  const rows = fixtures.map(f => cols.map(c => {
+    const v = (f[c] || '').toString().replace(/"/g, '""');
+    return v.includes(',') || v.includes('"') || v.includes('\n') ? `"${v}"` : v;
+  }).join(','));
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `lumasamples-fixtures-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  notify('CSV exported: ' + fixtures.length + ' fixtures', 'success');
+}
+
+async function importFixturesCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('csv-status');
+  try {
+    const text = await file.text();
+    const lines = text.trim().split(/\r?\n/);
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,''));
+    let added = 0, updated = 0;
+    for (let i = 1; i < lines.length; i++) {
+      if (!lines[i].trim()) continue;
+      // Basic CSV parse (handles quoted fields)
+      const vals = [];
+      let cur = '', inQ = false;
+      for (const ch of lines[i]) {
+        if (ch === '"') { inQ = !inQ; continue; }
+        if (ch === ',' && !inQ) { vals.push(cur); cur = ''; continue; }
+        cur += ch;
+      }
+      vals.push(cur);
+      const row = {};
+      headers.forEach((h, idx) => { row[h] = (vals[idx] || '').trim(); });
+      if (!row.name) continue;
+      const existing = row.id ? fixtures.find(f => f.id === row.id) : null;
+      if (existing) {
+        Object.assign(existing, normalizeFixture({ ...existing, ...row }));
+        updated++;
+      } else {
+        const nf = normalizeFixture({ ...row, id: row.id || genId(), status: row.status || 'available' });
+        fixtures.push(nf);
+        fixtureCounter++;
+        added++;
+      }
+    }
+    await saveData({ counter: true });
+    if (fbDb) await fbPushAll();
+    refreshCurrentPage();
+    populateFilters();
+    statusEl.style.display = '';
+    statusEl.style.color = 'var(--green)';
+    statusEl.textContent = `✓ Imported: ${added} added, ${updated} updated.`;
+    notify(`CSV imported: ${added} added, ${updated} updated`, 'success');
+  } catch(e) {
+    statusEl.style.display = '';
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '⚠ Import failed: ' + e.message;
+    notify('CSV import failed: ' + e.message, 'error');
+  }
+  input.value = '';
+}
+
+// ═══════════════════════════════════════════════════════
+//  BATCH PRINT
+// ═══════════════════════════════════════════════════════
+let printSelectMode = false;
+let printSelected = new Set();
+
+function togglePrintSelectMode() {
+  printSelectMode = !printSelectMode;
+  printSelected.clear();
+  const btn = document.getElementById('print-select-btn');
+  const bar = document.getElementById('print-select-bar');
+  const actionBtn = document.getElementById('print-action-btn');
+  const grid = document.getElementById('print-grid');
+  if (printSelectMode) {
+    grid.classList.add('print-select-mode');
+    btn.textContent = '✕ Cancel';
+    bar.style.display = 'flex';
+    actionBtn.textContent = '🖨 Print Selected (0)';
+    actionBtn.onclick = printSelectedQR;
+  } else {
+    grid.classList.remove('print-select-mode');
+    btn.textContent = '☑ Select';
+    bar.style.display = 'none';
+    actionBtn.textContent = '🖨 Print All';
+    actionBtn.onclick = printAllQR;
+    document.querySelectorAll('.print-card').forEach(c => c.classList.remove('print-selected'));
+    document.querySelectorAll('.pcheck').forEach(c => c.textContent = '');
+  }
+  updatePrintSelectCount();
+}
+
+function togglePrintCard(fid) {
+  haptic('light');
+  if (printSelected.has(fid)) printSelected.delete(fid);
+  else printSelected.add(fid);
+  const card = document.getElementById('pcard-' + fid);
+  if (card) card.classList.toggle('print-selected', printSelected.has(fid));
+  const check = document.getElementById('pcheck-' + fid);
+  if (check) check.textContent = printSelected.has(fid) ? '✓' : '';
+  updatePrintSelectCount();
+}
+
+function updatePrintSelectCount() {
+  const n = printSelected.size;
+  const el = document.getElementById('print-selected-count');
+  if (el) el.textContent = n + ' selected';
+  const btn = document.getElementById('print-action-btn');
+  if (btn && printSelectMode) btn.textContent = `🖨 Print Selected (${n})`;
+}
+
+function selectAllForPrint() {
+  fixtures.forEach(f => printSelected.add(f.id));
+  document.querySelectorAll('.print-card').forEach(c => {
+    c.classList.add('print-selected');
+    const id = c.id.replace('pcard-', '');
+    const ch = document.getElementById('pcheck-' + id);
+    if (ch) ch.textContent = '✓';
+  });
+  updatePrintSelectCount();
+}
+
+function clearPrintSelection() {
+  printSelected.clear();
+  document.querySelectorAll('.print-card').forEach(c => { c.classList.remove('print-selected'); });
+  document.querySelectorAll('.pcheck').forEach(c => { c.textContent = ''; });
+  updatePrintSelectCount();
+}
+
+async function printSelectedQR() {
+  if (!printSelected.size) { notify('No labels selected', 'error'); return; }
+  const ids = [...printSelected];
+  // Build a print overlay with all selected QR codes
+  const overlay = document.createElement('div');
+  overlay.id = 'print-single-overlay';
+  overlay.style.cssText = 'display:none;position:fixed;inset:0;background:#fff;z-index:9999;flex-wrap:wrap;align-items:flex-start;justify-content:flex-start;padding:10pt;gap:6pt;font-family:Arial,sans-serif;';
+  // Generate QR canvases
+  const qrPromises = ids.map(fid => new Promise(resolve => {
+    const f = fixtures.find(x => x.id === fid);
+    if (!f) { resolve(null); return; }
+    const tmp = document.createElement('div');
+    document.body.appendChild(tmp);
+    new QRCode(tmp, { text: fixtureUrl(f.id), width: 96, height: 96, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+    setTimeout(() => {
+      const canvas = tmp.querySelector('canvas');
+      const imgSrc = canvas ? canvas.toDataURL() : '';
+      document.body.removeChild(tmp);
+      resolve({ f, imgSrc });
+    }, 200);
+  }));
+  const items = await Promise.all(qrPromises);
+  const labelStyle = `<style>
+    #print-single-overlay { display:flex !important; flex-wrap:wrap; align-items:flex-start; padding:8pt; gap:6pt; }
+    .pso-label { display:flex;flex-direction:column;align-items:center;width:0.6in;page-break-inside:avoid; }
+    .pso-qr { width:0.5in;height:0.5in;display:block; }
+    .pso-id { font-size:5pt;font-family:monospace;color:#444;margin-top:2pt;text-align:center; }
+    .pso-name { font-size:5pt;font-weight:bold;color:#111;margin-top:1pt;text-align:center;max-width:0.6in;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+    @media print { body > *:not(#print-single-overlay) { display:none !important; } #pso-back { display:none !important; } }
+    #pso-back { position:fixed;top:16px;left:16px;padding:8px 16px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;z-index:10000; }
+  </style>`;
+  overlay.innerHTML = labelStyle + '<button id="pso-back" onclick="document.getElementById('print-single-overlay').remove()">← Back</button>' +
+    items.filter(Boolean).map(({f, imgSrc}) => `
+      <div class="pso-label">
+        ${imgSrc ? `<img class="pso-qr" src="${imgSrc}">` : ''}
+        <div class="pso-id">${f.id}</div>
+        <div class="pso-name">${f.name}</div>
+      </div>
+    `).join('');
+  overlay.style.display = 'flex';
+  document.body.appendChild(overlay);
+  window.addEventListener('afterprint', () => { const el = document.getElementById('print-single-overlay'); if (el) el.remove(); }, { once: true });
+  setTimeout(() => window.print(), 300);
+}
+
+function printAllQR() { window.print(); }
+
+// ═══════════════════════════════════════════════════════
+//  CONTAINERS (Cases & Boxes)
+// ═══════════════════════════════════════════════════════
+let containers = JSON.parse(localStorage.getItem('luma:containers') || '[]');
+let containerCounter = containers.length ? Math.max(...containers.map(c => parseInt(c.id.replace('BOX-',''))||0)) + 1 : 1;
+
+function containerUrl(id) {
+  const base = window.location.href.split('?')[0].split('#')[0];
+  return base + '?box=' + encodeURIComponent(id);
+}
+
+async function saveContainers() {
+  localStorage.setItem('luma:containers', JSON.stringify(containers));
+  if (fbDb) {
+    const sanitize = s => String(s).replace(/[.#$[\]/\s]/g, '_');
+    const updates = {};
+    containers.forEach(c => { updates['lumasamples/containers/' + sanitize(c.id)] = c; });
+    try { await fbDb.ref().update(updates); } catch(e) {}
+  }
+}
+
+async function loadContainers() {
+  try {
+    const r = localStorage.getItem('luma:containers');
+    if (r) containers = JSON.parse(r);
+  } catch { containers = []; }
+}
+
+function renderContainersPage() {
+  const el = document.getElementById('containers-list');
+  if (!el) return;
+  if (!containers.length) {
+    el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3);"><div style="font-size:48px;margin-bottom:16px;">📦</div><div style="font-size:16px;">No cases yet. Create one to start grouping fixtures.</div></div>';
+    return;
+  }
+  el.innerHTML = containers.map(c => {
+    const fixturesInBox = fixtures.filter(f => f.containerId === c.id);
+    const out = fixturesInBox.filter(f => f.status === 'out').length;
+    return `
+      <div class="container-card" onclick="openContainerDetail('${c.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+          <div>
+            <div class="container-name">${c.name}</div>
+            ${c.desc ? `<div class="container-meta" style="margin-top:2px;color:var(--text2);">${c.desc}</div>` : ''}
+            <div class="container-meta" style="margin-top:4px;">
+              <span class="fid">${c.id}</span>
+              <span style="margin-left:8px;">${fixturesInBox.length} fixture${fixturesInBox.length!==1?'s':''}</span>
+              ${out ? `<span style="margin-left:6px;color:var(--red);">${out} out</span>` : ''}
+            </div>
+          </div>
+          <div id="cqr-thumb-${c.id}" style="background:#fff;border-radius:6px;padding:6px;flex-shrink:0;"></div>
+        </div>
+        ${fixturesInBox.length ? `
+          <div class="container-fixtures">
+            ${fixturesInBox.slice(0,8).map(f => `<span class="container-fixture-pill" style="${f.status==='out'?'color:var(--red);border-color:rgba(248,113,113,0.3);':''}">${f.id}</span>`).join('')}
+            ${fixturesInBox.length > 8 ? `<span class="container-fixture-pill" style="color:var(--text3);">+${fixturesInBox.length-8} more</span>` : ''}
+          </div>` : ''}
+      </div>
+    `;
+  }).join('');
+  // Render tiny QRs
+  containers.forEach(c => {
+    setTimeout(() => {
+      const el = document.getElementById('cqr-thumb-' + c.id);
+      if (el && !el.querySelector('canvas')) {
+        new QRCode(el, { text: containerUrl(c.id), width: 40, height: 40, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+      }
+    }, 60);
+  });
+}
+
+function openAddContainerModal() {
+  document.getElementById('nc-name').value = '';
+  document.getElementById('nc-desc').value = '';
+  document.getElementById('nc-qr-preview').style.display = 'none';
+  document.getElementById('nc-qr-el').innerHTML = '';
+  openModal('add-container-modal');
+  setTimeout(() => document.getElementById('nc-name').focus(), 100);
+}
+
+async function addContainer() {
+  const name = document.getElementById('nc-name').value.trim();
+  if (!name) { notify('Case name is required', 'error'); return; }
+  const id = 'BOX-' + String(containerCounter).padStart(4, '0');
+  containerCounter++;
+  const c = { id, name, desc: document.getElementById('nc-desc').value.trim(), createdAt: new Date().toISOString() };
+  containers.push(c);
+  await saveContainers();
+  closeModal('add-container-modal');
+  renderContainersPage();
+  notify('✓ Case created: ' + name, 'success');
+  // Open detail immediately so user can see the QR
+  setTimeout(() => openContainerDetail(id), 200);
+}
+
+function openContainerDetail(cid) {
+  const c = containers.find(x => x.id === cid);
+  if (!c) return;
+  const fixturesInBox = fixtures.filter(f => f.containerId === cid);
+  const avail = fixturesInBox.filter(f => f.status === 'available').length;
+  const out = fixturesInBox.filter(f => f.status === 'out').length;
+  document.getElementById('cd-title').textContent = '📦 ' + c.name;
+  document.getElementById('cd-delete-btn').onclick = () => deleteContainer(cid);
+  document.getElementById('cd-body').innerHTML = `
+    <div style="margin-bottom:14px;">
+      ${c.desc ? `<div style="font-size:13px;color:var(--text2);margin-bottom:8px;">${c.desc}</div>` : ''}
+      <div style="font-size:12px;color:var(--text3);margin-bottom:14px;font-family:'DM Mono',monospace;">${c.id}</div>
+      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+        <span style="font-size:13px;"><strong>${fixturesInBox.length}</strong> <span style="color:var(--text3);">fixtures</span></span>
+        <span style="font-size:13px;color:var(--green);"><strong>${avail}</strong> available</span>
+        ${out ? `<span style="font-size:13px;color:var(--red);"><strong>${out}</strong> out</span>` : ''}
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:14px;display:inline-block;margin-bottom:14px;" id="cd-qr-wrap-${cid}"></div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:20px;">Scan this QR code to view all fixtures in this case</div>
+    </div>
+    ${fixturesInBox.length ? `
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:10px;">Fixtures in this case</div>
+      ${fixturesInBox.map(f => `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+          <span class="fid">${f.id}</span>
+          <span style="flex:1;font-size:13px;font-weight:500;">${f.name}</span>
+          <span class="sbadge ${f.status==='available'?'available':'out'}">${f.status==='available'?'In':'Out'}</span>
+          <button class="btn btn-blue btn-sm" onclick="openDetailModal('${f.id}')">View</button>
+        </div>
+      `).join('')}
+    ` : '<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px 0;">No fixtures assigned to this case yet.<br><span style="font-size:12px;">Edit a fixture and set its Case/Box field.</span></div>'}
+    <div style="margin-top:16px;">
+      <button class="btn btn-secondary btn-sm" onclick="printContainerLabel('${cid}')">🖨 Print Case Label</button>
+    </div>
+  `;
+  openModal('container-detail-modal');
+  setTimeout(() => {
+    const el = document.getElementById('cd-qr-wrap-' + cid);
+    if (el && !el.querySelector('canvas')) {
+      new QRCode(el, { text: containerUrl(cid), width: 120, height: 120, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+    }
+  }, 80);
+}
+
+async function deleteContainer(cid) {
+  if (!confirm('Delete this case? Fixtures will remain but will be unassigned.')) return;
+  containers = containers.filter(c => c.id !== cid);
+  // Unassign fixtures
+  fixtures.forEach(f => { if (f.containerId === cid) { f.containerId = null; saveData({ fixture: f }); } });
+  await saveContainers();
+  closeModal('container-detail-modal');
+  renderContainersPage();
+  notify('Case deleted', 'info');
+}
+
+function printContainerLabel(cid) {
+  const c = containers.find(x => x.id === cid);
+  if (!c) return;
+  const tmp = document.createElement('div');
+  document.body.appendChild(tmp);
+  new QRCode(tmp, { text: containerUrl(cid), width: 96, height: 96, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+  setTimeout(() => {
+    const canvas = tmp.querySelector('canvas');
+    const imgSrc = canvas ? canvas.toDataURL() : '';
+    document.body.removeChild(tmp);
+    const overlay = document.createElement('div');
+    overlay.id = 'print-single-overlay';
+    overlay.innerHTML = `
+      <style>
+        #print-single-overlay { display:none;position:fixed;inset:0;background:#fff;z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif; }
+        @media print { body > *:not(#print-single-overlay){display:none!important;} #pso-back{display:none!important;} #print-single-overlay{display:flex!important;} }
+        #pso-back{position:fixed;top:16px;left:16px;padding:8px 16px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;z-index:10000;}
+        .pso-qr{width:1in;height:1in;display:block;margin:0 auto;}
+        .pso-id{font-size:8pt;font-family:monospace;color:#444;margin-top:4pt;text-align:center;}
+        .pso-name{font-size:10pt;font-weight:bold;color:#111;margin-top:2pt;text-align:center;}
+      </style>
+      <button id="pso-back" onclick="document.getElementById('print-single-overlay').remove()">← Back</button>
+      ${imgSrc ? `<img class="pso-qr" src="${imgSrc}">` : ''}
+      <div class="pso-id">${c.id}</div>
+      <div class="pso-name">${c.name}</div>
+    `;
+    overlay.style.display = 'flex';
+    document.body.appendChild(overlay);
+    window.addEventListener('afterprint', () => { const el = document.getElementById('print-single-overlay'); if (el) el.remove(); }, { once: true });
+    setTimeout(() => window.print(), 150);
+  }, 250);
+}
+
+// Handle container QR scan landing
+async function handleContainerScanLanding() {
+  const cid = new URLSearchParams(window.location.search).get('box');
+  if (!cid) return false;
+  await loadData();
+  await loadContainers();
+  const c = containers.find(x => x.id === cid);
+  document.getElementById('scan-landing').style.display = 'block';
+  document.getElementById('login-screen').style.display = 'none';
+  const dot = document.getElementById('scan-landing-sync-dot');
+  if (fbDb) { dot.style.background = 'var(--green)'; }
+  const body = document.getElementById('scan-landing-body');
+  if (!c) {
+    body.innerHTML = `<div style="text-align:center;padding:60px 20px;"><div style="font-size:48px;">📦</div><div style="margin-top:16px;color:var(--text);">Case not found: ${cid}</div></div>`;
+    return true;
+  }
+  const fixturesInBox = fixtures.filter(f => f.containerId === cid);
+  body.innerHTML = `
+    <div style="margin-bottom:8px;font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);">${c.id}</div>
+    <div style="font-size:24px;font-weight:700;margin-bottom:${c.desc?'4':'16'}px;">${c.name}</div>
+    ${c.desc ? `<div style="font-size:13px;color:var(--text2);margin-bottom:16px;">${c.desc}</div>` : ''}
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:20px;">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;">${fixturesInBox.length} Fixture${fixturesInBox.length!==1?'s':''}</div>
+      ${fixturesInBox.length ? fixturesInBox.map(f => `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);background:var(--accent-dim);padding:2px 6px;border-radius:4px;">${f.id}</span>
+          <span style="flex:1;font-size:13px;font-weight:500;">${f.name}</span>
+          <span class="sbadge ${f.status==='available'?'available':'out'}">${f.status==='available'?'In':'Out'}</span>
+        </div>
+      `).join('') : '<div style="color:var(--text3);font-size:13px;">No fixtures assigned to this case.</div>'}
+    </div>
+    <button class="btn btn-secondary" style="width:100%;justify-content:center;padding:12px;" onclick="goToAppFromScan('${cid}')">Open in App</button>
+  `;
+  cleanScanUrl();
+  return true;
+}
+
+// Populate container dropdown in edit fixture modal
+function populateContainerSelect() {
+  const sel = document.getElementById('ef-container');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Not in a case —</option>' +
+    containers.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join('');
+  if (cur && containers.find(c => c.id === cur)) sel.value = cur;
+}
+
 // ═══════════════════════════════════════════════════════
 //  DEEP LINK / NATIVE CAMERA QR SCAN LANDING
 // ═══════════════════════════════════════════════════════
@@ -3758,11 +4816,13 @@ function showScanPinPad() {
   const press = (d) => {
     if (d === 'del') {
       window._scanPinBuf = window._scanPinBuf.slice(0, -1);
+      haptic('light');
       updateDots();
       return;
     }
     if (window._scanPinBuf.length >= 6) return;
     window._scanPinBuf += d;
+    haptic('light');
     updateDots();
     if (window._scanPinBuf.length >= 4) {
       setTimeout(() => executeScanAction(window._scanPinBuf), 150);
@@ -3880,10 +4940,14 @@ function fixtureUrl(id) {
 async function init() {
   detectAndApplyLayout();
   window.addEventListener('resize', detectAndApplyLayout);
+  // Check for container scan (?box=BOX-xxxx)
+  const isContainerScan = await handleContainerScanLanding();
+  if (isContainerScan) return;
   // Check for native camera QR scan link (?f=FL-xxxx)
   const isDeepLink = await handleScanLanding();
-  if (isDeepLink) return; // Landing page handles everything
+  if (isDeepLink) return;
   await loadData();
+  await loadContainers();
   renderLoginScreen();
 }
 
