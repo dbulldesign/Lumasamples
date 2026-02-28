@@ -15,7 +15,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💡</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <!-- Firebase compat SDK (v9) — loads as globals, works on all hosts including GitHub Pages -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -508,6 +508,7 @@ body.is-mobile #page-history { height: calc(100vh - 220px); }
   gap: 14px;
 }
 .fixture-card {
+  contain: layout style;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -1170,6 +1171,11 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 .print-select-mode .print-card .pcheck { display: flex; }
 .print-select-mode .print-card.print-selected .pcheck { background: var(--accent); border-color: var(--accent); }
 
+
+/* NFC button */
+.btn-nfc { background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid #4a4a8a; color: #a0a0ff; }
+.btn-nfc:hover { border-color: #6a6aaa; color: #c0c0ff; }
+
 </style>
 </head>
 <body>
@@ -1242,8 +1248,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
       <div id="header-sync-dot" style="width:9px;height:9px;border-radius:50%;background:var(--red);flex-shrink:0;margin-left:2px;" title="Not connected"></div>
     </div>
     <div class="header-right">
-      <!-- Sync button — always visible -->
-      <button class="btn btn-sync no-print" id="header-sync-btn" onclick="manualSync()" title="Sync with Firebase">⇅</button>
+      <!-- sync via auto-listener only -->
       <!-- User chip — avatar + name only, no role badge -->
       <div class="user-chip" id="user-chip" onclick="logOut()">
         <span class="chip-avatar" id="chip-avatar"></span>
@@ -1263,7 +1268,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     <div class="nav-tab admin-tab" id="tab-add" data-page="add" onclick="showPage('add',this)" style="display:none;"><span class="tab-icon">➕</span> Add Fixture</div>
     <div class="nav-tab admin-tab" id="tab-print" data-page="print" onclick="showPage('print',this)" style="display:none;"><span class="tab-icon">🖨</span> Print QR</div>
     <div class="nav-tab admin-tab" id="tab-admin" data-page="admin" onclick="showPage('admin',this)" style="display:none;"><span class="tab-icon">⚙️</span> Admin</div>
-    <div class="nav-tab admin-tab" id="tab-setup" data-page="setup" onclick="showPage('setup',this)" style="display:none;"><span class="tab-icon">⚙️</span> Settings</div>
+    <div class="nav-tab" id="tab-setup" data-page="setup" onclick="showPage('setup',this)"><span class="tab-icon">⚙️</span> Settings</div>
   </div>
 
   <main>
@@ -1440,16 +1445,39 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 
     <!-- ADMIN PAGE (admin only) -->
     <div class="page" id="page-admin">
-      <!-- Firebase Sync (inline summary) -->
+      <!-- Firebase Sync (full inline) -->
       <div class="admin-section">
         <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
           <span>🔥 Firebase Sync</span>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <div id="fb-action-btns"></div>
-            <button class="btn btn-secondary btn-sm" onclick="showPage('setup',document.getElementById('tab-setup'))">Manage →</button>
+          <div style="display:flex;gap:8px;" id="fb-action-btns"></div>
+        </div>
+        <div id="fb-status-block" style="font-size:13px;color:var(--text2);margin-top:6px;"></div>
+        <!-- Connect form -->
+        <div id="admin-connect-card" style="margin-top:14px;display:none;flex-direction:column;gap:10px;">
+          <p style="font-size:13px;color:var(--text2);line-height:1.6;">Connect to Firebase to sync in real time across all devices.</p>
+          <input class="form-input" id="admin-project-id"
+            placeholder="Firebase Project ID (e.g. myapp-a1b2c)"
+            style="font-family:'DM Mono',monospace;font-size:14px;"
+            onkeydown="if(event.key==='Enter')adminConnectFirebase()">
+          <div id="admin-connect-feedback" style="display:none;font-size:12px;padding:8px 12px;border-radius:6px;"></div>
+          <button class="btn btn-primary" onclick="adminConnectFirebase()" style="justify-content:center;padding:12px;">
+            🔥 Connect &amp; Start Syncing
+          </button>
+        </div>
+        <!-- Connected state -->
+        <div id="admin-connected-block" style="display:none;margin-top:12px;">
+          <div style="background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.25);border-radius:var(--radius-sm);padding:12px 14px;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:24px;">🔥</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13px;font-weight:600;color:var(--green);">Connected — real-time sync active</div>
+              <div id="admin-connected-url" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-top:3px;word-break:break-all;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="fbStartListening();notify('Listener restarted','info')">↻ Reconnect</button>
+            <button class="btn btn-danger btn-sm" onclick="adminDisconnectFirebase()">Disconnect</button>
           </div>
         </div>
-        <div id="fb-status-block" style="font-size:13px;color:var(--text2);margin-top:4px;"></div>
       </div>
       <div class="divider"></div>
       <!-- Appearance -->
@@ -1614,11 +1642,11 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
             <button class="btn btn-secondary btn-sm" id="settings-sync-btn" onclick="manualSync()">⇅ Sync Now</button>
           </div>
         </div>
-        <h3 style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--text);">🔥 Firebase Sync</h3>
-        <p style="color:var(--text2);font-size:13px;margin-bottom:20px;line-height:1.7;">Connect LumaSamples to Firebase to sync in real time across all devices.</p>
+        <h3 id="settings-fb-heading" style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--text);">🔥 Firebase Sync</h3>
+        <p id="settings-fb-desc" style="color:var(--text2);font-size:13px;margin-bottom:20px;line-height:1.7;">Connect LumaSamples to Firebase to sync in real time across all devices.</p>
 
         <!-- Connect form (hidden when connected) -->
-        <div class="setup-card" id="setup-connect-card" style="flex-direction:column;gap:14px;">
+        <div class="setup-card admin-only-setting" id="setup-connect-card" style="flex-direction:column;gap:14px;">
           <div class="setup-card-body" style="width:100%;">
             <div class="setup-card-title" style="font-size:16px;margin-bottom:4px;">Enter your Firebase Project ID</div>
             <div class="setup-card-desc" style="margin-bottom:14px;">Find it in <a href="https://console.firebase.google.com" target="_blank" style="color:var(--accent);">Firebase Console</a> → gear ⚙️ → Project Settings → Project ID field.</div>
@@ -1710,7 +1738,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
   <button class="btab admin-btab" id="btab-admin" onclick="showPage('admin',this)" style="display:none;">
     <span class="btab-icon">⚙️</span>Admin
   </button>
-  <button class="btab admin-btab" id="btab-setup"   onclick="showPage('setup',this)" style="display:none;">
+  <button class="btab" id="btab-setup" onclick="showPage('setup',this)">
     <span class="btab-icon">⚙️</span>Settings
   </button>
 </div>
@@ -1822,13 +1850,36 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
       <button class="modal-close" onclick="closeScanModal()">×</button>
     </div>
     <div class="modal-body">
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">Point camera at a fixture QR code.</p>
-      <div id="qr-reader" style="border-radius:var(--radius-sm);overflow:hidden;background:#000;min-height:200px;"></div>
-      <div id="scan-result" style="display:none;margin-top:14px;padding:14px;background:var(--surface2);border-radius:var(--radius-sm);"></div>
-      <div style="margin-top:14px;">
-        <label class="form-label">Or Enter ID Manually</label>
+      <!-- Native camera trigger — hidden file input, tapped by the button -->
+      <input type="file" id="qr-camera-input" accept="image/*" capture="environment"
+        style="display:none;" onchange="handleCameraCapture(this)">
+
+      <div id="scan-camera-prompt" style="text-align:center;padding:10px 0 18px;">
+        <div style="font-size:48px;margin-bottom:12px;">📷</div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:16px;font-size:16px;letter-spacing:0.3px;"
+          onclick="triggerNativeCamera()">
+          Open Camera to Scan
+        </button>
+        <p style="font-size:12px;color:var(--text3);margin-top:10px;line-height:1.6;">
+          Uses your device's native camera — fast and accurate.<br>
+          The camera permission is remembered after the first scan.
+        </p>
+      </div>
+
+      <div id="scan-processing" style="display:none;text-align:center;padding:20px;">
+        <div style="font-size:32px;margin-bottom:8px;">⏳</div>
+        <div style="font-size:13px;color:var(--text2);">Reading QR code…</div>
+      </div>
+
+      <div id="scan-result" style="display:none;margin-top:4px;padding:14px;background:var(--surface2);border-radius:var(--radius-sm);"></div>
+
+      <div style="margin-top:12px;display:flex;gap:8px;">
+        <button class="btn btn-nfc" style="flex:1;justify-content:center;font-size:13px;" onclick="readNFCTag();closeScanModal()">📡 Scan NFC Tag</button>
+      </div>
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
+        <label class="form-label" style="font-size:11px;">Or Enter ID Manually</label>
         <div style="display:flex;gap:8px;">
-          <input class="form-input" id="manual-id-input" placeholder="e.g. FL-0042" style="flex:1;">
+          <input class="form-input" id="manual-id-input" placeholder="e.g. FL-0042" style="flex:1;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')processManualId()">
           <button class="btn btn-secondary" onclick="processManualId()">Go</button>
         </div>
       </div>
@@ -2463,7 +2514,7 @@ function setSyncStatus(state, msg) {
 function hideSyncBar() { /* no-op — bottom bar removed */ }
 
 async function manualSync() {
-  const btn = document.getElementById('header-sync-btn');
+  const btn = document.getElementById('header-sync-btn') || document.getElementById('settings-sync-btn');
   if (!fbDb) { notify('Not connected to Firebase — go to Sync Setup', 'error'); return; }
   if (btn) btn.classList.add('syncing');
   setSyncStatus('syncing', 'Syncing…');
@@ -2727,12 +2778,12 @@ function loginSuccess(user) {
   // tab-add visible to all; tab-print + tab-admin admin-only
   const isAdmin = user.role === 'admin';
   document.getElementById('tab-add').style.display = '';
-  ['tab-print','tab-admin','tab-setup'].forEach(id => {
+  ['tab-print','tab-admin'].forEach(id => {
     document.getElementById(id).style.display = isAdmin ? '' : 'none';
   });
   const btabAdd = document.getElementById('btab-add');
   if (btabAdd) btabAdd.style.display = '';
-  ['btab-print','btab-admin','btab-setup'].forEach(id => {
+  ['btab-print','btab-admin'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = isAdmin ? '' : 'none';
   });
@@ -2898,7 +2949,22 @@ function renderLibrary() {
   list = sortFixtures(list);
   const grid = document.getElementById('fixture-grid');
   if (!list.length) { grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔦</div><p>No fixtures found.</p></div>'; return; }
-  grid.innerHTML = list.map(f => fixtureCardHTML(f)).join('');
+  // Render immediately for fast paint — batch remaining on rAF
+  const FIRST = 12;
+  grid.innerHTML = list.slice(0, FIRST).map(f => fixtureCardHTML(f)).join('');
+  if (list.length > FIRST) {
+    requestAnimationFrame(() => {
+      grid.innerHTML = list.map(f => fixtureCardHTML(f)).join('');
+      if (bulkMode) {
+        grid.classList.add('select-mode');
+        bulkSelected.forEach(fid => {
+          const card = grid.querySelector(`[data-fid="${fid}"]`);
+          if (card) { card.classList.add('selected'); const ch = card.querySelector('.select-check'); if(ch) ch.textContent='✓'; }
+        });
+      }
+    });
+    return;
+  }
   // Re-apply bulk selection state
   if (bulkMode) {
     grid.classList.add('select-mode');
@@ -3210,6 +3276,7 @@ function renderPrintPage() {
       <div class="pbrand">${[f.partNo,f.brand,f.fixtureType||f.category].filter(Boolean).join(' · ')}</div>
       <button class="print-card-btn no-print" onclick="event.stopPropagation();printSingleQR('${f.id}')">🖨 Print</button>
       <button class="print-card-btn no-print" onclick="event.stopPropagation();copyQRLink('fixture','${f.id}')" title="Copy QR link" style="font-size:11px;padding:4px 6px;">🔗 Copy</button>
+      <button class="print-card-btn no-print btn-nfc" onclick="event.stopPropagation();writeNFCTag('fixture','${f.id}')" title="Write NFC tag" style="font-size:11px;padding:4px 6px;">📡 NFC</button>
     </div>
   `).join('');
   fixtures.forEach(f=>{
@@ -3373,6 +3440,7 @@ function renderAdminFixtures() {
       <td style="color:var(--text2);font-size:11px;font-family:'DM Mono',monospace;">${f.location||'—'}</td>
       <td><span class="sbadge ${f.status==='available'?'available':'out'}">${f.status==='available'?'Available':'Out'}</span></td>
       <td style="white-space:nowrap;">
+        <button class="btn btn-secondary btn-sm" onclick="copyQRLink('fixture','${f.id}')" title="Copy QR link">🔗</button>
         <button class="btn btn-blue btn-sm" onclick="openEditFixture('${f.id}')">Edit</button>
         <button class="btn btn-danger btn-sm" onclick="deleteFixture('${f.id}')">Delete</button>
       </td>
@@ -3433,32 +3501,81 @@ async function forceReturn(fid) {
 // ═══════════════════════════════════════════════════════
 function openScanModal() {
   openModal('scan-modal');
+  // Reset state
   document.getElementById('scan-result').style.display = 'none';
+  document.getElementById('scan-processing').style.display = 'none';
+  document.getElementById('scan-camera-prompt').style.display = 'block';
   document.getElementById('manual-id-input').value = '';
-  startScanner();
+  // Clear the file input so the same photo can be rescanned
+  const inp = document.getElementById('qr-camera-input');
+  if (inp) inp.value = '';
 }
 
 function closeScanModal() {
   closeModal('scan-modal');
-  stopScanner();
 }
 
-function startScanner() {
-  stopScanner();
-  scannerInstance = new Html5Qrcode('qr-reader');
-  scannerInstance.start(
-    {facingMode:'environment'},
-    {fps:10, qrbox:{width:200,height:200}},
-    (decoded) => { stopScanner(); processScannedId(decoded.trim()); },
-    () => {}
-  ).catch(() => {
-    document.getElementById('qr-reader').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;">Camera unavailable.<br>Use manual ID entry below.</div>';
-  });
+function triggerNativeCamera() {
+  // Programmatically click the hidden file input — opens native camera on iOS/Android
+  const inp = document.getElementById('qr-camera-input');
+  if (inp) { inp.value = ''; inp.click(); }
 }
 
-function stopScanner() {
-  if (scannerInstance) { scannerInstance.stop().catch(()=>{}); scannerInstance = null; }
+async function handleCameraCapture(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+
+  document.getElementById('scan-camera-prompt').style.display = 'none';
+  document.getElementById('scan-processing').style.display = 'block';
+  document.getElementById('scan-result').style.display = 'none';
+
+  try {
+    // Decode the image with jsQR
+    const bitmap = await createImageBitmap(file);
+    const canvas = document.createElement('canvas');
+    // Scale down large photos for speed — jsQR works fine at 1024px
+    const MAX = 1024;
+    const scale = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
+    canvas.width  = Math.round(bitmap.width  * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+
+    document.getElementById('scan-processing').style.display = 'none';
+
+    if (code) {
+      haptic('success');
+      processScannedId(code.data);
+    } else {
+      // Try again with inverted colours (some dark-background QR codes)
+      const code2 = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'onlyInvert' });
+      if (code2) {
+        haptic('success');
+        processScannedId(code2.data);
+      } else {
+        haptic('error');
+        document.getElementById('scan-camera-prompt').style.display = 'block';
+        const el = document.getElementById('scan-result');
+        el.style.display = 'block';
+        el.innerHTML = `<div style="color:var(--red);font-size:13px;">❌ No QR code detected. Try again with better lighting or hold the camera steady.</div>
+          <button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="triggerNativeCamera()">Try Again</button>`;
+      }
+    }
+  } catch(e) {
+    document.getElementById('scan-processing').style.display = 'none';
+    document.getElementById('scan-camera-prompt').style.display = 'block';
+    const el = document.getElementById('scan-result');
+    el.style.display = 'block';
+    el.innerHTML = `<div style="color:var(--red);font-size:13px;">❌ Could not read image. Please try again.</div>`;
+  }
+  // Reset input so the same file can be re-selected
+  input.value = '';
 }
+
+function stopScanner() { /* no-op — kept for any legacy callers */ }
+
 
 function processManualId() {
   const id = document.getElementById('manual-id-input').value.trim().toUpperCase();
@@ -3704,7 +3821,7 @@ This will REPLACE all current data. Make sure you have a current backup first.`)
     await saveData({ counter: true });
     // Push to Firebase if connected
     if (fbDb) await fbPushAll();
-    refreshCurrentPage();
+    debounce('fb-refresh', refreshCurrentPage, 300)();
     renderLoginScreen();
     populateFilters();
     statusEl.style.display = '';
@@ -3912,12 +4029,23 @@ function autoWatt(el) {
 // ═══════════════════════════════════════════════════════
 function renderSetupPage() {
   const connected = !!(fbConfig && fbDb);
-  const banner = document.getElementById('setup-status-banner');
+  const isAdmin = currentUser?.role === 'admin';
+
+  // Show/hide Firebase sections based on role
+  const fbHeading = document.getElementById('settings-fb-heading');
+  const fbDesc    = document.getElementById('settings-fb-desc');
+  const banner    = document.getElementById('setup-status-banner');
+  [fbHeading, fbDesc].forEach(el => { if (el) el.style.display = isAdmin ? '' : 'none'; });
+
   if (banner) {
-    if (connected) {
+    if (!isAdmin) {
+      // Standard user: no Firebase section, no banner
+      banner.style.display = 'none';
+    } else if (connected) {
       banner.style.cssText = 'border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.25);';
       banner.innerHTML = `<span style="font-size:26px;">🔥</span><div><div style="font-weight:600;color:var(--green);">Real-time sync active</div><div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;">${fbConfig?.projectId||''}</div></div>`;
     } else {
+      banner.style.display = 'flex';
       banner.style.cssText = 'border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;background:rgba(245,200,66,0.06);border:1px solid rgba(245,200,66,0.2);';
       banner.innerHTML = `<span style="font-size:26px;">⚠️</span><div><div style="font-weight:600;color:var(--accent);">Not connected</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Follow the steps below to connect to Firebase.</div></div>`;
     }
@@ -3925,6 +4053,11 @@ function renderSetupPage() {
   const connectCard    = document.getElementById('setup-connect-card');
   const connectedBlock = document.getElementById('setup-connected-block');
   const urlEl          = document.getElementById('setup-connected-url');
+  if (!isAdmin) {
+    if (connectCard)    connectCard.style.display = 'none';
+    if (connectedBlock) connectedBlock.style.display = 'none';
+    return;
+  }
   if (connected) {
     if (connectCard)    connectCard.style.display = 'none';
     if (connectedBlock) connectedBlock.style.display = 'block';
@@ -4000,9 +4133,20 @@ function renderGsStatus() {
     `;
     block.innerHTML = `<span style="color:var(--green);">🔥 Firebase live sync</span> <span style="color:var(--text3);margin-left:8px;font-size:11px;font-family:'DM Mono',monospace;">${fbConfig?.projectId}</span>`;
   } else {
-    btns.innerHTML = `<button class="btn btn-primary btn-sm" onclick="showPage('setup',document.getElementById('tab-setup'))">Connect Firebase</button>`;
+    btns.innerHTML = '';
     block.innerHTML = `<span style="color:var(--text3);">Not connected — data is stored locally only.</span>`;
   }
+  // Update admin inline connect/connected blocks
+  const aConn = document.getElementById('admin-connect-card');
+  const aDisc = document.getElementById('admin-connected-block');
+  const aUrl  = document.getElementById('admin-connected-url');
+  if (aConn) aConn.style.display = connected ? 'none' : 'flex';
+  if (aDisc) aDisc.style.display = connected ? '' : 'none';
+  if (aUrl && fbConfig) aUrl.textContent = fbConfig.projectId + '.firebaseio.com';
+  // Sync admin-project-id field with setup field
+  const adminPid = document.getElementById('admin-project-id');
+  const setupPid = document.getElementById('setup-project-id');
+  if (adminPid && setupPid && setupPid.value) adminPid.value = setupPid.value;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -4940,6 +5084,7 @@ function openContainerDetail(cid) {
     <div style="margin-top:16px;">
       <button class="btn btn-secondary btn-sm" onclick="printContainerLabel('${cid}')">🖨 Print Case Label</button>
     <button class="btn btn-secondary btn-sm" onclick="copyQRLink('container','${cid}')">🔗 Copy Link</button>
+    <button class="btn btn-nfc btn-sm" onclick="writeNFCTag('container','${cid}')">📡 Write NFC</button>
     </div>
   `;
   openModal('container-detail-modal');
@@ -5101,9 +5246,11 @@ async function printSelectedCases() {
 }
 
 // Handle container QR scan landing
+let _activeCaseLandingId = null;
 async function handleContainerScanLanding(forceCid) {
-  const cid = forceCid || new URLSearchParams(window.location.search).get('box');
+  const cid = forceCid || _activeCaseLandingId || new URLSearchParams(window.location.search).get('box');
   if (!cid) return false;
+  _activeCaseLandingId = cid; // remember it for back-button
   await loadData();
   await loadContainers();
   const c = containers.find(x => x.id === cid);
@@ -5647,59 +5794,65 @@ async function bafcConfirm() {
 //  LOGIN PAGE QUICK SCAN
 // ═══════════════════════════════════════════════════════
 function loginPageQuickScan() {
-  // Build a minimal scan overlay on the login screen
-  let existing = document.getElementById('login-scan-overlay');
-  if (existing) { existing.remove(); return; }
-  const overlay = document.createElement('div');
-  overlay.id = 'login-scan-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:9500;background:var(--bg);display:flex;flex-direction:column;';
-  overlay.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface);">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--accent);">Scan QR Code</div>
-      <button onclick="document.getElementById('login-scan-overlay').remove()" style="background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;padding:4px 8px;">×</button>
-    </div>
-    <div style="flex:1;display:flex;flex-direction:column;padding:20px;">
-      <div id="login-qr-reader" style="border-radius:var(--radius-sm);overflow:hidden;background:#000;width:100%;max-width:400px;margin:0 auto;"></div>
-      <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text3);">Point at a fixture or case QR code</div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-  
-  // Start scanner
-  setTimeout(() => {
-    try {
-      const scanner = new Html5Qrcode('login-qr-reader');
-      scanner.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 200, height: 200 } },
-        (decoded) => {
-          scanner.stop().catch(() => {});
-          overlay.remove();
-          // Parse URL or raw ID then redirect to landing page
-          let id = decoded.trim();
+  // Use native camera via hidden file input — instant, no permission loop, iOS native quality
+  let inp = document.getElementById('login-camera-input');
+  if (!inp) {
+    inp = document.createElement('input');
+    inp.id = 'login-camera-input';
+    inp.type = 'file';
+    inp.accept = 'image/*';
+    inp.capture = 'environment';
+    inp.style.display = 'none';
+    inp.addEventListener('change', async function() {
+      const file = this.files && this.files[0];
+      if (!file) return;
+      this.value = '';
+      // Show processing indicator
+      const btn = document.getElementById('login-scan-btn');
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) btn.innerHTML = '<span style="font-size:16px;">⏳</span> Reading…';
+      try {
+        const bitmap = await createImageBitmap(file);
+        const canvas = document.createElement('canvas');
+        const MAX = 1024;
+        const scale = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
+        canvas.width  = Math.round(bitmap.width  * scale);
+        canvas.height = Math.round(bitmap.height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        let code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+        if (!code) code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'onlyInvert' });
+
+        if (btn) btn.innerHTML = origText;
+
+        if (code) {
+          // Navigate to the deep-link landing page
+          let raw = code.data.trim();
           let redirect = '';
           try {
-            const url = new URL(id);
+            const url = new URL(raw);
             const fParam = url.searchParams.get('f');
             const boxParam = url.searchParams.get('box');
             if (fParam) redirect = '?f=' + encodeURIComponent(fParam);
             else if (boxParam) redirect = '?box=' + encodeURIComponent(boxParam);
           } catch(e) {
-            // raw ID: guess type
-            if (id.startsWith('BOX-')) redirect = '?box=' + encodeURIComponent(id);
-            else redirect = '?f=' + encodeURIComponent(id);
+            if (raw.startsWith('BOX-')) redirect = '?box=' + encodeURIComponent(raw);
+            else redirect = '?f=' + encodeURIComponent(raw);
           }
           if (redirect) window.location.href = window.location.pathname + redirect;
-        },
-        () => {}
-      ).catch(() => {
-        document.getElementById('login-qr-reader').innerHTML = '<div style="padding:30px;text-align:center;color:var(--text3);font-size:13px;">Camera unavailable</div>';
-      });
-    } catch(e) {
-      overlay.remove();
-      notify('Camera not available', 'error');
-    }
-  }, 100);
+        } else {
+          if (btn) btn.innerHTML = origText;
+          alert('No QR code found in photo. Try again with better lighting.');
+        }
+      } catch(e) {
+        if (btn) btn.innerHTML = origText;
+      }
+    });
+    document.body.appendChild(inp);
+  }
+  inp.value = '';
+  inp.click();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -5717,11 +5870,6 @@ function scanLandingOpenFixture(fid, cid) {
   body.setAttribute('data-case-id', cid);
   
   body.innerHTML = `
-    <div style="margin-bottom:16px;">
-      <button onclick="scanLandingBackToCase()" style="background:none;border:none;color:var(--accent);font-size:14px;cursor:pointer;padding:0;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;">
-        ‹ Back to Case
-      </button>
-    </div>
     <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);background:var(--accent-dim);display:inline-block;padding:3px 8px;border-radius:5px;margin-bottom:8px;">${f.id}</div>
     <div style="font-size:22px;font-weight:700;margin-bottom:4px;">${f.name}</div>
     ${f.brand ? `<div style="font-size:13px;color:var(--text2);margin-bottom:12px;">${f.brand}</div>` : ''}
@@ -5743,14 +5891,140 @@ function scanLandingOpenFixture(fid, cid) {
 
 function scanLandingBackToCase() {
   const body = document.getElementById('scan-landing-body');
-  const cid = body.getAttribute('data-case-id');
+  const cid = body.getAttribute('data-case-id') || _activeCaseLandingId;
   const scrollY = parseInt(body.getAttribute('data-case-scroll') || '0');
   if (cid) {
-    // Re-render the case view
-    handleContainerScanLanding().then(() => {
+    handleContainerScanLanding(cid).then(() => {
       setTimeout(() => { document.getElementById('scan-landing').scrollTop = scrollY; }, 50);
     });
   }
+}
+
+
+// ═══════════════════════════════════════════════════════
+//  ADMIN INLINE FIREBASE CONNECT
+// ═══════════════════════════════════════════════════════
+async function adminConnectFirebase() {
+  const input = document.getElementById('admin-project-id');
+  const feedback = document.getElementById('admin-connect-feedback');
+  const pid = (input?.value || '').trim();
+  if (!pid) { notify('Enter a Firebase Project ID', 'error'); return; }
+  // Mirror to setup field and reuse connectFromSetup logic
+  const setupInput = document.getElementById('setup-project-id');
+  if (setupInput) setupInput.value = pid;
+  feedback.style.display = 'block';
+  feedback.style.background = 'var(--surface3)';
+  feedback.textContent = 'Connecting…';
+  try {
+    await connectFromSetup();
+    feedback.style.display = 'none';
+  } catch(e) {
+    feedback.style.background = 'var(--red-dim)';
+    feedback.textContent = 'Connection failed: ' + e.message;
+  }
+}
+
+function adminDisconnectFirebase() {
+  disconnectFromSetup();
+  renderGsStatus();
+}
+
+
+// ═══════════════════════════════════════════════════════
+//  NFC — Write fixture/case URL to NFC tag
+//  Uses Web NFC API (Chrome Android). On iOS, shows URL
+//  so user can copy it to an NFC writer app.
+// ═══════════════════════════════════════════════════════
+const nfcSupported = 'NDEFReader' in window;
+
+async function writeNFCTag(type, id) {
+  const url = type === 'container' ? containerUrl(id) : fixtureUrl(id);
+  
+  if (!nfcSupported) {
+    // iOS / unsupported browser: show URL to copy into NFC Tools app
+    showNFCInstructions(url, id);
+    return;
+  }
+  
+  try {
+    const ndef = new NDEFReader();
+    notify('📡 Hold phone to NFC tag…', 'info');
+    await ndef.write({ records: [{ recordType: 'url', data: url }] });
+    haptic('success');
+    notify('✅ NFC tag written!', 'success');
+  } catch(e) {
+    if (e.name === 'NotAllowedError') {
+      notify('NFC permission denied. Enable NFC in browser settings.', 'error');
+    } else if (e.name === 'NotSupportedError') {
+      showNFCInstructions(url, id);
+    } else {
+      notify('NFC write failed: ' + e.message, 'error');
+    }
+  }
+}
+
+async function readNFCTag() {
+  if (!nfcSupported) {
+    notify('NFC reading requires Chrome on Android', 'error');
+    return;
+  }
+  try {
+    const ndef = new NDEFReader();
+    notify('📡 Hold phone to NFC tag to scan…', 'info');
+    await ndef.scan();
+    ndef.addEventListener('reading', ({ message }) => {
+      for (const record of message.records) {
+        if (record.recordType === 'url') {
+          const decoder = new TextDecoder();
+          const url = decoder.decode(record.data);
+          processScannedId(url);
+          return;
+        }
+        if (record.recordType === 'text') {
+          const decoder = new TextDecoder();
+          processScannedId(decoder.decode(record.data));
+          return;
+        }
+      }
+      notify('NFC tag has no readable QR link', 'error');
+    });
+  } catch(e) {
+    notify('NFC scan failed: ' + e.message, 'error');
+  }
+}
+
+function showNFCInstructions(url, id) {
+  // Build a modal showing the URL to copy
+  let m = document.getElementById('nfc-instructions-modal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'nfc-instructions-modal';
+    m.className = 'modal-overlay';
+    m.innerHTML = `
+      <div class="modal" style="max-width:380px;">
+        <div class="modal-header">
+          <div class="modal-title">📡 Write NFC Tag</div>
+          <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('open')">×</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">
+            On iPhone, use <strong style="color:var(--text);">NFC Tools</strong> or <strong style="color:var(--text);">NFC Writer</strong> app to write this URL to an NFC tag:
+          </p>
+          <div id="nfc-url-display" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);word-break:break-all;margin-bottom:14px;"></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="
+            navigator.clipboard.writeText(document.getElementById('nfc-url-display').textContent)
+              .then(()=>{ haptic('success'); this.textContent='✓ Copied!'; setTimeout(()=>this.textContent='Copy URL',2000); })
+              .catch(()=>{ const ta=document.createElement('textarea');ta.value=document.getElementById('nfc-url-display').textContent;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta); this.textContent='✓ Copied!'; setTimeout(()=>this.textContent='Copy URL',2000); });
+          ">Copy URL</button>
+          <p style="font-size:11px;color:var(--text3);margin-top:12px;line-height:1.6;">
+            On Android with Chrome, NFC tags are written automatically when you tap the NFC button.
+          </p>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+  }
+  document.getElementById('nfc-url-display').textContent = url;
+  m.classList.add('open');
 }
 
 
