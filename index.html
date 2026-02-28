@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -94,35 +94,27 @@ transition: border-color 0.15s, background 0.15s;
 
 /* ── LOGIN SCREEN ── */
 #login-screen {
-height: 100vh;
-height: 100dvh;
-max-height: 100vh;
-max-height: 100dvh;
-overflow-y: auto;
-overflow-x: hidden;
--webkit-overflow-scrolling: touch;
+min-height: 100vh;
 display: flex;
 flex-direction: column;
 align-items: center;
 justify-content: center;
 padding: 24px;
-padding-top: max(24px, env(safe-area-inset-top, 0px));
-padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
 background: var(–bg);
-position: fixed;
-inset: 0;
-box-sizing: border-box;
+position: relative;
+overflow: hidden;
 }
-#login-screen::before { display: none; }
-#login-screen::after { display: none; }
-#login-halo {
-position: fixed;
-top: -30vh; left: 50%; transform: translateX(-50%);
-width: min(900px, 200vw); height: min(900px, 200vw);
+#login-screen::before {
+content: ‘’;
+position: absolute;
+top: -180px; left: 50%; transform: translateX(-50%);
+width: 900px; height: 900px;
 background: radial-gradient(circle, rgba(245,200,66,0.38) 0%, rgba(245,200,66,0.18) 28%, rgba(245,200,66,0.06) 55%, transparent 72%);
 pointer-events: none;
-z-index: 0;
+z-index: -1;
 }
+#login-screen::after { display: none; }
+#login-halo { display: none; }
 .login-logo {
 font-family: ‘Bebas Neue’, sans-serif;
 font-size: 52px;
@@ -137,17 +129,13 @@ font-size: 11px;
 letter-spacing: 3px;
 color: var(–text3);
 text-transform: uppercase;
-margin-bottom: 24px;
+margin-bottom: 40px;
 text-align: center;
 }
 .user-cards {
 display: grid;
-grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
 gap: 12px;
-width: 100%;
-max-height: 45vh;
-overflow-y: auto;
--webkit-overflow-scrolling: touch;
 width: 100%;
 max-width: 560px;
 margin-bottom: 16px;
@@ -853,7 +841,7 @@ input[type=“date”].form-input { height: 48px; min-height: 48px; padding: 0 1
 table th, table td { padding: 10px; font-size: 14px; }
 .section-heading { font-size: 13px; }
 /* PIN pad — compact so it fits without scrolling */
-#login-screen { padding: 16px 18px; padding-top: max(16px, env(safe-area-inset-top, 0px)); padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)); }
+#login-screen { padding: 20px 18px; padding-top: max(20px, env(safe-area-inset-top, 0px)); }
 .pin-screen { max-width: 300px; }
 .pin-pad { gap: 6px; margin-bottom: 12px; }
 .pin-key { height: 46px; font-size: 20px; border-radius: 10px; min-height: unset; }
@@ -905,12 +893,12 @@ body.is-mobile .ur-actions { flex: 1 1 100%; display: flex; gap: 8px; margin-top
 body.is-mobile .ur-actions .btn { flex: 1; justify-content: center; }
 body.is-mobile .setup-card { flex-direction: column; gap: 10px; }
 body.is-mobile .login-logo { font-size: 36px; }
-body.is-mobile .user-cards { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; width: 100%; max-height: 40vh; overflow-y: auto; }
+body.is-mobile .user-cards { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
 body.is-mobile .ulc-name { font-size: 15px; }
 body.is-mobile .login-co-board { max-width: 100% !important; }
 body.is-mobile .table-wrap { font-size: 14px; overflow-x: auto; }
 body.is-mobile .section-heading { font-size: 13px; }
-body.is-mobile #login-screen { padding: 16px 18px; padding-top: max(16px, env(safe-area-inset-top, 0px)); padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)); }
+body.is-mobile #login-screen { padding: 20px 18px; padding-top: max(20px, env(safe-area-inset-top, 0px)); }
 body.is-mobile .pin-screen { max-width: 300px; }
 body.is-mobile .pin-pad { gap: 6px; margin-bottom: 12px; }
 body.is-mobile .pin-key { height: 46px; font-size: 20px; border-radius: 10px; min-height: unset; }
