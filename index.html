@@ -2296,30 +2296,34 @@ const SAMPLE_FIXTURES = [
 // ═══════════════════════════════════════════════════════
 //  LOCAL STORAGE (cache layer)
 // ═══════════════════════════════════════════════════════
-// ── Safe storage abstraction: tries window.storage, falls back to localStorage ──
+// ── Safe storage abstraction ──
+// Always writes to localStorage (works everywhere).
+// Also tries window.storage (Claude artifact API) when available.
+// Reads from localStorage first for reliability on GitHub Pages.
 async function storeGet(key) {
-  // Try Claude artifact storage first (only works inside Claude UI)
+  // Primary: localStorage (works on GitHub Pages and all real browsers)
+  try {
+    const v = localStorage.getItem(key);
+    if (v !== null) return v;
+  } catch(e) {}
+  // Fallback: Claude artifact storage (only inside Claude UI)
   try {
     if (window.storage && typeof window.storage.get === 'function') {
       const r = await window.storage.get(key);
-      if (r && r.value !== undefined) return r.value;
+      if (r && r.value !== undefined && r.value !== null) return r.value;
     }
-  } catch(e) {}
-  // Fall back to localStorage (works on GitHub Pages, all normal browsers)
-  try { 
-    const v = localStorage.getItem(key);
-    if (v !== null) return v;
   } catch(e) {}
   return null;
 }
 async function storeSet(key, val) {
+  // Always write to localStorage first
+  try { localStorage.setItem(key, val); } catch(e) {}
+  // Also write to Claude artifact storage when available
   try {
     if (window.storage && typeof window.storage.set === 'function') {
       await window.storage.set(key, val);
-      return;
     }
   } catch(e) {}
-  try { localStorage.setItem(key, val); } catch(e) {}
 }
 
 async function localLoad() {
@@ -2658,7 +2662,7 @@ async function loadData() {
 }
 
 function ensureAdmin() {
-  // Just ensure at least one admin exists — never filter out real users
+  if (!Array.isArray(users)) users = [];
   const hasAdmin = users.some(u => u.role === 'admin');
   if (!hasAdmin) {
     users.unshift({ id:'admin-1', name:'Admin', pin:'4116', role:'admin', avatar:'⚙️' });
@@ -2677,6 +2681,11 @@ function bumpCounter() {
 // ═══════════════════════════════════════════════════════
 function renderLoginScreen() {
   const grid = document.getElementById('login-user-grid');
+  if (!grid) return;
+  // Safety: if users somehow empty, show just Admin default
+  if (!users || users.length === 0) {
+    users = [{ id:'admin-1', name:'Admin', pin:'4116', role:'admin', avatar:'⚙️' }];
+  }
   grid.innerHTML = users.map(u => `
     <div class="user-login-card ${u.role==='admin'?'admin-card':''}" onclick="startPinEntry('${u.id}')">
       <span class="ulc-avatar">${u.avatar}</span>
