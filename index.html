@@ -112,21 +112,29 @@ body {
 }
 #login-screen::before { display: none; }
 #login-screen::after  { display: none; }
+/* Halo behind all login content */
+#login-screen .login-logo,
+#login-screen .login-sub,
+#login-screen .user-cards,
+#login-screen .pin-screen,
+#login-screen #login-co-board,
+#login-screen #login-sync-bar,
+#login-screen #login-scan-btn { position: relative; z-index: 2; }
 /* Halo: fixed to viewport top-center, sized to glow over the logo text */
 #login-halo {
   position: fixed;
-  top: 0; left: 50%;
-  transform: translate(-50%, -30%);
+  top: 58%; left: 50%;
+  transform: translate(-50%, -50%);
   width: 700px; height: 700px;
-  background: radial-gradient(circle, rgba(245,200,66,0.55) 0%, rgba(245,200,66,0.26) 28%, rgba(245,200,66,0.08) 54%, transparent 70%);
+  background: radial-gradient(circle, rgba(245,200,66,0.45) 0%, rgba(245,200,66,0.20) 30%, rgba(245,200,66,0.06) 58%, transparent 74%);
   pointer-events: none;
   z-index: 1;
 }
 .login-logo {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-weight: 800;
-  font-size: 44px;
-  letter-spacing: 5px;
+  font-family: 'DM Mono', monospace;
+  font-weight: 500;
+  font-size: 36px;
+  letter-spacing: 6px;
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 4px;
@@ -134,9 +142,9 @@ body {
 }
 .login-sub {
   font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 3px;
-  color: var(--text3);
+  font-size: 12px;
+  letter-spacing: 4px;
+  color: var(--text2);
   text-transform: uppercase;
   margin-bottom: 24px;
   text-align: center;
@@ -339,7 +347,8 @@ main { padding: 24px; max-width: 1400px; margin: 0 auto; }
 #page-history { height: calc(100vh - 180px); }
 /* On mobile, account for bottom tab bar (~64px) */
 @media (max-width: 580px) { #page-history { height: calc(100vh - 220px); } }
-body.is-mobile #page-history { height: calc(100vh - 220px); }
+body.is-phone #page-history { height: calc(100vh - 220px); }
+body.is-tablet #page-history { height: calc(100vh - 200px); }
 .page { display: none; }
 .page.active { display: block; }
 #page-history.active { display: flex; flex-direction: column; }
@@ -769,11 +778,28 @@ tr:hover td { background: var(--surface2); }
   .user-cards { max-width: 680px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 }
 
-/* ── TABLET ── */
+/* ── TABLET / iPad ── */
 @media (min-width: 581px) and (max-width: 1023px) {
-  main { padding: 20px 24px; }
-  .fixture-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
-  .home-hero { grid-template-columns: repeat(2, 1fr); }
+  main { padding: 20px 24px; max-width: 960px; }
+  /* 2-column fixture grid on tablet */
+  .fixture-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  /* Home stats: 2x2 grid */
+  .home-hero { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .stats-bar  { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .checked-out-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  /* Header */
+  header { padding: 0 24px; }
+  .nav-tabs { padding: 0 24px; }
+  /* Modals comfortable on iPad */
+  .modal { max-width: 560px; border-radius: var(--radius); }
+  /* Forms: 2 columns */
+  .form-row { grid-template-columns: 1fr 1fr; }
+  /* Login: wider user cards */
+  .user-cards { max-width: 600px; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  /* Admin */
+  .admin-section { padding: 20px 24px; }
+  /* History table full width */
+  .table-wrap { font-size: 14px; }
 }
 
 /* ── MOBILE — applied by media query (small screen) ── */
@@ -870,20 +896,64 @@ tr:hover td { background: var(--surface2); }
 
 /* ── MOBILE (JS-detected: PWA/standalone/tablet-phone) ── */
 /* is-mobile: PWA/standalone-only overrides not covered by @media (max-width:580px) */
-body.is-mobile .fixture-grid { grid-template-columns: 1fr; }
-body.is-mobile .modal-overlay { align-items: flex-end; padding: 0; }
-body.is-mobile .modal { border-radius: 22px 22px 0 0; max-height: 92vh; width: 100%; margin: 0; }
+body.is-phone .fixture-grid { grid-template-columns: 1fr; }
+body.is-phone .modal-overlay { align-items: flex-end; padding: 0; }
+body.is-phone .modal { border-radius: 22px 22px 0 0; max-height: 92vh; width: 100%; margin: 0; }
 /* login mobile via @media (max-width:580px) */
-body.is-mobile .ulc-name { font-size: 15px; }
+body.is-phone .ulc-name { font-size: 15px; }
 
 /* table/section/login-screen mobile via @media (max-width:580px) */
 /* login-screen padding handled by base CSS */
-body.is-mobile .pin-screen { max-width: 300px; }
-body.is-mobile .pin-pad { gap: 6px; margin-bottom: 12px; }
-body.is-mobile .pin-key { height: 46px; font-size: 20px; border-radius: 10px; min-height: unset; }
-body.is-mobile .pin-name { font-size: 18px; }
-body.is-mobile .pin-dots { gap: 12px; margin-bottom: 18px; }
-body.is-mobile .pin-header { margin-bottom: 16px; }
+body.is-phone .pin-screen { max-width: 300px; }
+body.is-phone .pin-pad { gap: 6px; margin-bottom: 12px; }
+body.is-phone .pin-key { height: 46px; font-size: 20px; border-radius: 10px; min-height: unset; }
+body.is-phone .pin-name { font-size: 18px; }
+body.is-phone .pin-dots { gap: 12px; margin-bottom: 18px; }
+body.is-phone .pin-header { margin-bottom: 16px; }
+
+/* ── TABLET (iPad) overrides — larger layout within is-mobile context ── */
+body.is-tablet main {
+  padding: 20px 24px;
+  padding-bottom: calc(var(--tab-bar-h, 58px) + env(safe-area-inset-bottom, 0px) + 8px);
+}
+body.is-tablet .fixture-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+body.is-tablet .home-hero { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+body.is-tablet .stats-bar { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+body.is-tablet .checked-out-list { grid-template-columns: 1fr 1fr; gap: 8px; }
+body.is-tablet .form-row { grid-template-columns: 1fr 1fr; }
+body.is-tablet .modal { max-width: 560px; border-radius: var(--radius); }
+body.is-tablet .modal-overlay { align-items: center; padding: 20px; }
+body.is-tablet header { padding: 0 24px; height: 58px; }
+body.is-tablet .logo { font-size: 22px; }
+body.is-tablet .logo-sub { display: inline; }
+/* Tablet: larger tap targets than desktop but not as big as phone */
+body.is-tablet .btn { padding: 10px 16px; font-size: 15px; min-height: 44px; }
+body.is-tablet .form-input { font-size: 16px !important; min-height: 46px; }
+/* Tablet: wider user cards on login */
+body.is-tablet .user-cards { max-width: 640px; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+/* Tablet: wider pin screen */
+body.is-tablet .pin-screen { max-width: 380px; }
+body.is-tablet .pin-key { height: 60px; font-size: 24px; }
+/* Tablet: wider bottom tab bar items */
+body.is-tablet .btab { font-size: 11px; padding: 10px 8px; }
+body.is-tablet .btab .btab-icon { font-size: 24px; }
+/* Tablet: admin sections */
+body.is-tablet .admin-section { padding: 20px 24px; }
+/* Tablet: 2-col toolbar */
+body.is-tablet .toolbar { flex-wrap: nowrap; }
+body.is-tablet .search-box { flex: 1; }
+/* Tablet: history table larger */
+body.is-tablet .table-wrap th, body.is-tablet .table-wrap td { padding: 12px 14px; font-size: 14px; }
+/* Tablet: containers grid 2-col */
+body.is-tablet .containers-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+
+/* ── iPad Split View / Slide Over (compact width) ── */
+@media (max-width: 400px) {
+  .fixture-grid { grid-template-columns: 1fr !important; }
+  .home-hero { grid-template-columns: 1fr 1fr !important; }
+  header { padding: 0 12px !important; }
+  main { padding: 12px 12px 0 !important; padding-bottom: calc(var(--tab-bar-h, 58px) + env(safe-area-inset-bottom, 0px) + 8px) !important; }
+}
 
 /* ── BOTTOM TAB BAR ── */
 :root { --tab-bar-h: 58px; }   /* default = tab bar height; JS updates it precisely */
@@ -1175,8 +1245,8 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
   </div>
   <div class="login-logo" onclick="adminQuickLogin()" style="cursor:pointer;user-select:none;" title="Admin access">LumaSamples</div>
   <div class="login-sub">Lighting Fixture Library</div>
-  <button onclick="loginPageQuickScan()" style="position:absolute;top:16px;right:16px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:8px 14px;color:var(--text2);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;" id="login-scan-btn">
-    <span style="font-size:16px;line-height:1;display:flex;align-items:center;">📷</span> Scan QR
+  <button onclick="loginPageQuickScan()" style="position:absolute;top:16px;right:16px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:8px 14px;color:var(--text2);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;line-height:1;" id="login-scan-btn">
+    <span style="font-size:15px;display:flex;align-items:center;line-height:1;">📷</span> Scan QR
   </button>
 
   <!-- Checked out board -->
@@ -4233,11 +4303,23 @@ document.addEventListener('keydown', e => {
 //  INIT
 // ═══════════════════════════════════════════════════════
 function detectAndApplyLayout() {
-  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-    || window.innerWidth <= 580
-    || (window.navigator.standalone === true)
+  const w = window.innerWidth;
+  const ua = navigator.userAgent;
+  const isStandalone = (window.navigator.standalone === true)
     || window.matchMedia('(display-mode: standalone)').matches;
+  // Phone: small screen or phone UA
+  const isPhone = /iPhone|Android.*Mobile|Mobile.*Android/i.test(ua) || w <= 580;
+  // Tablet: iPad, Android tablet (no Mobile), or large standalone PWA
+  const isTablet = !isPhone && (
+    /iPad|Android(?!.*Mobile)/i.test(ua)
+    || (isStandalone && w > 580 && w <= 1180)
+    || (w > 580 && w <= 1023)
+  );
+  // is-mobile = phone or tablet (both get bottom tab bar + touch UX)
+  const isMobile = isPhone || isTablet;
   document.body.classList.toggle('is-mobile', isMobile);
+  document.body.classList.toggle('is-tablet', isTablet);
+  document.body.classList.toggle('is-phone', isPhone);
   // Set --tab-bar-h immediately (sync) so sync-bar bottom offset is always correct.
   // Also run after next paint in case flex layout hasn't resolved yet.
   const setTabH = () => {
