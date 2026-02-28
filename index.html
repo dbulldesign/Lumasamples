@@ -96,31 +96,38 @@ body {
 
 /* ── LOGIN SCREEN ── */
 #login-screen {
-  min-height: 100vh;
+  height: 100vh;
+  height: 100svh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 20px 24px;
+  padding-top: max(20px, env(safe-area-inset-top, 0px));
+  padding-bottom: max(20px, env(safe-area-inset-bottom, 0px));
   background: var(--bg);
   position: relative;
+  box-sizing: border-box;
   overflow: hidden;
 }
-#login-screen::before {
-  content: '';
-  position: absolute;
-  top: -220px; left: 50%; transform: translateX(-50%);
-  width: 1100px; height: 1100px;
-  background: radial-gradient(circle, rgba(245,200,66,0.42) 0%, rgba(245,200,66,0.20) 25%, rgba(245,200,66,0.07) 52%, transparent 70%);
+#login-screen::before { display: none; }
+#login-screen::after  { display: none; }
+/* Halo: fixed to viewport top-center, sized to glow over the logo text */
+#login-halo {
+  position: fixed;
+  top: 0; left: 50%;
+  transform: translate(-50%, -30%);
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(245,200,66,0.55) 0%, rgba(245,200,66,0.26) 28%, rgba(245,200,66,0.08) 54%, transparent 70%);
   pointer-events: none;
-  z-index: -1;
+  z-index: 1;
 }
-#login-screen::after { display: none; }
-#login-halo { display: none; }
 .login-logo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 52px;
-  letter-spacing: 4px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 800;
+  font-size: 44px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 4px;
   text-align: center;
@@ -131,7 +138,7 @@ body {
   letter-spacing: 3px;
   color: var(--text3);
   text-transform: uppercase;
-  margin-bottom: 40px;
+  margin-bottom: 24px;
   text-align: center;
 }
 .user-cards {
@@ -758,7 +765,7 @@ tr:hover td { background: var(--surface2); }
   .checked-out-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   header { height: 64px; padding: 0 40px; }
   .nav-tabs { padding: 0 40px; }
-  .login-logo { font-size: 64px; }
+  .login-logo { font-size: 46px; }
   .user-cards { max-width: 680px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 }
 
@@ -837,8 +844,8 @@ tr:hover td { background: var(--surface2); }
   .setup-card-title { font-size: 16px; }
   .setup-card-desc { font-size: 14px; }
   /* Login */
-  .login-logo { font-size: 36px; }
-  .user-cards { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; width: 100%; }
+  .login-logo { font-size: 28px; letter-spacing: 3px; }
+  .user-cards { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; width: 100%; }
   .ulc-name { font-size: 15px; }
   .ulc-avatar { font-size: 34px; }
   .login-co-board { max-width: 100% !important; }
@@ -847,7 +854,7 @@ tr:hover td { background: var(--surface2); }
   table th, table td { padding: 10px; font-size: 14px; }
   .section-heading { font-size: 13px; }
   /* PIN pad — compact so it fits without scrolling */
-  #login-screen { padding: 20px 18px; padding-top: max(20px, env(safe-area-inset-top, 0px)); overflow-y: auto; }
+  #login-screen { overflow-y: auto; }
   .pin-screen { max-width: 300px; }
   .pin-pad { gap: 6px; margin-bottom: 12px; }
   .pin-key { height: 46px; font-size: 20px; border-radius: 10px; min-height: unset; }
@@ -870,7 +877,7 @@ body.is-mobile .modal { border-radius: 22px 22px 0 0; max-height: 92vh; width: 1
 body.is-mobile .ulc-name { font-size: 15px; }
 
 /* table/section/login-screen mobile via @media (max-width:580px) */
-body.is-mobile #login-screen { padding: 20px 18px; padding-top: max(20px, env(safe-area-inset-top, 0px)); }
+/* login-screen padding handled by base CSS */
 body.is-mobile .pin-screen { max-width: 300px; }
 body.is-mobile .pin-pad { gap: 6px; margin-bottom: 12px; }
 body.is-mobile .pin-key { height: 46px; font-size: 20px; border-radius: 10px; min-height: unset; }
@@ -2797,7 +2804,7 @@ function loginSuccess(user) {
   haptic('success');
   currentUser = user;
   detectAndApplyLayout();
-  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'none'; document.getElementById('login-halo').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.body.classList.add('app-visible');
   // Hide the login-screen sync bar, keep header chip
@@ -2837,7 +2844,7 @@ function logOut() {
   pinTarget = null;
   stopScanner();
   document.getElementById('app').style.display = 'none';
-  document.getElementById('login-screen').style.display = '';
+  document.getElementById('login-screen').style.display = ''; document.getElementById('login-halo').style.display = '';
   document.body.classList.remove('app-visible');
   // Re-show login sync bar, hide header chip
   const loginBar = document.getElementById('login-sync-bar');
@@ -5503,7 +5510,7 @@ async function handleContainerScanLanding(forceCid) {
   await loadContainers();
   const c = containers.find(x => x.id === cid);
   document.getElementById('scan-landing').style.display = 'block';
-  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'none'; document.getElementById('login-halo').style.display = 'none';
   const dot = document.getElementById('scan-landing-sync-dot');
   if (fbDb) { dot.style.background = 'var(--green)'; }
   const body = document.getElementById('scan-landing-body');
@@ -5572,7 +5579,7 @@ async function handleScanLanding() {
 
   // Show landing overlay immediately
   document.getElementById('scan-landing').style.display = 'block';
-  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'none'; document.getElementById('login-halo').style.display = 'none';
 
   // Sync dot on landing page
   const dot = document.getElementById('scan-landing-sync-dot');
@@ -5660,7 +5667,7 @@ function goToAppFromScan(fid) {
     return;
   }
   // No auth yet — show login screen with user list
-  document.getElementById('login-screen').style.display = '';
+  document.getElementById('login-screen').style.display = ''; document.getElementById('login-halo').style.display = '';
   renderLoginScreen();
 }
 
@@ -6184,6 +6191,7 @@ async function init() {
   initTheme();
   detectAndApplyLayout();
   window.addEventListener('resize', detectAndApplyLayout);
+
   // Check for container scan (?box=BOX-xxxx)
   const isContainerScan = await handleContainerScanLanding();
   if (isContainerScan) return;
