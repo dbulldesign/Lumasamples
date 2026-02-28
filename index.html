@@ -259,7 +259,8 @@ header {
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  height: 58px;
+  padding-top: env(safe-area-inset-top, 0px);
+  height: calc(58px + env(safe-area-inset-top, 0px));
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   position: sticky;
@@ -315,6 +316,7 @@ header > * { position: relative; z-index: 1; }
 
 /* ── NAV ── */
 .nav-tabs {
+  /* sticky nav-tabs: top must match header height */
   display: flex;
   gap: 0;
   padding: 0 24px;
@@ -772,7 +774,7 @@ tr:hover td { background: var(--surface2); }
   .home-hero { grid-template-columns: repeat(4, 1fr); }
   .stats-bar { grid-template-columns: repeat(4, 1fr); }
   .checked-out-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  header { height: 64px; padding: 0 40px; }
+  header { height: calc(64px + env(safe-area-inset-top, 0px)); padding: 0 40px; padding-top: env(safe-area-inset-top, 0px); }
   .nav-tabs { padding: 0 40px; }
   .login-logo { font-size: 46px; }
   .user-cards { max-width: 680px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
@@ -923,7 +925,7 @@ body.is-tablet .checked-out-list { grid-template-columns: 1fr 1fr; gap: 8px; }
 body.is-tablet .form-row { grid-template-columns: 1fr 1fr; }
 body.is-tablet .modal { max-width: 560px; border-radius: var(--radius); }
 body.is-tablet .modal-overlay { align-items: center; padding: 20px; }
-body.is-tablet header { padding: 0 24px; height: 58px; }
+body.is-tablet header { padding: 0 24px; padding-top: env(safe-area-inset-top, 0px); height: calc(58px + env(safe-area-inset-top, 0px)); }
 body.is-tablet .logo { font-size: 22px; }
 body.is-tablet .logo-sub { display: inline; }
 /* Tablet: larger tap targets than desktop but not as big as phone */
@@ -1527,6 +1529,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
             </div>
           </div>
           <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="manualSync()" id="admin-sync-btn">⇅ Sync Now</button>
             <button class="btn btn-secondary btn-sm" onclick="fbStartListening();notify('Listener restarted','info')">↻ Reconnect</button>
             <button class="btn btn-danger btn-sm" onclick="adminDisconnectFirebase()">Disconnect</button>
           </div>
@@ -1537,10 +1540,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
       <div class="admin-section">
         <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
           <span>🎨 Appearance</span>
-          <div style="display:flex;gap:8px;">
-            <button class="btn btn-secondary btn-sm" onclick="manualSync()" id="admin-sync-btn">⇅ Sync Now</button>
-            <button class="btn btn-secondary btn-sm" onclick="toggleTheme()" id="admin-theme-btn">☀ Light Mode</button>
-          </div>
+          <button class="btn btn-secondary btn-sm" onclick="toggleTheme()" id="admin-theme-btn">☀ Light Mode</button>
         </div>
         <p style="font-size:13px;color:var(--text2);margin-top:4px;">Toggle between dark and light mode.</p>
       </div>
@@ -1714,12 +1714,12 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
           <h2 style="font-size:20px;font-weight:700;color:#ffffff;">⚙️ Settings</h2>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <button class="btn btn-secondary btn-sm" onclick="toggleTheme()" id="settings-theme-btn">☀ Light Mode</button>
-            <button class="btn btn-secondary btn-sm" id="settings-sync-btn" onclick="manualSync()">⇅ Sync Now</button>
-          </div>
+          <button class="btn btn-secondary btn-sm" onclick="toggleTheme()" id="settings-theme-btn">☀ Light Mode</button>
         </div>
-        <h3 id="settings-fb-heading" style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--text);">🔥 Firebase Sync</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <h3 id="settings-fb-heading" style="font-size:15px;font-weight:600;color:var(--text);">🔥 Firebase Sync</h3>
+          <button class="btn btn-secondary btn-sm" id="settings-sync-btn" onclick="manualSync()">⇅ Sync Now</button>
+        </div>
         <p id="settings-fb-desc" style="color:var(--text2);font-size:13px;margin-bottom:20px;line-height:1.7;">Connect LumaSamples to Firebase to sync in real time across all devices.</p>
 
         <!-- Connect form (hidden when connected) -->
@@ -4473,6 +4473,7 @@ function sortFixtures(list) {
 // ═══════════════════════════════════════════════════════
 let checkoutNoteFid = null;
 let checkoutNoteBulk = [];
+let checkoutNoteCid = null; // for case checkout
 
 function openCheckoutNote(fid) {
   const f = fixtures.find(x => x.id === fid);
@@ -4504,6 +4505,29 @@ async function confirmCheckoutNote() {
   const note = document.getElementById('checkout-note-input').value.trim();
   closeModal('checkout-note-modal');
 
+  // Case checkout path
+  if (checkoutNoteCid) {
+    const cid = checkoutNoteCid;
+    checkoutNoteCid = null;
+    const fixturesInBox = fixtures.filter(f => f.containerId === cid && f.status === 'available');
+    const ts = new Date().toISOString();
+    for (const f of fixturesInBox) {
+      f.status = 'out';
+      f.checkedOutBy = currentUser.id;
+      f.checkedOutAt = ts;
+      if (!f.comments) f.comments = [];
+      f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: `Checked out via case${note ? ' · ' + note : ''}`, action: 'checkout' });
+      const h = { ts, fixtureId: f.id, fixtureName: f.name, userId: currentUser.id, userName: currentUser.name, action: 'checkout', note };
+      history.unshift(h);
+      await saveData({ fixture: f, historyEntry: h });
+    }
+    closeModal('container-detail-modal');
+    refreshCurrentPage();
+    haptic('success');
+    notify(`↗ Checked out ${fixturesInBox.length} fixture${fixturesInBox.length !== 1 ? 's' : ''} from case`, 'success');
+    return;
+  }
+
   // Capture return/swap fids before clearing state
   const retFids  = (window._bulkReturnFids  || []).slice();
   const swapFids = (window._bulkSwapFids    || []).slice();
@@ -4514,6 +4538,7 @@ async function confirmCheckoutNote() {
   window._bulkSwapFids   = [];
   checkoutNoteBulk = [];
   checkoutNoteFid = null;
+  checkoutNoteCid = null;
 
   if (bulkCheckoutFids.length && (retFids.length || swapFids.length)) {
     window._skipBulkExit = true; // we'll do the exit ourselves after returns
@@ -5377,21 +5402,21 @@ function openContainerDetail(cid) {
 async function checkoutCase(cid) {
   const fixturesInBox = fixtures.filter(f => f.containerId === cid && f.status === 'available');
   if (!fixturesInBox.length) { notify('No available fixtures to check out', 'error'); return; }
-  const ts = new Date().toISOString();
-  const entries = [];
-  for (const f of fixturesInBox) {
-    f.status = 'out';
-    f.checkedOutBy = currentUser.id;
-    f.checkedOutAt = ts;
-    if (!f.comments) f.comments = [];
-    f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: 'Checked out via case', action: 'checkout' });
-    entries.push(logEvent(f, 'checkout'));
-    await saveData({ fixture: f, historyEntry: entries[entries.length - 1] });
-  }
-  closeModal('container-detail-modal');
-  refreshCurrentPage();
-  haptic('success');
-  notify(`↗ Checked out ${fixturesInBox.length} fixture${fixturesInBox.length !== 1 ? 's' : ''} from case`, 'success');
+  const c = containers.find(x => x.id === cid);
+  // Open the standard checkout note modal, storing cid so confirmCheckoutNote can use it
+  checkoutNoteCid = cid;
+  checkoutNoteFid = null;
+  checkoutNoteBulk = [];
+  document.getElementById('checkout-note-title').textContent =
+    `Check Out Case${c ? ' · ' + c.name : ''} (${fixturesInBox.length} fixture${fixturesInBox.length !== 1 ? 's' : ''})`;
+  document.getElementById('checkout-note-fixture-info').innerHTML =
+    fixturesInBox.slice(0, 4).map(f =>
+      `<span class="fid" style="margin-right:4px;">${f.id}</span><span style="font-size:12px;color:var(--text2);">${f.name}</span>`
+    ).join('<br>') +
+    (fixturesInBox.length > 4 ? `<span style="color:var(--text3);font-size:12px;"> +${fixturesInBox.length - 4} more</span>` : '');
+  document.getElementById('checkout-note-input').value = '';
+  openModal('checkout-note-modal');
+  setTimeout(() => document.getElementById('checkout-note-input').focus(), 100);
 }
 
 async function returnCase(cid) {
