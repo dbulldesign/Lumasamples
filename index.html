@@ -491,7 +491,7 @@ body.is-mobile #page-history { height: calc(100vh - 220px); }
 .btn-warning { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
 .btn-warning:hover { background: rgba(251,191,36,0.22); }
 .btn-success:hover { background: rgba(74,222,128,0.18); }
-.btn-scan { background: var(--accent2); color: #fff; padding: 6px 10px; font-size: 18px; min-width: 36px; border-radius: 10px; }
+.btn-scan { background: var(--accent2); color: #fff; padding: 6px 10px; font-size: 18px; min-width: 36px; border-radius: 10px; display:inline-flex; align-items:center; justify-content:center; line-height:1; }
 .btn-scan:hover { background: #ff7c47; }
 .btn-sync { background: var(--surface3); border: 1px solid var(--border2); color: var(--text2); padding: 5px 10px; font-size: 16px; border-radius: 10px; min-width: 36px; }
 .btn-sync:hover { border-color: var(--text3); color: var(--text); }
@@ -719,19 +719,23 @@ tr:hover td { background: var(--surface2); }
 /* ── NOTIFICATION ── */
 .notif {
   position: fixed;
-  bottom: calc(var(--tab-bar-h, 0px) + env(safe-area-inset-bottom, 0px) + 52px);
-  right: 16px;
-  background: var(--surface2); border: 1px solid var(--border2);
-  border-radius: var(--radius); padding: 12px 16px;
-  font-size: 13px; max-width: 300px; z-index: 3000;
-  display: none; animation: slideUp 0.25s ease;
-  box-shadow: var(--shadow);
+  bottom: calc(var(--tab-bar-h, 0px) + env(safe-area-inset-bottom, 0px) + 16px);
+  left: 50%; transform: translateX(-50%);
+  border-radius: 14px; padding: 13px 20px;
+  font-size: 14px; font-weight: 600;
+  max-width: calc(100vw - 32px); width: max-content;
+  z-index: 9999; display: none;
+  animation: slideUp 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  text-align: center; letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 .notif.show { display: block; }
-.notif.success { border-color: rgba(74,222,128,0.4); background: rgba(74,222,128,0.08); color: var(--green); }
-.notif.error { border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.08); color: var(--red); }
-.notif.info { border-color: rgba(96,165,250,0.3); background: rgba(96,165,250,0.06); color: var(--blue); }
-@keyframes slideUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+.notif.success { background: var(--green); color: #000; border: none; }
+.notif.error { background: var(--red); color: #fff; border: none; }
+.notif.info { background: var(--blue); color: #fff; border: none; }
+@keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(14px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+.active-usage-tab { opacity: 1 !important; border-color: var(--accent) !important; color: var(--accent) !important; }
 
 /* ══════════════════════════════════════════
    RESPONSIVE LAYOUT SYSTEM
@@ -1172,9 +1176,6 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 .print-select-mode .print-card.print-selected .pcheck { background: var(--accent); border-color: var(--accent); }
 
 
-/* NFC button */
-.btn-nfc { background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid #4a4a8a; color: #a0a0ff; }
-.btn-nfc:hover { border-color: #6a6aaa; color: #c0c0ff; }
 
 </style>
 </head>
@@ -1193,7 +1194,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
   <div class="login-logo" onclick="adminQuickLogin()" style="cursor:pointer;user-select:none;" title="Admin access">LumaSamples</div>
   <div class="login-sub">Lighting Fixture Library</div>
   <button onclick="loginPageQuickScan()" style="position:absolute;top:16px;right:16px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:8px 14px;color:var(--text2);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;" id="login-scan-btn">
-    <span style="font-size:16px;">📷</span> Scan QR
+    <span style="font-size:16px;line-height:1;display:flex;align-items:center;">📷</span> Scan QR
   </button>
 
   <!-- Checked out board -->
@@ -1267,8 +1268,8 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     <div class="nav-tab" data-page="history" onclick="showPage('history',this)"><span class="tab-icon">📋</span> History</div>
     <div class="nav-tab admin-tab" id="tab-add" data-page="add" onclick="showPage('add',this)" style="display:none;"><span class="tab-icon">➕</span> Add Fixture</div>
     <div class="nav-tab admin-tab" id="tab-print" data-page="print" onclick="showPage('print',this)" style="display:none;"><span class="tab-icon">🖨</span> Print QR</div>
-    <div class="nav-tab admin-tab" id="tab-admin" data-page="admin" onclick="showPage('admin',this)" style="display:none;"><span class="tab-icon">⚙️</span> Admin</div>
-    <div class="nav-tab" id="tab-setup" data-page="setup" onclick="showPage('setup',this)"><span class="tab-icon">⚙️</span> Settings</div>
+    <div class="nav-tab admin-tab" id="tab-admin" data-page="admin" onclick="showPage('admin',this)" style="display:none;"><span class="tab-icon">⚙️</span> Settings</div>
+    <!-- settings tab merged into admin tab -->
   </div>
 
   <main>
@@ -1484,7 +1485,10 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
       <div class="admin-section">
         <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
           <span>🎨 Appearance</span>
-          <button class="btn btn-secondary btn-sm" onclick="toggleTheme()" id="admin-theme-btn">☀ Light Mode</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="manualSync()" id="admin-sync-btn">⇅ Sync Now</button>
+            <button class="btn btn-secondary btn-sm" onclick="toggleTheme()" id="admin-theme-btn">☀ Light Mode</button>
+          </div>
         </div>
         <p style="font-size:13px;color:var(--text2);margin-top:4px;">Toggle between dark and light mode.</p>
       </div>
@@ -1548,10 +1552,13 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
       <div class="admin-section">
         <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
           <span>📊 Usage Stats</span>
-          <div style="display:flex;gap:6px;">
-            <button class="btn btn-secondary btn-sm" id="usage-tab-fixtures" onclick="showUsageTab('fixtures')" style="opacity:1;">By Fixture</button>
-            <button class="btn btn-secondary btn-sm" id="usage-tab-users" onclick="showUsageTab('users')" style="opacity:0.5;">By User</button>
-          </div>
+        </div>
+        <!-- Filter tabs -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+          <button class="btn btn-secondary btn-sm usage-tab-btn active-usage-tab" id="usage-tab-fixtures" onclick="showUsageTab('fixtures')">By Fixture</button>
+          <button class="btn btn-secondary btn-sm usage-tab-btn" id="usage-tab-brand" onclick="showUsageTab('brand')">By Brand</button>
+          <button class="btn btn-secondary btn-sm usage-tab-btn" id="usage-tab-type" onclick="showUsageTab('type')">By Type</button>
+          <button class="btn btn-secondary btn-sm usage-tab-btn" id="usage-tab-users" onclick="showUsageTab('users')">By User</button>
         </div>
         <div id="usage-stats-body" style="margin-top:14px;"></div>
       </div>
@@ -1649,7 +1656,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
         <div class="setup-card admin-only-setting" id="setup-connect-card" style="flex-direction:column;gap:14px;">
           <div class="setup-card-body" style="width:100%;">
             <div class="setup-card-title" style="font-size:16px;margin-bottom:4px;">Enter your Firebase Project ID</div>
-            <div class="setup-card-desc" style="margin-bottom:14px;">Find it in <a href="https://console.firebase.google.com" target="_blank" style="color:var(--accent);">Firebase Console</a> → gear ⚙️ → Project Settings → Project ID field.</div>
+            <div class="setup-card-desc" style="margin-bottom:14px;">Ask your admin for the Project ID, or find it in <a href="https://console.firebase.google.com" target="_blank" style="color:var(--accent);">Firebase Console</a> → Project Settings → Project ID field.</div>
             <input class="form-input" id="setup-project-id"
               placeholder="your-project-id  (e.g. myapp-a1b2c)"
               style="font-family:'DM Mono',monospace;font-size:14px;letter-spacing:0.5px;"
@@ -1679,7 +1686,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
             <div class="setup-card-body">
               <div class="setup-card-title" style="color:var(--green);font-size:16px;">Connected — real-time sync active</div>
               <div id="setup-connected-url" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-top:6px;word-break:break-all;"></div>
-              <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+              <div class="setup-admin-only-btns" style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
                 <button class="btn btn-secondary btn-sm" onclick="fbStartListening();notify('Listener restarted','info')">↻ Reconnect</button>
                 <button class="btn btn-danger btn-sm" onclick="disconnectFromSetup()">Disconnect</button>
               </div>
@@ -1736,11 +1743,9 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     <span class="btab-icon">🖨</span>Print
   </button>
   <button class="btab admin-btab" id="btab-admin" onclick="showPage('admin',this)" style="display:none;">
-    <span class="btab-icon">⚙️</span>Admin
-  </button>
-  <button class="btab" id="btab-setup" onclick="showPage('setup',this)">
     <span class="btab-icon">⚙️</span>Settings
   </button>
+  <!-- settings btab merged into admin -->
 </div>
 
 <!-- ═════════════ DEEP LINK SCAN LANDING ═════════════ -->
@@ -1873,9 +1878,6 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 
       <div id="scan-result" style="display:none;margin-top:4px;padding:14px;background:var(--surface2);border-radius:var(--radius-sm);"></div>
 
-      <div style="margin-top:12px;display:flex;gap:8px;">
-        <button class="btn btn-nfc" style="flex:1;justify-content:center;font-size:13px;" onclick="readNFCTag();closeScanModal()">📡 Scan NFC Tag</button>
-      </div>
       <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
         <label class="form-label" style="font-size:11px;">Or Enter ID Manually</label>
         <div style="display:flex;gap:8px;">
@@ -2514,7 +2516,7 @@ function setSyncStatus(state, msg) {
 function hideSyncBar() { /* no-op — bottom bar removed */ }
 
 async function manualSync() {
-  const btn = document.getElementById('header-sync-btn') || document.getElementById('settings-sync-btn');
+  const btn = document.getElementById('header-sync-btn') || document.getElementById('settings-sync-btn') || document.getElementById('admin-sync-btn');
   if (!fbDb) { notify('Not connected to Firebase — go to Sync Setup', 'error'); return; }
   if (btn) btn.classList.add('syncing');
   setSyncStatus('syncing', 'Syncing…');
@@ -3276,7 +3278,6 @@ function renderPrintPage() {
       <div class="pbrand">${[f.partNo,f.brand,f.fixtureType||f.category].filter(Boolean).join(' · ')}</div>
       <button class="print-card-btn no-print" onclick="event.stopPropagation();printSingleQR('${f.id}')">🖨 Print</button>
       <button class="print-card-btn no-print" onclick="event.stopPropagation();copyQRLink('fixture','${f.id}')" title="Copy QR link" style="font-size:11px;padding:4px 6px;">🔗 Copy</button>
-      <button class="print-card-btn no-print btn-nfc" onclick="event.stopPropagation();writeNFCTag('fixture','${f.id}')" title="Write NFC tag" style="font-size:11px;padding:4px 6px;">📡 NFC</button>
     </div>
   `).join('');
   fixtures.forEach(f=>{
@@ -4031,40 +4032,43 @@ function renderSetupPage() {
   const connected = !!(fbConfig && fbDb);
   const isAdmin = currentUser?.role === 'admin';
 
-  // Show/hide Firebase sections based on role
   const fbHeading = document.getElementById('settings-fb-heading');
   const fbDesc    = document.getElementById('settings-fb-desc');
   const banner    = document.getElementById('setup-status-banner');
-  [fbHeading, fbDesc].forEach(el => { if (el) el.style.display = isAdmin ? '' : 'none'; });
 
+  // Everyone sees the heading and description
+  [fbHeading, fbDesc].forEach(el => { if (el) el.style.display = ''; });
+
+  // Status banner — everyone sees it
   if (banner) {
-    if (!isAdmin) {
-      // Standard user: no Firebase section, no banner
-      banner.style.display = 'none';
-    } else if (connected) {
+    if (connected) {
       banner.style.cssText = 'border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.25);';
       banner.innerHTML = `<span style="font-size:26px;">🔥</span><div><div style="font-weight:600;color:var(--green);">Real-time sync active</div><div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;">${fbConfig?.projectId||''}</div></div>`;
     } else {
-      banner.style.display = 'flex';
       banner.style.cssText = 'border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;background:rgba(245,200,66,0.06);border:1px solid rgba(245,200,66,0.2);';
-      banner.innerHTML = `<span style="font-size:26px;">⚠️</span><div><div style="font-weight:600;color:var(--accent);">Not connected</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Follow the steps below to connect to Firebase.</div></div>`;
+      banner.innerHTML = `<span style="font-size:26px;">⚠️</span><div><div style="font-weight:600;color:var(--accent);">Not connected</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Enter your Firebase Project ID below to sync with the team database.</div></div>`;
     }
   }
+
   const connectCard    = document.getElementById('setup-connect-card');
   const connectedBlock = document.getElementById('setup-connected-block');
   const urlEl          = document.getElementById('setup-connected-url');
-  if (!isAdmin) {
-    if (connectCard)    connectCard.style.display = 'none';
-    if (connectedBlock) connectedBlock.style.display = 'none';
-    return;
-  }
+
   if (connected) {
     if (connectCard)    connectCard.style.display = 'none';
     if (connectedBlock) connectedBlock.style.display = 'block';
     if (urlEl) urlEl.textContent = `Project: ${fbConfig?.projectId||''}  ·  ${fbConfig?.databaseURL||''}`;
+
+    // Standard users: hide disconnect/reconnect buttons
+    const adminBtns = connectedBlock?.querySelector('.setup-admin-only-btns');
+    if (adminBtns) adminBtns.style.display = isAdmin ? '' : 'none';
   } else {
     if (connectCard)    connectCard.style.display = 'flex';
     if (connectedBlock) connectedBlock.style.display = 'none';
+
+    // Standard users: hide the advanced "Having trouble?" section
+    const troubleSection = connectCard?.querySelector('details');
+    if (troubleSection) troubleSection.style.display = isAdmin ? '' : 'none';
   }
 }
 
@@ -4655,55 +4659,94 @@ let usageTab = 'fixtures';
 
 function showUsageTab(tab) {
   usageTab = tab;
-  document.getElementById('usage-tab-fixtures').style.opacity = tab === 'fixtures' ? '1' : '0.5';
-  document.getElementById('usage-tab-users').style.opacity = tab === 'users' ? '1' : '0.5';
+  document.querySelectorAll('.usage-tab-btn').forEach(b => {
+    const isActive = b.id === 'usage-tab-' + tab;
+    b.classList.toggle('active-usage-tab', isActive);
+  });
   renderUsageStats();
+}
+
+function _usageBarRow(label, sublabel, count, max, color, prefix) {
+  return `
+    <div class="usage-stat-row">
+      ${prefix || ''}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</div>
+        ${sublabel ? `<div style="font-size:11px;color:var(--text3);margin-top:1px;">${sublabel}</div>` : ''}
+      </div>
+      <div class="usage-bar-wrap" style="min-width:80px;max-width:140px;">
+        <div class="usage-bar" style="width:${Math.round((count/max)*100)}%;background:${color};"></div>
+      </div>
+      <span class="usage-count">${count}×</span>
+    </div>`;
 }
 
 function renderUsageStats() {
   const el = document.getElementById('usage-stats-body');
   if (!el) return;
+  const checkouts = history.filter(h => h.action === 'checkout');
+  if (!checkouts.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:13px;">No checkout history yet.</div>';
+    return;
+  }
+
   if (usageTab === 'fixtures') {
     const counts = {};
-    history.filter(h => h.action === 'checkout').forEach(h => {
-      counts[h.fixtureId] = (counts[h.fixtureId] || { name: h.fixtureName, count: 0 });
+    checkouts.forEach(h => {
+      if (!counts[h.fixtureId]) counts[h.fixtureId] = { name: h.fixtureName, count: 0 };
       counts[h.fixtureId].count++;
     });
-    const sorted = Object.entries(counts).sort((a,b) => b[1].count - a[1].count).slice(0, 20);
-    if (!sorted.length) { el.innerHTML = '<div style="color:var(--text3);font-size:13px;">No checkout history yet.</div>'; return; }
+    const sorted = Object.entries(counts).sort((a,b) => b[1].count - a[1].count).slice(0, 25);
     const max = sorted[0][1].count;
-    el.innerHTML = sorted.map(([id, d]) => `
-      <div class="usage-stat-row">
-        <span class="fid" style="min-width:70px;">${id}</span>
-        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;">${d.name}</span>
-        <div class="usage-bar-wrap" style="min-width:80px;max-width:140px;">
-          <div class="usage-bar" style="width:${Math.round((d.count/max)*100)}%;"></div>
-        </div>
-        <span class="usage-count">${d.count}×</span>
-      </div>
-    `).join('');
-  } else {
+    el.innerHTML = sorted.map(([id, d]) =>
+      _usageBarRow(d.name, id, d.count, max, 'var(--accent)',
+        `<span class="fid" style="min-width:64px;flex-shrink:0;">${id}</span>`)
+    ).join('');
+
+  } else if (usageTab === 'brand') {
     const counts = {};
-    history.filter(h => h.action === 'checkout').forEach(h => {
+    checkouts.forEach(h => {
+      const f = fixtures.find(x => x.id === h.fixtureId);
+      const brand = (f && f.brand) ? f.brand.trim() : '(No Brand)';
+      if (!counts[brand]) counts[brand] = { count: 0, fixtures: new Set() };
+      counts[brand].count++;
+      counts[brand].fixtures.add(h.fixtureId);
+    });
+    const sorted = Object.entries(counts).sort((a,b) => b[1].count - a[1].count).slice(0, 25);
+    const max = sorted[0][1].count;
+    el.innerHTML = sorted.map(([brand, d]) =>
+      _usageBarRow(brand, `${d.fixtures.size} fixture${d.fixtures.size !== 1 ? 's' : ''}`, d.count, max, 'var(--blue)')
+    ).join('');
+
+  } else if (usageTab === 'type') {
+    const counts = {};
+    checkouts.forEach(h => {
+      const f = fixtures.find(x => x.id === h.fixtureId);
+      const type = (f && (f.fixtureType || f.category)) ? (f.fixtureType || f.category) : '(No Type)';
+      if (!counts[type]) counts[type] = { count: 0, fixtures: new Set() };
+      counts[type].count++;
+      counts[type].fixtures.add(h.fixtureId);
+    });
+    const sorted = Object.entries(counts).sort((a,b) => b[1].count - a[1].count).slice(0, 25);
+    const max = sorted[0][1].count;
+    el.innerHTML = sorted.map(([type, d]) =>
+      _usageBarRow(type, `${d.fixtures.size} unique fixture${d.fixtures.size !== 1 ? 's' : ''}`, d.count, max, 'rgba(167,139,250,0.9)')
+    ).join('');
+
+  } else if (usageTab === 'users') {
+    const counts = {};
+    checkouts.forEach(h => {
       if (!h.userId) return;
-      counts[h.userId] = (counts[h.userId] || { name: h.userName, count: 0, userId: h.userId });
+      if (!counts[h.userId]) counts[h.userId] = { name: h.userName, count: 0, userId: h.userId };
       counts[h.userId].count++;
     });
-    const sorted = Object.entries(counts).sort((a,b) => b[1].count - a[1].count).slice(0, 20);
-    if (!sorted.length) { el.innerHTML = '<div style="color:var(--text3);font-size:13px;">No checkout history yet.</div>'; return; }
+    const sorted = Object.entries(counts).sort((a,b) => b[1].count - a[1].count).slice(0, 25);
+    if (!sorted.length) { el.innerHTML = '<div style="color:var(--text3);font-size:13px;">No user data.</div>'; return; }
     const max = sorted[0][1].count;
     el.innerHTML = sorted.map(([uid, d]) => {
       const u = users.find(x => x.id === uid);
-      return `
-        <div class="usage-stat-row">
-          <span style="font-size:18px;">${u ? u.avatar : '👤'}</span>
-          <span style="flex:1;font-size:13px;font-weight:500;">${d.name}</span>
-          <div class="usage-bar-wrap" style="min-width:80px;max-width:140px;">
-            <div class="usage-bar" style="width:${Math.round((d.count/max)*100)}%;background:var(--blue);"></div>
-          </div>
-          <span class="usage-count">${d.count}×</span>
-        </div>
-      `;
+      return _usageBarRow(d.name, null, d.count, max, 'var(--green)',
+        `<span style="font-size:20px;flex-shrink:0;">${u ? u.avatar : '👤'}</span>`);
     }).join('');
   }
 }
@@ -5084,7 +5127,6 @@ function openContainerDetail(cid) {
     <div style="margin-top:16px;">
       <button class="btn btn-secondary btn-sm" onclick="printContainerLabel('${cid}')">🖨 Print Case Label</button>
     <button class="btn btn-secondary btn-sm" onclick="copyQRLink('container','${cid}')">🔗 Copy Link</button>
-    <button class="btn btn-nfc btn-sm" onclick="writeNFCTag('container','${cid}')">📡 Write NFC</button>
     </div>
   `;
   openModal('container-detail-modal');
@@ -5930,102 +5972,6 @@ function adminDisconnectFirebase() {
 }
 
 
-// ═══════════════════════════════════════════════════════
-//  NFC — Write fixture/case URL to NFC tag
-//  Uses Web NFC API (Chrome Android). On iOS, shows URL
-//  so user can copy it to an NFC writer app.
-// ═══════════════════════════════════════════════════════
-const nfcSupported = 'NDEFReader' in window;
-
-async function writeNFCTag(type, id) {
-  const url = type === 'container' ? containerUrl(id) : fixtureUrl(id);
-  
-  if (!nfcSupported) {
-    // iOS / unsupported browser: show URL to copy into NFC Tools app
-    showNFCInstructions(url, id);
-    return;
-  }
-  
-  try {
-    const ndef = new NDEFReader();
-    notify('📡 Hold phone to NFC tag…', 'info');
-    await ndef.write({ records: [{ recordType: 'url', data: url }] });
-    haptic('success');
-    notify('✅ NFC tag written!', 'success');
-  } catch(e) {
-    if (e.name === 'NotAllowedError') {
-      notify('NFC permission denied. Enable NFC in browser settings.', 'error');
-    } else if (e.name === 'NotSupportedError') {
-      showNFCInstructions(url, id);
-    } else {
-      notify('NFC write failed: ' + e.message, 'error');
-    }
-  }
-}
-
-async function readNFCTag() {
-  if (!nfcSupported) {
-    notify('NFC reading requires Chrome on Android', 'error');
-    return;
-  }
-  try {
-    const ndef = new NDEFReader();
-    notify('📡 Hold phone to NFC tag to scan…', 'info');
-    await ndef.scan();
-    ndef.addEventListener('reading', ({ message }) => {
-      for (const record of message.records) {
-        if (record.recordType === 'url') {
-          const decoder = new TextDecoder();
-          const url = decoder.decode(record.data);
-          processScannedId(url);
-          return;
-        }
-        if (record.recordType === 'text') {
-          const decoder = new TextDecoder();
-          processScannedId(decoder.decode(record.data));
-          return;
-        }
-      }
-      notify('NFC tag has no readable QR link', 'error');
-    });
-  } catch(e) {
-    notify('NFC scan failed: ' + e.message, 'error');
-  }
-}
-
-function showNFCInstructions(url, id) {
-  // Build a modal showing the URL to copy
-  let m = document.getElementById('nfc-instructions-modal');
-  if (!m) {
-    m = document.createElement('div');
-    m.id = 'nfc-instructions-modal';
-    m.className = 'modal-overlay';
-    m.innerHTML = `
-      <div class="modal" style="max-width:380px;">
-        <div class="modal-header">
-          <div class="modal-title">📡 Write NFC Tag</div>
-          <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('open')">×</button>
-        </div>
-        <div class="modal-body">
-          <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">
-            On iPhone, use <strong style="color:var(--text);">NFC Tools</strong> or <strong style="color:var(--text);">NFC Writer</strong> app to write this URL to an NFC tag:
-          </p>
-          <div id="nfc-url-display" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);word-break:break-all;margin-bottom:14px;"></div>
-          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="
-            navigator.clipboard.writeText(document.getElementById('nfc-url-display').textContent)
-              .then(()=>{ haptic('success'); this.textContent='✓ Copied!'; setTimeout(()=>this.textContent='Copy URL',2000); })
-              .catch(()=>{ const ta=document.createElement('textarea');ta.value=document.getElementById('nfc-url-display').textContent;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta); this.textContent='✓ Copied!'; setTimeout(()=>this.textContent='Copy URL',2000); });
-          ">Copy URL</button>
-          <p style="font-size:11px;color:var(--text3);margin-top:12px;line-height:1.6;">
-            On Android with Chrome, NFC tags are written automatically when you tap the NFC button.
-          </p>
-        </div>
-      </div>`;
-    document.body.appendChild(m);
-  }
-  document.getElementById('nfc-url-display').textContent = url;
-  m.classList.add('open');
-}
 
 
 async function init() {
