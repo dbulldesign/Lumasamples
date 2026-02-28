@@ -13,9 +13,12 @@
 <meta name="theme-color" content="#0a0a0c">
 <title>LumaSamples — Fixture Library</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💡</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap&text=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
 <!-- Firebase compat SDK (v9) — loads as globals, works on all hosts including GitHub Pages -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -106,9 +109,9 @@ body {
 #login-screen::before {
   content: '';
   position: absolute;
-  top: -180px; left: 50%; transform: translateX(-50%);
-  width: 900px; height: 900px;
-  background: radial-gradient(circle, rgba(245,200,66,0.38) 0%, rgba(245,200,66,0.18) 28%, rgba(245,200,66,0.06) 55%, transparent 72%);
+  top: -220px; left: 50%; transform: translateX(-50%);
+  width: 1100px; height: 1100px;
+  background: radial-gradient(circle, rgba(245,200,66,0.42) 0%, rgba(245,200,66,0.20) 25%, rgba(245,200,66,0.07) 52%, transparent 70%);
   pointer-events: none;
   z-index: -1;
 }
@@ -510,6 +513,8 @@ body.is-mobile #page-history { height: calc(100vh - 220px); }
   gap: 14px;
 }
 .fixture-card {
+  contain: layout style paint;
+  will-change: transform;
   contain: layout style;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -558,6 +563,7 @@ body.is-mobile #page-history { height: calc(100vh - 220px); }
 
 /* ── MODAL ── */
 .modal-overlay {
+  contain: strict;
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.75);
   display: none; align-items: center; justify-content: center;
@@ -841,7 +847,7 @@ tr:hover td { background: var(--surface2); }
   table th, table td { padding: 10px; font-size: 14px; }
   .section-heading { font-size: 13px; }
   /* PIN pad — compact so it fits without scrolling */
-  #login-screen { padding: 20px 18px; padding-top: max(20px, env(safe-area-inset-top, 0px)); }
+  #login-screen { padding: 20px 18px; padding-top: max(20px, env(safe-area-inset-top, 0px)); overflow-y: auto; }
   .pin-screen { max-width: 300px; }
   .pin-pad { gap: 6px; margin-bottom: 12px; }
   .pin-key { height: 46px; font-size: 20px; border-radius: 10px; min-height: unset; }
@@ -856,48 +862,14 @@ tr:hover td { background: var(--surface2); }
 }
 
 /* ── MOBILE (JS-detected: PWA/standalone/tablet-phone) ── */
-body.is-mobile main {
-  padding: 16px 14px 0;
-  padding-bottom: calc(var(--tab-bar-h, 58px) + env(safe-area-inset-bottom, 0px) + 8px);
-}
-body.is-mobile header { padding: 0 14px; height: 52px; padding-top: env(safe-area-inset-top, 0px); }
-body.is-mobile .logo { font-size: 20px; }
-body.is-mobile .logo-sub { display: none; }
-body.is-mobile .nav-tabs { display: none !important; }
-body.is-mobile .btn { padding: 11px 16px; font-size: 15px; min-height: 46px; }
-body.is-mobile .btn-sm { padding: 8px 12px; font-size: 13px; min-height: 38px; }
-body.is-mobile .form-input { font-size: 16px !important; padding: 12px 14px; min-height: 48px; }
-body.is-mobile input[type="date"].form-input { height: 48px; min-height: 48px; padding: 0 14px; box-sizing: border-box; -webkit-appearance: none; appearance: none; line-height: 48px; }
-body.is-mobile .form-label { font-size: 13px; }
-body.is-mobile .filter-select { font-size: 15px; padding: 10px 12px; min-height: 44px; }
-body.is-mobile .search-box input { font-size: 15px; }
-body.is-mobile .home-hero { grid-template-columns: 1fr 1fr; gap: 10px; }
-body.is-mobile .hero-stat-val { font-size: 36px; }
-body.is-mobile .stats-bar { grid-template-columns: 1fr 1fr; gap: 10px; }
-body.is-mobile .fixture-grid { grid-template-columns: 1fr; gap: 12px; }
-body.is-mobile .card-name { font-size: 17px; }
-body.is-mobile .card-meta { font-size: 14px; }
-body.is-mobile .card-footer { flex-wrap: wrap; gap: 8px; }
-body.is-mobile .form-row { grid-template-columns: 1fr; }
-body.is-mobile .toolbar { flex-wrap: wrap; gap: 8px; }
-body.is-mobile .search-box { flex: 1 1 100%; }
+/* is-mobile: PWA/standalone-only overrides not covered by @media (max-width:580px) */
+body.is-mobile .fixture-grid { grid-template-columns: 1fr; }
 body.is-mobile .modal-overlay { align-items: flex-end; padding: 0; }
 body.is-mobile .modal { border-radius: 22px 22px 0 0; max-height: 92vh; width: 100%; margin: 0; }
-body.is-mobile .modal-body { padding: 18px; font-size: 15px; }
-body.is-mobile .modal-footer { padding: 14px 18px; flex-wrap: wrap; gap: 8px; }
-body.is-mobile .modal-footer .btn { flex: 1; justify-content: center; }
-body.is-mobile .modal-title { font-size: 18px; }
-body.is-mobile .admin-section { padding: 16px; }
-body.is-mobile .user-row { flex-wrap: wrap; }
-body.is-mobile .ur-actions { flex: 1 1 100%; display: flex; gap: 8px; margin-top: 6px; }
-body.is-mobile .ur-actions .btn { flex: 1; justify-content: center; }
-body.is-mobile .setup-card { flex-direction: column; gap: 10px; }
-body.is-mobile .login-logo { font-size: 36px; }
-body.is-mobile .user-cards { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+/* login mobile via @media (max-width:580px) */
 body.is-mobile .ulc-name { font-size: 15px; }
-body.is-mobile .login-co-board { max-width: 100% !important; }
-body.is-mobile .table-wrap { font-size: 14px; overflow-x: auto; }
-body.is-mobile .section-heading { font-size: 13px; }
+
+/* table/section/login-screen mobile via @media (max-width:580px) */
 body.is-mobile #login-screen { padding: 20px 18px; padding-top: max(20px, env(safe-area-inset-top, 0px)); }
 body.is-mobile .pin-screen { max-width: 300px; }
 body.is-mobile .pin-pad { gap: 6px; margin-bottom: 12px; }
@@ -913,6 +885,7 @@ body.is-mobile .pin-header { margin-bottom: 16px; }
   display: none;
   position: fixed;
   bottom: 0; left: 0; right: 0;
+  touch-action: pan-x;
   z-index: 500;   /* above sync bar */
   background: var(--surface);
   border-top: 1px solid var(--border);
@@ -2377,16 +2350,21 @@ async function fbPush(path, val) { return fbDb.ref(path).push(val); }
 
 // ── Real-time listener ──
 let fbUnsubscribe = null;
+let _fbRefreshTimer = null;
 function fbStartListening() {
   fbStopListening();
   fbDb.ref('lumasamples').on('value',
     snap => {
       if (!snap.exists()) return;
       applyRemoteData(snap.val());
-      localSave();
-      refreshCurrentPage();
-      renderLoginScreen();
-      setSyncStatus('synced', 'Live · ' + new Date().toLocaleTimeString());
+      // Debounce renders — Firebase fires rapidly on multi-field writes
+      clearTimeout(_fbRefreshTimer);
+      _fbRefreshTimer = setTimeout(() => {
+        localSave();
+        refreshCurrentPage();
+        renderLoginScreen();
+        setSyncStatus('synced', 'Live · ' + new Date().toLocaleTimeString());
+      }, 400);
     },
     err => setSyncStatus('error', 'Firebase: ' + err.message)
   );
@@ -3142,9 +3120,11 @@ function refreshCurrentPage() {
   const active = document.querySelector('.page.active');
   if (!active) return;
   const id = active.id.replace('page-','');
-  if (id==='home') renderHome();
-  if (id==='library') { renderStats(); renderLibrary(); }
-  if (id==='admin') { renderAdminFixtures(); renderForceReturn(); }
+  if (id==='home')       renderHome();
+  if (id==='library')   { renderStats(); renderLibrary(); }
+  if (id==='history')   renderHistory();
+  if (id==='containers') renderContainersPage();
+  if (id==='admin')     { renderAdminFixtures(); renderForceReturn(); }
 }
 
 function buildCommentListHTML(f) {
