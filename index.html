@@ -1009,6 +1009,25 @@ body.is-mobile.app-visible #bottom-tabs { display: flex; }
 .btab.active .btab-icon { transform: translateY(-1px); }
 .btab.admin-btab { color: rgba(96,165,250,0.35); }
 .btab.admin-btab.active { color: var(--blue); }
+.btab-badge {
+  position: absolute;
+  top: 6px; right: calc(50% - 18px);
+  background: var(--red);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  pointer-events: none;
+  line-height: 1;
+}
+.btab { position: relative; }
 .btab::after {
   content: '';
   position: absolute;
@@ -1355,12 +1374,17 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
         <select class="filter-select" id="filter-category" onchange="renderLibrary()">
           <option value="">All Types</option>
         </select>
+        <select class="filter-select" id="filter-location" onchange="renderLibrary()">
+          <option value="">All Locations</option>
+        </select>
         <select class="sort-select" id="sort-select" onchange="renderLibrary()">
           <option value="name">Sort: Name</option>
           <option value="id">Sort: ID</option>
           <option value="location">Sort: Location</option>
           <option value="status">Sort: Status</option>
           <option value="recent">Sort: Recent</option>
+          <option value="date">Sort: Date Added</option>
+          <option value="brand">Sort: Brand</option>
         </select>
         <button class="btn btn-secondary btn-sm no-print" id="bulk-toggle-btn" onclick="toggleBulkMode()" title="Select multiple">☑ Select</button>
       </div>
@@ -1385,7 +1409,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
       </div>
       <div class="table-wrap" style="flex:1;overflow-y:auto;">
         <table>
-          <thead><tr><th class="resizable" style="width:140px;">Date / Time</th><th class="resizable" style="width:90px;">Fixture ID</th><th class="resizable">Name</th><th class="resizable" style="width:100px;">User</th><th class="resizable" style="width:90px;">Action</th></tr></thead>
+          <thead><tr><th class="resizable" style="width:140px;">Date / Time</th><th class="resizable" style="width:90px;">Fixture ID</th><th class="resizable">Name</th><th class="resizable" style="width:100px;">User</th><th class="resizable" style="width:90px;">Action</th><th class="resizable" style="width:130px;">Job / Note</th></tr></thead>
           <tbody id="history-tbody"></tbody>
         </table>
       </div>
@@ -1688,7 +1712,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     <!-- CONTAINERS PAGE -->
     <div class="page" id="page-containers">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
-        <h2 style="font-size:20px;font-weight:700;color:#fff;">📦 Cases &amp; Boxes</h2>
+        <h2 style="font-size:20px;font-weight:700;color:var(--text);">📦 Cases &amp; Boxes</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-secondary" id="case-print-select-btn" onclick="toggleCasePrintMode()">☑ Select to Print</button>
           <button class="btn btn-blue" onclick="openBatchAddFixturesToCase()">+ Add Fixtures to Case</button>
@@ -1818,6 +1842,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
   </button>
   <button class="btab" id="btab-containers" onclick="showPage('containers',this)">
     <span class="btab-icon">📦</span>Cases
+    <span class="btab-badge" id="cases-badge" style="display:none;"></span>
   </button>
   <button class="btab" id="btab-history" onclick="showPage('history',this)">
     <span class="btab-icon">📋</span>History
@@ -2488,6 +2513,7 @@ function applyRemoteData(data) {
   }
   ensureAdmin();
   bumpCounter();
+  updateCasesBadge();
 }
 
 // ── Normalize data from Firebase ──
@@ -2969,6 +2995,7 @@ function showPage(name, tabEl) {
 //  HOME PAGE
 // ═══════════════════════════════════════════════════════
 function renderHome() {
+  updateCasesBadge();
   const total  = fixtures.length;
   const out    = fixtures.filter(f => f.status === 'out').length;
   const avail  = total - out;
@@ -3061,23 +3088,35 @@ function renderStats() {
 }
 
 function populateFilters() {
-  // Merge fixtureTypes list + any category values already on fixtures
+  // Type filter
   const fromFixtures = [...new Set(fixtures.map(f => f.fixtureType || f.category).filter(Boolean))];
   const allTypes = [...new Set([...fixtureTypes, ...fromFixtures])].sort();
   const sel = document.getElementById('filter-category');
   const cur = sel.value;
   sel.innerHTML = '<option value="">All Types</option>' + allTypes.map(t => `<option value="${t}">${t}</option>`).join('');
   if (allTypes.includes(cur)) sel.value = cur;
+
+  // Location filter with fixture counts
+  const locSel = document.getElementById('filter-location');
+  if (!locSel) return;
+  const curLoc = locSel.value;
+  const locCounts = {};
+  fixtures.forEach(f => { if (f.location) locCounts[f.location] = (locCounts[f.location]||0) + 1; });
+  const allLocs = [...new Set([...locations, ...Object.keys(locCounts)])].filter(Boolean).sort();
+  locSel.innerHTML = '<option value="">All Locations</option>' +
+    allLocs.map(l => `<option value="${l}">${l} (${locCounts[l]||0})</option>`).join('');
+  if (allLocs.includes(curLoc)) locSel.value = curLoc;
 }
 
 function renderLibrary() {
   const q    = (document.getElementById('search-input').value||'').toLowerCase();
   const sf   = document.getElementById('filter-status').value;
   const cf   = document.getElementById('filter-category').value;
+  const lf   = (document.getElementById('filter-location')||{}).value || '';
   let list = fixtures.filter(f => {
     const txt = [f.id,f.name,f.brand,f.category,f.fixtureType,f.finish,f.location].join(' ').toLowerCase();
     const typeMatch = !cf || f.fixtureType===cf || f.category===cf;
-    return txt.includes(q) && (!sf || f.status===sf) && typeMatch;
+    return txt.includes(q) && (!sf || f.status===sf) && typeMatch && (!lf || f.location===lf);
   });
   list = sortFixtures(list);
   const grid = document.getElementById('fixture-grid');
@@ -3210,6 +3249,19 @@ function logEvent(f, action) {
   return entry;
 }
 
+function updateCasesBadge() {
+  const badge = document.getElementById('cases-badge');
+  if (!badge) return;
+  // Count fixtures in containers that are checked out
+  const casedOut = fixtures.filter(f => f.containerId && f.status === 'out').length;
+  if (casedOut > 0) {
+    badge.textContent = casedOut > 99 ? '99+' : casedOut;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
 function refreshCurrentPage() {
   const active = document.querySelector('.page.active');
   if (!active) return;
@@ -3333,7 +3385,7 @@ function renderHistory() {
   const tf = document.getElementById('hist-type-filter').value;
   const list = history.filter(h => (!uf||h.userId===uf) && (!tf||h.action===tf));
   const tbody = document.getElementById('history-tbody');
-  if (!list.length) { tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text3);">No records found.</td></tr>`; return; }
+  if (!list.length) { tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">No records found.</td></tr>`; return; }
   const actionColors = { checkout:'out', return:'available', added:'available', deleted:'out', edited:'available', transfer:'out' };
   tbody.innerHTML = list.map(h=>`
     <tr>
@@ -3345,6 +3397,7 @@ function renderHistory() {
       <td>${h.fixtureName}</td>
       <td>${h.userName}</td>
       <td><span class="sbadge ${actionColors[h.action]||'available'}">${h.action}</span></td>
+      <td style="font-size:12px;color:var(--text2);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.note||''}</td>
     </tr>
   `).join('');
 }
@@ -3362,6 +3415,13 @@ function refreshAddId() {
 async function addFixture() {
   const name = document.getElementById('new-name').value.trim();
   if (!name) { notify('Fixture name is required.','error'); return; }
+  const brand = document.getElementById('new-brand').value.trim();
+  // Duplicate detection: warn if same name+brand already exists
+  const dup = fixtures.find(f => f.name.toLowerCase() === name.toLowerCase() && (f.brand||'').toLowerCase() === brand.toLowerCase());
+  if (dup) {
+    const go = confirm(`A fixture named "${name}"${brand?' ('+brand+')':''} already exists (${dup.id}). Add anyway?`);
+    if (!go) return;
+  }
   const f = {
     id: genId(), name,
     brand:        document.getElementById('new-brand').value.trim(),
@@ -4319,6 +4379,41 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════
+// ─── Swipe to change tabs ───
+(function() {
+  let startX = 0, startY = 0, startTime = 0;
+  const THRESHOLD = 60, MAX_Y = 80, MAX_MS = 400;
+  const TAB_ORDER = ['home','library','containers','history'];
+
+  document.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    startTime = Date.now();
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
+    if (!document.body.classList.contains('is-mobile')) return;
+    if (!document.body.classList.contains('app-visible')) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    const dt = Date.now() - startTime;
+    if (Math.abs(dx) < THRESHOLD || Math.abs(dy) > MAX_Y || dt > MAX_MS) return;
+    // Don't swipe if touch started inside a modal or scroll container
+    const target = e.target;
+    if (target.closest('.modal-overlay.open, .table-wrap, #bottom-tabs, .pin-pad')) return;
+    const active = document.querySelector('.page.active');
+    if (!active) return;
+    const cur = active.id.replace('page-','');
+    const idx = TAB_ORDER.indexOf(cur);
+    if (idx === -1) return;
+    const next = dx < 0 ? TAB_ORDER[idx + 1] : TAB_ORDER[idx - 1];
+    if (!next) return;
+    const btn = document.getElementById('btab-' + next);
+    if (btn) { showPage(next, btn); haptic('light'); }
+  }, { passive: true });
+})();
+
 function detectAndApplyLayout() {
   const w = window.innerWidth;
   const ua = navigator.userAgent;
@@ -4436,12 +4531,13 @@ function saveCurrentFilter() {
   const status = document.getElementById('filter-status').value;
   const type = document.getElementById('filter-category').value;
   const sort = document.getElementById('sort-select').value;
-  if (!q && !status && !type) { notify('Set at least one filter to save', 'info'); return; }
-  const parts = [q, status, type].filter(Boolean);
+  const location = (document.getElementById('filter-location')||{}).value||'';
+  if (!q && !status && !type && !location) { notify('Set at least one filter to save', 'info'); return; }
+  const parts = [q, status, type, location].filter(Boolean);
   const label = parts.join(' · ') || 'Filter';
   const name = prompt('Name this filter:', label);
   if (!name) return;
-  savedFilters.push({ label: name, q, status, type, sort });
+  savedFilters.push({ label: name, q, status, type, sort, location });
   localStorage.setItem('luma:savedFilters', JSON.stringify(savedFilters));
   renderSavedFilters();
   notify('Filter saved: ' + name, 'success');
@@ -4455,6 +4551,7 @@ function applySavedFilter(i) {
   const catSel = document.getElementById('filter-category');
   if (catSel) catSel.value = sf.type || '';
   document.getElementById('sort-select').value = sf.sort || 'name';
+  const lfEl = document.getElementById('filter-location'); if (lfEl) lfEl.value = sf.location||'';
   // Toggle active state
   document.querySelectorAll('.saved-filter-chip').forEach((c, idx) => c.classList.toggle('active', idx === i));
   renderLibrary();
@@ -4481,6 +4578,12 @@ function sortFixtures(list) {
       const tb = b.checkedOutAt ? new Date(b.checkedOutAt) : new Date(0);
       return tb - ta;
     }
+    if (sort === 'date') {
+      const da = a.dateReceived ? new Date(a.dateReceived) : new Date(0);
+      const db = b.dateReceived ? new Date(b.dateReceived) : new Date(0);
+      return db - da;
+    }
+    if (sort === 'brand') return (a.brand||'').localeCompare(b.brand||'');
     return 0;
   });
 }
@@ -5009,7 +5112,7 @@ function exportUsageHistory() {
 //  CSV EXPORT / IMPORT
 // ═══════════════════════════════════════════════════════
 function exportFixturesCSV() {
-  const cols = ['id','name','brand','partNo','fixtureType','wattage','voltage','outputWattage','location','specSheet','dateReceived','status','notes'];
+  const cols = ['id','name','brand','partNo','fixtureType','wattage','voltage','outputWattage','location','specSheet','dateReceived','status','notes','checkedOutNote'];
   const header = cols.join(',');
   const rows = fixtures.map(f => cols.map(c => {
     const v = (f[c] || '').toString().replace(/"/g, '""');
@@ -6022,8 +6125,18 @@ function toggleTheme() {
 }
 
 function initTheme() {
-  const saved = localStorage.getItem('luma:theme') || 'dark';
-  applyTheme(saved);
+  const saved = localStorage.getItem('luma:theme');
+  if (saved) {
+    applyTheme(saved);
+  } else {
+    // No preference saved — follow OS setting
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(prefersDark ? 'dark' : 'light');
+  }
+  // Live-update if OS theme changes and user hasn't manually set a preference
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    if (!localStorage.getItem('luma:theme')) applyTheme(e.matches ? 'dark' : 'light');
+  });
 }
 
 // ═══════════════════════════════════════════════════════
