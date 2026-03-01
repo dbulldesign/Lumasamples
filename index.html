@@ -942,6 +942,20 @@ body.is-tablet .logo-sub { display: inline; }
 /* Tablet: larger tap targets than desktop but not as big as phone */
 body.is-tablet .btn { padding: 10px 16px; font-size: 15px; min-height: 44px; }
 body.is-tablet .form-input { font-size: 16px !important; min-height: 46px; }
+body.is-tablet input[type="date"].form-input {
+  height: 46px;
+  min-height: 46px;
+  max-height: 46px;
+  padding: 0 12px;
+  -webkit-appearance: none;
+  appearance: none;
+  line-height: 46px;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+body.is-tablet .form-group { min-width: 0; overflow: hidden; }
 /* Tablet: wider user cards on login */
 body.is-tablet .user-cards { max-width: 640px; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
 /* Tablet: wider pin screen */
