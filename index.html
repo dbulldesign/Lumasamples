@@ -581,7 +581,6 @@ body.is-tablet #page-history { height: calc(100vh - 200px); }
 
 /* ── MODAL ── */
 .modal-overlay {
-  contain: strict;
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.75);
   display: none; align-items: center; justify-content: center;
@@ -1839,27 +1838,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 </div>
 
 <!-- ── CHECKOUT NOTE MODAL ── -->
-<div class="modal-overlay" id="checkout-note-modal">
-  <div class="modal" style="max-width:420px;">
-    <div class="modal-header">
-      <div class="modal-title" id="checkout-note-title">Check Out Fixture</div>
-      <button class="modal-close" onclick="closeModal('checkout-note-modal')">×</button>
-    </div>
-    <div class="modal-body">
-      <div id="checkout-note-fixture-info" style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;font-size:13px;color:var(--text2);"></div>
-      <div class="form-group">
-        <label class="form-label">Job / Note <span style="color:var(--text3);font-weight:400;">(optional)</span></label>
-        <input class="form-input" id="checkout-note-input" placeholder="Taking for job… e.g. Office 3F, Living Room Sample" autocomplete="off"
-          onkeydown="if(event.key==='Enter')confirmCheckoutNote()">
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('checkout-note-modal')">Cancel</button>
-      <button class="btn btn-success" onclick="confirmCheckoutNote()">↗ Check Out</button>
-    </div>
-  </div>
-</div>
-<!-- ── ADD CONTAINER MODAL ── -->
+
 <div class="modal-overlay" id="add-container-modal">
   <div class="modal" style="max-width:440px;">
     <div class="modal-header">
@@ -2277,6 +2256,27 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
   </div>
 </div>
 
+<div class="modal-overlay" id="checkout-note-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title" id="checkout-note-title">Check Out Fixture</div>
+      <button class="modal-close" onclick="closeModal('checkout-note-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="checkout-note-fixture-info" style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;font-size:13px;color:var(--text2);"></div>
+      <div class="form-group">
+        <label class="form-label">Job / Note <span style="color:var(--text3);font-weight:400;">(optional)</span></label>
+        <input class="form-input" id="checkout-note-input" placeholder="Taking for job… e.g. Office 3F, Living Room Sample" autocomplete="off"
+          onkeydown="if(event.key==='Enter')confirmCheckoutNote()">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('checkout-note-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="confirmCheckoutNote()">↗ Check Out</button>
+    </div>
+  </div>
+</div>
+<!-- ── ADD CONTAINER MODAL ── -->
 <script>
 // ═══════════════════════════════════════════════════════
 //  CONSTANTS & STATE
@@ -5415,6 +5415,7 @@ async function checkoutCase(cid) {
     ).join('<br>') +
     (fixturesInBox.length > 4 ? `<span style="color:var(--text3);font-size:12px;"> +${fixturesInBox.length - 4} more</span>` : '');
   document.getElementById('checkout-note-input').value = '';
+  closeModal('container-detail-modal');
   openModal('checkout-note-modal');
   setTimeout(() => document.getElementById('checkout-note-input').focus(), 100);
 }
