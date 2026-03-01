@@ -708,6 +708,16 @@ tr:hover td { background: var(--surface2); }
   transition: border-color 0.2s;
 }
 .setup-card:hover { border-color: var(--border2); }
+.av-opt {
+  font-size: 26px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 7px;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, background 0.1s;
+}
+.av-opt:hover { background: var(--surface2); }
+.av-opt.selected { border-color: var(--accent); background: var(--accent-dim); }
 .setup-card-num {
   width: 32px; height: 32px; border-radius: 50%;
   background: var(--accent); color: #000;
@@ -1397,6 +1407,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     <div class="page" id="page-history">
       <div class="toolbar" style="margin-bottom:18px;">
         <h2 style="font-size:20px;font-weight:700;flex:1;color:var(--text);">Transaction History</h2>
+          <button class="btn btn-secondary btn-sm no-print" onclick="exportHistoryCSV()">⬇ Export CSV</button>
         <select class="filter-select" id="hist-user-filter" onchange="renderHistory()">
           <option value="">All Users</option>
         </select>
@@ -2022,46 +2033,46 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
       <div class="form-group">
         <label class="form-label">Avatar</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;max-height:120px;overflow-y:auto;" id="avatar-picker">
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">💡</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔦</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌟</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">⚡</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎨</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🏗️</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎯</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌙</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔧</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🏠</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">👷</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🧑‍🎨</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🪩</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎪</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌈</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔮</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🛠️</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎭</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🏆</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🥇</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🦁</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🐯</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🦊</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🐺</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🦅</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌊</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔥</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">❄️</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌿</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🍀</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎸</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎹</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎺</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎻</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🥁</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎵</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎶</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎤</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎬</span>
-          <span class="av-opt" onclick="pickAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">📸</span>
+          <span class="av-opt" onclick="pickAvatar(this)">💡</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🔦</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🌟</span>
+          <span class="av-opt" onclick="pickAvatar(this)">⚡</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🎨</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🏗️</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🎯</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🌙</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🔧</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🏠</span>
+          <span class="av-opt" onclick="pickAvatar(this)">👷</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🧑‍🎨</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🪩</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🎪</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🌈</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🔮</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🛠️</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🎭</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🏆</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🥇</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🦁</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🐯</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🦊</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🐺</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🦅</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🌊</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🔥</span>
+          <span class="av-opt" onclick="pickAvatar(this)">❄️</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🌿</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🍀</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🎸</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🎹</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🎺</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🎻</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🥁</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🎵</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🎶</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🎤</span>
+          <span class="av-opt" onclick="pickAvatar(this)">🎬</span>
+          <span class="av-opt" onclick="pickAvatar(this)">📸</span>
         </div>
       </div>
     </div>
@@ -2099,46 +2110,46 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
       <div class="form-group">
         <label class="form-label">Avatar</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;max-height:120px;overflow-y:auto;" id="eu-avatar-picker">
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">💡</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔦</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌟</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">⚡</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎨</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🏗️</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎯</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌙</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔧</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🏠</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">👷</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🧑‍🎨</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🪩</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎪</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌈</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔮</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🛠️</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎭</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🏆</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🥇</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🦁</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🐯</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🦊</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🐺</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🦅</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌊</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🔥</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">❄️</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🌿</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🍀</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎸</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎹</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎺</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎻</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🥁</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎵</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎶</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎤</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">🎬</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)" style="font-size:26px;cursor:pointer;padding:5px;border-radius:7px;border:2px solid transparent;">📸</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">💡</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🔦</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🌟</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">⚡</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎨</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🏗️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎯</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🌙</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🔧</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🏠</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">👷</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🧑‍🎨</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🪩</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎪</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🌈</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🔮</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🛠️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎭</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🏆</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🥇</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🦁</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🐯</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🦊</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🐺</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🦅</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🌊</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🔥</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">❄️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🌿</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🍀</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎸</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎹</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎺</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎻</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🥁</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎵</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎶</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎤</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎬</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">📸</span>
         </div>
       </div>
     </div>
@@ -2360,6 +2371,27 @@ let fbDb       = null;   // Firebase database reference
 let fbUnsub    = [];     // active Firebase listeners (for cleanup)
 let fbSyncing  = false;  // prevent overlapping initial sync
 
+// ── Global error boundary ──
+window.onerror = function(msg, src, line, col, err) {
+  const app = document.getElementById('app');
+  const login = document.getElementById('login-screen');
+  if (!app && !login) return false;
+  console.error('LumaSamples crash:', err || msg);
+  const errBox = document.createElement('div');
+  errBox.style.cssText = 'position:fixed;inset:0;z-index:99999;background:var(--bg,#111);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;';
+  errBox.innerHTML = `
+    <div style="font-size:48px;margin-bottom:16px;">⚡</div>
+    <div style="font-size:20px;font-weight:700;color:var(--text,#fff);margin-bottom:8px;">Something went wrong</div>
+    <div style="font-size:13px;color:var(--text3,#888);margin-bottom:24px;max-width:340px;line-height:1.6;">${msg}</div>
+    <button onclick="location.reload()" style="background:var(--accent,#f5c842);color:#000;border:none;border-radius:10px;padding:12px 28px;font-size:15px;font-weight:700;cursor:pointer;">↺ Reload App</button>
+  `;
+  document.body.appendChild(errBox);
+  return true; // prevent default browser error UI
+};
+window.addEventListener('unhandledrejection', e => {
+  console.error('LumaSamples unhandled promise:', e.reason);
+});
+
 const ADMIN_DEFAULTS = [
   { id: 'admin-1', name: 'Admin', pin: '4116', role: 'admin', avatar: '⚙️' }
 ];
@@ -2393,15 +2425,13 @@ async function storeGet(key) {
   } catch(e) {}
   return null;
 }
-async function storeSet(key, val) {
-  // Always write to localStorage first
+function storeSet(key, val) {
+  // Primary: localStorage (synchronous, fast)
   try { localStorage.setItem(key, val); } catch(e) {}
-  // Also write to Claude artifact storage when available
-  try {
-    if (window.storage && typeof window.storage.set === 'function') {
-      await window.storage.set(key, val);
-    }
-  } catch(e) {}
+  // Background: artifact storage (fire-and-forget, non-blocking)
+  if (window.storage && typeof window.storage.set === 'function') {
+    window.storage.set(key, val).catch(() => {});
+  }
 }
 
 async function localLoad() {
@@ -2429,14 +2459,22 @@ async function localLoad() {
   }
 }
 
-async function localSave() {
+// Dirty flags — track which collections need saving
+const _dirty = { fixtures: false, users: false, history: false,
+                 counter: false, locations: false, fixtureTypes: false };
+function markDirty(...keys) { keys.forEach(k => _dirty[k] = true); }
+
+function markAllDirty() { Object.keys(_dirty).forEach(k => _dirty[k] = true); }
+
+function localSave() {
+  // storeSet is now synchronous (localStorage), so no need for async
   try {
-    await storeSet(KEY_FIXTURES,  JSON.stringify(fixtures));
-    await storeSet(KEY_USERS,     JSON.stringify(users));
-    await storeSet(KEY_HISTORY,   JSON.stringify(history));
-    await storeSet(KEY_COUNTER,   String(fixtureCounter));
-    await storeSet(KEY_LOCATIONS, JSON.stringify(locations));
-    await storeSet(KEY_FIX_TYPES,  JSON.stringify(fixtureTypes));
+    if (_dirty.fixtures)    { storeSet(KEY_FIXTURES,  JSON.stringify(fixtures));    _dirty.fixtures = false; }
+    if (_dirty.users)       { storeSet(KEY_USERS,     JSON.stringify(users));        _dirty.users = false; }
+    if (_dirty.history)     { storeSet(KEY_HISTORY,   JSON.stringify(history));      _dirty.history = false; }
+    if (_dirty.counter)     { storeSet(KEY_COUNTER,   String(fixtureCounter));       _dirty.counter = false; }
+    if (_dirty.locations)   { storeSet(KEY_LOCATIONS, JSON.stringify(locations));    _dirty.locations = false; }
+    if (_dirty.fixtureTypes){ storeSet(KEY_FIX_TYPES, JSON.stringify(fixtureTypes)); _dirty.fixtureTypes = false; }
   } catch(e) { console.error('Local save failed', e); }
 }
 
@@ -2483,7 +2521,10 @@ function fbStartListening() {
       _fbRefreshTimer = setTimeout(() => {
         localSave();
         refreshCurrentPage();
-        renderLoginScreen();
+        // Only re-render login when it's actually showing
+        const loginVisible = document.getElementById('login-screen') &&
+          document.getElementById('login-screen').style.display !== 'none';
+        if (loginVisible) renderLoginScreen();
         setSyncStatus('synced', 'Live · ' + new Date().toLocaleTimeString());
       }, 400);
     },
@@ -2498,7 +2539,8 @@ function fbStopListening() {
 
 // ── Apply remote snapshot to local state ──
 function applyRemoteData(data) {
-  if (data.fixtures)  fixtures  = Object.values(data.fixtures).map(normalizeFixture);
+  if (data.fixtures)  fixtures  = Object.values(data.fixtures).map(f => { delete f._txt; return normalizeFixture(f); });
+  markAllDirty(); // remote sync replaced local data — must re-persist on next save
   if (data.users)     users     = Object.values(data.users).map(normalizeUser);
   if (data.locations) locations = Array.isArray(data.locations)
     ? data.locations.filter(Boolean)
@@ -2516,6 +2558,7 @@ function applyRemoteData(data) {
   ensureAdmin();
   bumpCounter();
   updateCasesBadge();
+  markAllDirty(); // ensure first explicit save writes everything
 }
 
 // ── Normalize data from Firebase ──
@@ -2674,7 +2717,14 @@ async function manualSync() {
 //  UNIFIED SAVE (local cache + Firebase)
 // ═══════════════════════════════════════════════════════
 async function saveData(options = {}) {
-  await localSave();
+  // Mark only the affected collections dirty
+  if (options.fixture || options.deletedFixtureId) { markDirty('fixtures', 'counter'); }
+  if (options.user || options.deletedUserId)       { markDirty('users'); }
+  if (options.location || options.deletedLocation) { markDirty('locations'); }
+  if (options.historyEntry)                        { markDirty('history'); }
+  if (options.counter)                             { markDirty('counter'); }
+  if (options.fixtureType || options.deletedFixtureType) { markDirty('fixtureTypes'); }
+  localSave();
   if (!fbDb) return;                      // no Firebase connected → local only
   try {
     const updates = {};
@@ -3018,7 +3068,10 @@ function renderHome() {
       <div class="my-co-strip">
         <div class="my-co-strip-header">
           <div class="my-co-strip-title">📤 Your Checked Out Fixtures (${mine.length})</div>
-          <button class="btn btn-danger btn-sm" onclick="showPage('library', document.querySelector('[data-page=library]'))">View All</button>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-danger btn-sm" onclick="returnAllMine()">↙ Return All</button>
+            <button class="btn btn-secondary btn-sm" onclick="showPage('library', document.querySelector('[data-page=library]'))">View All</button>
+          </div>
         </div>
         <div class="my-co-items">
           ${mine.map(f => `
@@ -3116,9 +3169,9 @@ function renderLibrary() {
   const cf   = document.getElementById('filter-category').value;
   const lf   = (document.getElementById('filter-location')||{}).value || '';
   let list = fixtures.filter(f => {
-    const txt = [f.id,f.name,f.brand,f.category,f.fixtureType,f.finish,f.location].join(' ').toLowerCase();
+    if (!f._txt) f._txt = [f.id,f.name,f.brand,f.category,f.fixtureType,f.finish,f.location].join(' ').toLowerCase();
     const typeMatch = !cf || f.fixtureType===cf || f.category===cf;
-    return txt.includes(q) && (!sf || f.status===sf) && typeMatch && (!lf || f.location===lf);
+    return (!q || f._txt.includes(q)) && (!sf || f.status===sf) && typeMatch && (!lf || f.location===lf);
   });
   list = sortFixtures(list);
   const grid = document.getElementById('fixture-grid');
@@ -3159,6 +3212,7 @@ function fixtureCardHTML(f) {
         <div class="fid">${f.id}</div>
         <div style="display:flex;align-items:center;gap:6px;">
           <div class="sbadge ${f.status==='available'?'available':'out'}">${f.status==='available'?'Available':'Out'}</div>
+          ${f.checkedOutAt ? `<span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">${checkoutDuration(f.checkedOutAt)}</span>` : ''}
           <div class="select-check" id="check-${f.id}"></div>
         </div>
       </div>
@@ -3172,6 +3226,7 @@ function fixtureCardHTML(f) {
         </div>
         ${f.location?`<div class="card-loc">📍 ${f.location}</div>`:''}
         ${f.specSheet?`<a href="${f.specSheet}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--accent);text-decoration:none;margin-top:5px;opacity:0.8;">📄 Spec Sheet ↗</a>`:''}
+        ${f.notes?`<div style="font-size:12px;color:var(--text3);margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">📝 ${f.notes}</div>`:''}
         ${u?`<div class="card-co-info">With <strong>${u.name}</strong> · ${timeAgo(f.checkedOutAt)}</div>`:''}
       </div>
       <div style="border-top:1px solid var(--border);">
@@ -3213,6 +3268,24 @@ function fixtureCardHTML(f) {
 // ═══════════════════════════════════════════════════════
 async function quickCheckout(fid) {
   openCheckoutNote(fid);
+}
+
+async function returnAllMine() {
+  const mine = fixtures.filter(f => f.checkedOutBy === currentUser?.id);
+  if (!mine.length) { notify('No fixtures to return', 'info'); return; }
+  if (!confirm(`Return all ${mine.length} fixture${mine.length>1?'s':''} you have checked out?`)) return;
+  const ts = new Date().toISOString();
+  for (const f of mine) {
+    if (!f.comments) f.comments = [];
+    f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: '', action: 'return' });
+    f.status = 'available'; f.checkedOutBy = null; f.checkedOutAt = null;
+    const h = { ts, fixtureId: f.id, fixtureName: f.name, userId: currentUser.id, userName: currentUser.name, action: 'return' };
+    history.unshift(h);
+    await saveData({ fixture: f, historyEntry: h });
+  }
+  haptic('success');
+  refreshCurrentPage();
+  notify(`↙ Returned ${mine.length} fixture${mine.length>1?'s':''}`, 'success');
 }
 
 async function quickReturn(fid) {
@@ -3438,6 +3511,7 @@ async function addFixture() {
     category: '', finish: '', notes: '', comments: [],
     status: 'available', checkedOutBy: null, checkedOutAt: null,
   };
+  delete f._txt;
   fixtures.push(f);
   fixtureCounter++;
   const hadd = logEvent(f, 'added');
@@ -3946,6 +4020,7 @@ async function saveEditFixture() {
     locations.push(f.location);
     locations.sort();
   }
+  delete f._txt; // invalidate search text cache
   const hedit = logEvent(f,'edited');
   await saveData({ fixture: f, historyEntry: hedit });
   closeModal('edit-fixture-modal');
@@ -4353,6 +4428,38 @@ function renderGsStatus() {
 // ═══════════════════════════════════════════════════════
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function checkoutDuration(ts) {
+  if (!ts) return '';
+  const mins = Math.floor((Date.now() - new Date(ts)) / 60000);
+  if (mins < 60)   return mins + 'm';
+  if (mins < 1440) return Math.floor(mins/60) + 'h';
+  const days = Math.floor(mins/1440);
+  return days === 1 ? '1 day' : days + ' days';
+}
+
+function exportHistoryCSV() {
+  const cols = ['date','time','fixtureId','fixtureName','user','action','note'];
+  const header = cols.join(',');
+  const rows = history.map(h => {
+    const d = new Date(h.ts);
+    return [
+      d.toLocaleDateString(),
+      d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}),
+      h.fixtureId||'',
+      (h.fixtureName||'').replace(/,/g,''),
+      (h.userName||'').replace(/,/g,''),
+      h.action||'',
+      (h.note||'').replace(/,/g,';')
+    ].map(v => `"${v}"`).join(',');
+  });
+  const csv = [header,...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'lumasamples-history-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  notify('History exported', 'success');
+}
 
 function timeAgo(ts) {
   if (!ts) return '';
