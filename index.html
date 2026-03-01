@@ -620,7 +620,7 @@ body.is-tablet #page-history { height: calc(100vh - 200px); }
   outline: none; transition: border-color 0.2s;
 }
 .form-input:focus { border-color: var(--accent); }
-input[type="date"].form-input { color-scheme: dark; }
+input[type="date"].form-input { color-scheme: dark; width: 100%; box-sizing: border-box; }
 input[type="date"].form-input::-webkit-calendar-picker-indicator { filter: invert(1) opacity(0.6); cursor: pointer; }
 .form-input::placeholder { color: var(--text3); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -1246,7 +1246,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
   </div>
   <div class="login-logo" onclick="adminQuickLogin()" style="cursor:pointer;user-select:none;" title="Admin access">LumaSamples</div>
   <div class="login-sub">Lighting Fixture Library</div>
-  <button onclick="loginPageQuickScan()" style="position:absolute;top:16px;right:16px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:8px 14px;color:var(--text2);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;line-height:1;" id="login-scan-btn">
+  <button onclick="loginPageQuickScan()" style="position:absolute;top:max(16px, env(safe-area-inset-top, 16px));right:16px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:8px 14px;color:var(--text2);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;line-height:1;" id="login-scan-btn">
     <span style="font-size:15px;display:flex;align-items:center;line-height:1;">📷</span> Scan QR
   </button>
 
@@ -1370,7 +1370,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     <!-- HISTORY PAGE -->
     <div class="page" id="page-history">
       <div class="toolbar" style="margin-bottom:18px;">
-        <h2 style="font-size:20px;font-weight:700;flex:1;color:#ffffff;">Transaction History</h2>
+        <h2 style="font-size:20px;font-weight:700;flex:1;color:var(--text);">Transaction History</h2>
         <select class="filter-select" id="hist-user-filter" onchange="renderHistory()">
           <option value="">All Users</option>
         </select>
@@ -1394,7 +1394,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     <!-- ADD FIXTURE PAGE -->
     <div class="page" id="page-add">
       <div style="max-width:580px;margin:0 auto;">
-        <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;color:#ffffff;">Add New Fixture</h2>
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;color:var(--text);">Add New Fixture</h2>
         <p style="color:var(--text2);font-size:13px;margin-bottom:22px;">A unique QR code is auto-generated with each entry.</p>
         <div class="form-group">
           <label class="form-label">Auto-Generated ID</label>
@@ -1417,7 +1417,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Date Received</label>
-            <input class="form-input" id="new-datereceived" type="date">
+            <input class="form-input" id="new-datereceived" type="date" style="max-width:100%;box-sizing:border-box;">
           </div>
           <div class="form-group">
             <label class="form-label">Wattage</label>
@@ -1483,7 +1483,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     <!-- PRINT QR PAGE (admin only) -->
     <div class="page" id="page-print">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
-        <h2 style="font-size:20px;font-weight:700;color:#ffffff;">Print QR Labels</h2>
+        <h2 style="font-size:20px;font-weight:700;color:var(--text);">Print QR Labels</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-secondary" onclick="togglePrintSelectMode()" id="print-select-btn">☑ Select</button>
           <button class="btn btn-primary" id="print-action-btn" onclick="printAllQR()">🖨 Print All</button>
@@ -1712,12 +1712,29 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
         <div id="setup-status-banner" style="border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;"></div>
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-          <h2 style="font-size:20px;font-weight:700;color:#ffffff;">⚙️ Settings</h2>
+          <h2 style="font-size:20px;font-weight:700;color:var(--text);">⚙️ Settings</h2>
+        </div>
+
+        <!-- Sync Now card -->
+        <div class="setup-card" style="align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="setup-card-body">
+            <div class="setup-card-title">⇅ Sync</div>
+            <div class="setup-card-desc">Manually sync data with Firebase.</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="settings-sync-btn" onclick="manualSync()">Sync Now</button>
+        </div>
+
+        <!-- Light Mode card -->
+        <div class="setup-card" style="align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div class="setup-card-body">
+            <div class="setup-card-title">🎨 Appearance</div>
+            <div class="setup-card-desc">Toggle between dark and light mode.</div>
+          </div>
           <button class="btn btn-secondary btn-sm" onclick="toggleTheme()" id="settings-theme-btn">☀ Light Mode</button>
         </div>
+
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
           <h3 id="settings-fb-heading" style="font-size:15px;font-weight:600;color:var(--text);">🔥 Firebase Sync</h3>
-          <button class="btn btn-secondary btn-sm" id="settings-sync-btn" onclick="manualSync()">⇅ Sync Now</button>
         </div>
         <p id="settings-fb-desc" style="color:var(--text2);font-size:13px;margin-bottom:20px;line-height:1.7;">Connect LumaSamples to Firebase to sync in real time across all devices.</p>
 
@@ -2139,7 +2156,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Date Received</label>
-          <input class="form-input" id="ef-datereceived" type="date">
+          <input class="form-input" id="ef-datereceived" type="date" style="max-width:100%;box-sizing:border-box;">
         </div>
         <div class="form-group">
           <label class="form-label">Wattage</label>
