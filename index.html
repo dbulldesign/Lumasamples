@@ -280,6 +280,12 @@ body {
 #ptr-indicator.loading #ptr-spinner { animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ── SCAN MODAL DEVICE VARIANTS ── */
+body:not(.is-phone) .scan-phone-only { display: none !important; }
+body.is-phone      .scan-desktop-only { display: none !important; }
+body:not(.is-phone) .scan-modal-title-phone { display: none; }
+body.is-phone      .scan-modal-title-desktop { display: none; }
+
 /* ── OFFLINE BANNER ── */
 #offline-banner {
   display: none;
@@ -644,6 +650,10 @@ body.oled-mode {
 .btn-success:hover { background: rgba(74,222,128,0.18); }
 .btn-scan { background: var(--accent2); color: #fff; padding: 6px 10px; font-size: 18px; min-width: 36px; border-radius: 10px; display:inline-flex; align-items:center; justify-content:center; line-height:1; }
 .btn-scan:hover { background: #ff7c47; }
+/* Desktop/tablet: show text label; phone: show camera icon */
+body:not(.is-phone) .scan-btn-label::before { content: 'Enter ID'; font-size: 13px; }
+body:not(.is-phone) .scan-btn-label { font-size: 0; } /* hide emoji on desktop */
+body.is-phone .scan-btn-label { font-size: 18px; } /* show emoji on phone */
 .btn-sync { background: var(--surface3); border: 1px solid var(--border2); color: var(--text2); padding: 5px 10px; font-size: 16px; border-radius: 10px; min-width: 36px; }
 .btn-sync:hover { border-color: var(--text3); color: var(--text); }
 .btn-sync.syncing { color: var(--accent); border-color: rgba(245,200,66,0.4); animation: syncPulse 1s infinite; }
@@ -1411,7 +1421,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 .usage-count { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); white-space: nowrap; }
 
 /* ══════════════════════════════════════════
-   CONTAINERS (cases/boxes)
+   CONTAINERS (boxes)
 ══════════════════════════════════════════ */
 .container-card {
   background: var(--surface); border: 1px solid var(--border);
@@ -1543,14 +1553,14 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
         <span class="role-badge" id="chip-role" style="display:none;"></span>
       </div>
       <button class="btn btn-secondary no-print" onclick="openGlobalSearch()" title="Global Search" style="font-size:16px;padding:6px 10px;min-width:36px;">🔍</button>
-      <button class="btn btn-scan" onclick="openScanModal()">📷</button>
+      <button class="btn btn-scan" id="header-scan-btn" onclick="openScanModal()"><span class="scan-btn-label">📷</span></button>
     </div>
   </header>
 
   <div class="nav-tabs" id="nav-tabs">
     <div class="nav-tab active" data-page="home" onclick="showPage('home',this)"><span class="tab-icon">🏠</span> Home</div>
     <div class="nav-tab" data-page="library" onclick="showPage('library',this)"><span class="tab-icon">💡</span> Library</div>
-    <div class="nav-tab" id="tab-containers" data-page="containers" onclick="showPage('containers',this)"><span class="tab-icon">📦</span> Cases</div>
+    <div class="nav-tab" id="tab-containers" data-page="containers" onclick="showPage('containers',this)"><span class="tab-icon">📦</span> Boxes</div>
     <div class="nav-tab" data-page="history" onclick="showPage('history',this)"><span class="tab-icon">📋</span> History</div>
     <div class="nav-tab admin-tab" id="tab-add" data-page="add" onclick="showPage('add',this)" style="display:none;"><span class="tab-icon">➕</span> Add Fixture</div>
     <div class="nav-tab admin-tab" id="tab-print" data-page="print" onclick="showPage('print',this)" style="display:none;"><span class="tab-icon">🖨</span> Print QR</div>
@@ -1705,9 +1715,9 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Case / Container</label>
+            <label class="form-label">Box / Container</label>
             <select class="form-input" id="new-container">
-              <option value="">— Not in a case —</option>
+              <option value="">— Not in a box —</option>
             </select>
           </div>
         </div>
@@ -1977,11 +1987,11 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     <!-- CONTAINERS PAGE -->
     <div class="page" id="page-containers">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
-        <h2 style="font-size:20px;font-weight:700;color:var(--text);">📦 Cases &amp; Boxes</h2>
+        <h2 style="font-size:20px;font-weight:700;color:var(--text);">📦 Boxes</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-secondary" id="case-print-select-btn" onclick="toggleCasePrintMode()">☑ Select to Print</button>
-          <button class="btn btn-blue" onclick="openBatchAddFixturesToCase()">+ Add Fixtures to Case</button>
-          <button class="btn btn-primary" onclick="openAddContainerModal()">+ New Case</button>
+          <button class="btn btn-blue" onclick="openBatchAddFixturesToCase()">+ Add Fixtures to Box</button>
+          <button class="btn btn-primary" onclick="openAddContainerModal()">+ New Box</button>
         </div>
       </div>
       <div id="case-print-bar" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -1990,7 +2000,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
         <button class="btn btn-secondary btn-sm" onclick="clearCaseSelection()">Clear</button>
         <button class="btn btn-primary btn-sm" onclick="printSelectedCases()">🖨 Print Selected</button>
       </div>
-      <p id="containers-desc" style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;">Each case has its own QR code. Scan a case QR to see all fixtures inside it. Tag fixtures to a case by editing them.</p>
+      <p id="containers-desc" style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;">Each box has its own QR code. Scan a box QR to see all fixtures inside it. Tag fixtures to a box by editing them.</p>
       <div id="containers-list"></div>
     </div>
     <!-- SETUP PAGE -->
@@ -2106,7 +2116,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     <span class="btab-icon">💡</span>Library
   </button>
   <button class="btab" id="btab-containers" onclick="showPage('containers',this)">
-    <span class="btab-icon">📦</span>Cases
+    <span class="btab-icon">📦</span>Boxes
     <span class="btab-badge" id="cases-badge" style="display:none;"></span>
   </button>
   <button class="btab" id="btab-history" onclick="showPage('history',this)">
@@ -2149,13 +2159,13 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 <div class="modal-overlay" id="add-container-modal">
   <div class="modal" style="max-width:440px;">
     <div class="modal-header">
-      <div class="modal-title">📦 New Case / Box</div>
+      <div class="modal-title">📦 New Box</div>
       <button class="modal-close" onclick="closeModal('add-container-modal')">×</button>
     </div>
     <div class="modal-body" style="max-height:80vh;overflow-y:auto;">
       <div class="form-group">
-        <label class="form-label">Case Name</label>
-        <input class="form-input" id="nc-name" placeholder="e.g. Road Case A, Living Room Kit">
+        <label class="form-label">Box Name</label>
+        <input class="form-input" id="nc-name" placeholder="e.g. Road Box A, Living Room Kit">
       </div>
       <div class="form-group">
         <label class="form-label">Description <span style="color:var(--text3);font-weight:400;">(optional)</span></label>
@@ -2173,7 +2183,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('add-container-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="addContainer()">✦ Create Case</button>
+      <button class="btn btn-primary" onclick="addContainer()">✦ Create Box</button>
     </div>
   </div>
 </div>
@@ -2181,13 +2191,13 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 <div class="modal-overlay" id="container-detail-modal">
   <div class="modal" style="max-width:540px;">
     <div class="modal-header">
-      <div class="modal-title" id="cd-title">Case Detail</div>
+      <div class="modal-title" id="cd-title">Box Detail</div>
       <button class="modal-close" onclick="closeModal('container-detail-modal')">×</button>
     </div>
     <div class="modal-body" id="cd-body"></div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('container-detail-modal')">Close</button>
-      <button class="btn btn-danger btn-sm" id="cd-delete-btn" onclick="">Delete Case</button>
+      <button class="btn btn-danger btn-sm" id="cd-delete-btn" onclick="">Delete Box</button>
     </div>
   </div>
 </div>
@@ -2206,18 +2216,18 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 </div>
 
 <!-- ═════════════ SCAN MODAL ═════════════ -->
+<input type="file" id="qr-camera-input" accept="image/*" capture="environment" style="display:none;" onchange="handleCameraCapture(this)">
 <div class="modal-overlay" id="scan-modal">
   <div class="modal" style="max-width:380px;">
     <div class="modal-header">
-      <div class="modal-title">📷 Scan QR Code</div>
+      <div class="modal-title"><span class="scan-modal-title-phone">📷 Scan QR Code</span><span class="scan-modal-title-desktop">Enter Fixture / Box ID</span></div>
       <button class="modal-close" onclick="closeScanModal()">×</button>
     </div>
     <div class="modal-body">
-      <!-- Native camera trigger — hidden file input, tapped by the button -->
-      <input type="file" id="qr-camera-input" accept="image/*" capture="environment"
-        style="display:none;" onchange="handleCameraCapture(this)">
+      <!-- Native camera trigger — visible in modal, also referenced from body -->
+      <div id="qr-modal-input-placeholder"></div>
 
-      <div id="scan-camera-prompt" style="text-align:center;padding:10px 0 18px;">
+      <div id="scan-camera-prompt" class="scan-phone-only" style="text-align:center;padding:10px 0 18px;">
         <div style="font-size:48px;margin-bottom:12px;">📷</div>
         <button class="btn btn-primary" style="width:100%;justify-content:center;padding:16px;font-size:16px;letter-spacing:0.3px;"
           onclick="triggerNativeCamera()">
@@ -2229,19 +2239,44 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
         </p>
       </div>
 
-      <div id="scan-processing" style="display:none;text-align:center;padding:20px;">
+      <div id="scan-processing" class="scan-phone-only" style="display:none;text-align:center;padding:20px;">
         <div style="font-size:32px;margin-bottom:8px;">⏳</div>
         <div style="font-size:13px;color:var(--text2);">Reading QR code…</div>
       </div>
 
       <div id="scan-result" style="display:none;margin-top:4px;padding:14px;background:var(--surface2);border-radius:var(--radius-sm);"></div>
 
-      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
+      <!-- Phone: secondary option below camera -->
+      <div class="scan-phone-only" style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
         <label class="form-label" style="font-size:11px;">Or Enter ID Manually</label>
-        <div style="display:flex;gap:8px;">
-          <input class="form-input" id="manual-id-input" placeholder="e.g. FL-0042" style="flex:1;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')processManualId()">
-          <button class="btn btn-secondary" onclick="processManualId()">Go</button>
+        <div style="position:relative;">
+          <div style="display:flex;gap:8px;">
+            <input class="form-input" id="manual-id-input-phone" placeholder="e.g. 42 or FL-0042 or BOX-001"
+              style="flex:1;text-transform:uppercase;"
+              oninput="this.value=this.value.toUpperCase();onPhoneIdInput(this)"
+              onkeydown="if(event.key='Enter'){closePhoneSuggestions();processManualId('phone')}"
+              onblur="setTimeout(closePhoneSuggestions,200)"
+              autocomplete="off" spellcheck="false">
+            <button class="btn btn-secondary" onclick="closePhoneSuggestions();processManualId('phone')">Go</button>
+          </div>
+          <div id="id-suggestions-phone" style="position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:600;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,0.35);display:none;overflow:hidden;"></div>
         </div>
+      </div>
+      <!-- Desktop/tablet: primary UI, no camera -->
+      <div class="scan-desktop-only" style="padding:4px 0 8px;">
+        <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.5;">
+          Type a fixture number (<span style="font-family:'DM Mono',monospace;color:var(--accent);">42</span> or <span style="font-family:'DM Mono',monospace;color:var(--accent);">FL-0042</span>) or a box ID (<span style="font-family:'DM Mono',monospace;color:var(--accent);">BOX-001</span>).
+        </p>
+        <div style="display:flex;gap:8px;">
+          <input class="form-input" id="manual-id-input"
+            placeholder="42  or  FL-0042  or  BOX-001"
+            style="flex:1;font-family:'DM Mono',monospace;font-size:15px;letter-spacing:0.5px;"
+            oninput="this.value=this.value.toUpperCase();onDesktopIdInput(this)"
+            onkeydown="if(event.key==='Enter')processManualId('desktop')"
+            autocomplete="off" autocorrect="off" spellcheck="false">
+          <button class="btn btn-primary" onclick="processManualId('desktop')" style="padding:0 20px;">Go</button>
+        </div>
+        <div id="id-suggestions" style="margin-top:8px;"></div>
       </div>
     </div>
   </div>
@@ -4018,7 +4053,7 @@ function openDetailModal(fid) {
         <div style="margin-bottom:10px;"><span class="fid">${f.id}</span> <span class="sbadge ${f.status==='available'?'available':'out'}" style="margin-left:8px;">${f.status==='available'?'Available':'Checked Out'}</span></div>
         <div style="font-size:18px;font-weight:700;margin-bottom:12px;">${f.name}</div>
         <table style="font-size:13px;border-collapse:collapse;">
-          ${drow('Part #',f.partNo)}${drow('Brand',f.brand)}${drow('Fixture Type', f.fixtureType || f.category)}${drow('Wattage',f.wattage)}${drow('Finish',f.finish)}${drow('Location',f.location)}${drowCase('Case',f.containerId)}${drow('Notes',f.notes)}${drowLink('Spec Sheet',f.specSheet)}
+          ${drow('Part #',f.partNo)}${drow('Brand',f.brand)}${drow('Fixture Type', f.fixtureType || f.category)}${drow('Wattage',f.wattage)}${drow('Finish',f.finish)}${drow('Location',f.location)}${drowCase('Box',f.containerId)}${drow('Notes',f.notes)}${drowLink('Spec Sheet',f.specSheet)}
           ${u?`<tr><td style="padding:5px 0;color:var(--text3);width:80px;">With</td><td style="padding:5px 0;color:var(--red);">${u.avatar} ${u.name} · ${timeAgo(f.checkedOutAt)}</td></tr>`:''}
           ${(()=>{const lastCo=history.find(h=>h.fixtureId===f.id&&h.action==='checkout'&&h.note);return lastCo?`<tr><td style="padding:5px 0;color:var(--text3);width:80px;">Last job</td><td style="padding:5px 0;font-size:12px;color:var(--text2);">${lastCo.note}</td></tr>`:''})()}
         </table>
@@ -4459,15 +4494,28 @@ async function forceReturn(fid) {
 //  QR SCANNER
 // ═══════════════════════════════════════════════════════
 function openScanModal() {
+  // On phone: skip the modal, go straight to camera
+  if (document.body.classList.contains('is-phone')) {
+    const inp = document.getElementById('qr-camera-input');
+    if (inp) { inp.value = ''; inp.click(); }
+    return;
+  }
   openModal('scan-modal');
   // Reset state
-  document.getElementById('scan-result').style.display = 'none';
-  document.getElementById('scan-processing').style.display = 'none';
-  document.getElementById('scan-camera-prompt').style.display = 'block';
-  document.getElementById('manual-id-input').value = '';
-  // Clear the file input so the same photo can be rescanned
-  const inp = document.getElementById('qr-camera-input');
-  if (inp) inp.value = '';
+  const scanResult = document.getElementById('scan-result');
+  if (scanResult) { scanResult.style.display = 'none'; scanResult.innerHTML = ''; }
+  const inp = document.getElementById('manual-id-input');
+  if (inp) { inp.value = ''; }
+  const sugg = document.getElementById('id-suggestions');
+  if (sugg) sugg.innerHTML = '';
+  const suggPhone = document.getElementById('id-suggestions-phone');
+  if (suggPhone) { suggPhone.innerHTML = ''; suggPhone.style.display='none'; }
+  // Auto-focus on desktop/tablet
+  if (!document.body.classList.contains('is-phone')) {
+    setTimeout(() => { if (inp) inp.focus(); }, 80);
+  }
+  const camInp = document.getElementById('qr-camera-input');
+  if (camInp) camInp.value = '';
 }
 
 function closeScanModal() {
@@ -4484,63 +4532,209 @@ async function handleCameraCapture(input) {
   const file = input.files && input.files[0];
   if (!file) return;
 
-  document.getElementById('scan-camera-prompt').style.display = 'none';
-  document.getElementById('scan-processing').style.display = 'block';
-  document.getElementById('scan-result').style.display = 'none';
+  const isPhone = document.body.classList.contains('is-phone');
+  // On phone the modal may not be open — show a processing toast instead
+  if (!isPhone) {
+    document.getElementById('scan-camera-prompt').style.display = 'none';
+    document.getElementById('scan-processing').style.display = 'block';
+    document.getElementById('scan-result').style.display = 'none';
+  } else {
+    notify('Reading QR code…', 'info');
+  }
 
   try {
-    // Decode the image with jsQR
-    const bitmap = await createImageBitmap(file);
-    const canvas = document.createElement('canvas');
-    // Scale down large photos for speed — jsQR works fine at 1024px
-    const MAX = 1024;
-    const scale = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
-    canvas.width  = Math.round(bitmap.width  * scale);
-    canvas.height = Math.round(bitmap.height * scale);
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+    const imageData = await getImageDataFromFile(file);
+    if (!isPhone) document.getElementById('scan-processing').style.display = 'none';
 
-    document.getElementById('scan-processing').style.display = 'none';
+    // Try normal then inverted — try at full res first, then 1024px
+    let code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
 
     if (code) {
       haptic('success');
+      if (isPhone) closeScanModal();
       processScannedId(code.data);
     } else {
-      // Try again with inverted colours (some dark-background QR codes)
-      const code2 = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'onlyInvert' });
-      if (code2) {
-        haptic('success');
-        processScannedId(code2.data);
+      haptic('error');
+      if (isPhone) {
+        notify('No QR code found — try again', 'error');
       } else {
-        haptic('error');
         document.getElementById('scan-camera-prompt').style.display = 'block';
         const el = document.getElementById('scan-result');
         el.style.display = 'block';
-        el.innerHTML = `<div style="color:var(--red);font-size:13px;">❌ No QR code detected. Try again with better lighting or hold the camera steady.</div>
-          <button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="triggerNativeCamera()">Try Again</button>`;
+        el.innerHTML = '<div style="color:var(--red);font-size:13px;">❌ No QR code detected. Try better lighting or hold steady.</div>' +
+          '<button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="triggerNativeCamera()">Try Again</button>';
       }
     }
   } catch(e) {
-    document.getElementById('scan-processing').style.display = 'none';
-    document.getElementById('scan-camera-prompt').style.display = 'block';
-    const el = document.getElementById('scan-result');
-    el.style.display = 'block';
-    el.innerHTML = `<div style="color:var(--red);font-size:13px;">❌ Could not read image. Please try again.</div>`;
+    if (!isPhone) {
+      document.getElementById('scan-processing').style.display = 'none';
+      document.getElementById('scan-camera-prompt').style.display = 'block';
+      const el = document.getElementById('scan-result');
+      el.style.display = 'block';
+      el.innerHTML = '<div style="color:var(--red);font-size:13px;">❌ Could not read image: ' + e.message + '</div>';
+    } else {
+      notify('Could not read image', 'error');
+    }
   }
-  // Reset input so the same file can be re-selected
   input.value = '';
+}
+
+// Robust image-to-ImageData: tries createImageBitmap first (fast),
+// falls back to FileReader + Image (works on all iOS Safari versions)
+function getImageDataFromFile(file) {
+  const MAX = 1600; // higher res = better QR detection on iPad/high-DPI
+  return new Promise((resolve, reject) => {
+    const tryBitmap = async () => {
+      try {
+        const bitmap = await createImageBitmap(file);
+        const canvas = document.createElement('canvas');
+        const scale  = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
+        canvas.width  = Math.round(bitmap.width  * scale);
+        canvas.height = Math.round(bitmap.height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        resolve(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      } catch {
+        fallback();
+      }
+    };
+    const fallback = () => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const scale  = Math.min(1, MAX / Math.max(img.width, img.height));
+          canvas.width  = Math.round(img.width  * scale);
+          canvas.height = Math.round(img.height * scale);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(ctx.getImageData(0, 0, canvas.width, canvas.height));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    };
+    tryBitmap();
+  });
 }
 
 function stopScanner() { /* no-op — kept for any legacy callers */ }
 
 
-function processManualId() {
-  const id = document.getElementById('manual-id-input').value.trim().toUpperCase();
+function processManualId(source) {
+  const inputId = source === 'phone' ? 'manual-id-input-phone' : 'manual-id-input';
+  const raw = (document.getElementById(inputId)||{}).value || '';
+  const id = resolveFixtureId(raw.trim().toUpperCase());
   if (!id) return;
+  if (source === 'phone') closeScanModal();
   processScannedId(id);
 }
+
+// Resolve a user-typed string to a fixture/box ID:
+// "42" → "FL-0042", "42" → also checks BOX, etc.
+function resolveFixtureId(input) {
+  if (!input) return '';
+  // Already has a prefix — return as-is
+  if (/^(FL|BOX|CASE)-/i.test(input)) return input.toUpperCase();
+  // Pure number — try to match a fixture
+  if (/^\d+$/.test(input)) {
+    const padded = 'FL-' + input.padStart(4, '0');
+    if (fixtures.find(f => f.id === padded)) return padded;
+    // Also try without padding
+    const unpadded = 'FL-' + input;
+    if (fixtures.find(f => f.id === unpadded)) return unpadded;
+    // Default to padded form even if not found (processScannedId will show error)
+    return padded;
+  }
+  return input.toUpperCase();
+}
+
+// Live suggestion as user types on desktop
+function onDesktopIdInput(el) {
+  const raw = el.value.trim();
+  const sugg = document.getElementById('id-suggestions');
+  if (!sugg || raw.length < 1) { if (sugg) sugg.innerHTML = ''; return; }
+  // Try to resolve and find matches
+  const upper = raw.toUpperCase();
+  let matches = [];
+  if (/^\d+$/.test(upper)) {
+    const padded = 'FL-' + upper.padStart(4, '0');
+    matches = fixtures.filter(f => f.id === padded || f.id.startsWith('FL-' + upper));
+  } else {
+    matches = fixtures.filter(f => f.id.startsWith(upper) || f.name.toUpperCase().includes(upper));
+    // Also check containers
+    const cMatches = containers.filter(c => c.id.startsWith(upper) || c.name.toUpperCase().includes(upper));
+    if (cMatches.length) {
+      matches = [...matches, ...cMatches.map(c => ({ ...c, _isCase: true }))];
+    }
+  }
+  matches = matches.slice(0, 5);
+  if (!matches.length) { sugg.innerHTML = ''; return; }
+  sugg.innerHTML = matches.map(m => {
+    const isCase = m._isCase;
+    const label = isCase ? `📦 ${m.id} — ${m.name}` : `💡 ${m.id} — ${m.name}`;
+    const status = !isCase ? `<span class="sbadge ${m.status === 'available' ? 'available' : 'out'}" style="font-size:10px;padding:1px 6px;">${m.status === 'available' ? 'In' : 'Out'}</span>` : '';
+    return `<div onclick="applySuggestion('${m.id}')" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);margin-bottom:4px;font-size:13px;" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='var(--surface2)'">
+      <span style="font-family:'DM Mono',monospace;color:var(--accent);">${m.id}</span>
+      <span style="flex:1;color:var(--text2);">${m.name}</span>
+      ${status}
+    </div>`;
+  }).join('');
+}
+
+function applySuggestion(id) {
+  const inp = document.getElementById('manual-id-input');
+  if (inp) inp.value = id;
+  const sugg = document.getElementById('id-suggestions');
+  if (sugg) sugg.innerHTML = '';
+  const suggPhone = document.getElementById('id-suggestions-phone');
+  if (suggPhone) { suggPhone.innerHTML = ''; suggPhone.style.display='none'; }
+  processScannedId(id);
+}
+function onPhoneIdInput(el) {
+  const raw = el.value.trim();
+  const sugg = document.getElementById('id-suggestions-phone');
+  if (!sugg || raw.length < 1) { if (sugg) { sugg.style.display='none'; sugg.innerHTML=''; } return; }
+  const upper = raw.toUpperCase();
+  let matches = [];
+  if (/^\d+$/.test(upper)) {
+    const padded = 'FL-' + upper.padStart(4, '0');
+    matches = fixtures.filter(f => f.id === padded || f.id.startsWith('FL-' + upper));
+  } else {
+    matches = fixtures.filter(f => f.id.startsWith(upper) || f.name.toUpperCase().includes(upper));
+    const cMatches = containers.filter(c => c.id.startsWith(upper) || c.name.toUpperCase().includes(upper));
+    if (cMatches.length) matches = [...matches, ...cMatches.map(c => ({ ...c, _isBox: true }))];
+  }
+  matches = matches.slice(0, 6);
+  if (!matches.length) { sugg.style.display='none'; sugg.innerHTML=''; return; }
+  sugg.innerHTML = matches.map(m => {
+    const isBox = m._isBox;
+    const status = !isBox ? `<span class="sbadge ${m.status === 'available' ? 'available' : 'out'}" style="font-size:10px;padding:1px 6px;">${m.status === 'available' ? 'In' : 'Out'}</span>` : '';
+    return `<div onclick="applyPhoneSuggestion('${m.id}')" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background=''">
+      <span style="font-size:14px;">${isBox ? '📦' : '💡'}</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--accent);font-size:12px;">${m.id}</span>
+      <span style="flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.name}</span>
+      ${status}
+    </div>`;
+  }).join('');
+  sugg.style.display = 'block';
+}
+
+function applyPhoneSuggestion(id) {
+  const inp = document.getElementById('manual-id-input-phone');
+  if (inp) inp.value = id;
+  closePhoneSuggestions();
+  processScannedId(id);
+}
+
+function closePhoneSuggestions() {
+  const sugg = document.getElementById('id-suggestions-phone');
+  if (sugg) { sugg.style.display='none'; sugg.innerHTML=''; }
+}
+
 
 function processScannedId(raw) {
   // If a full URL was scanned, extract the fixture or box ID from it
@@ -4556,7 +4750,7 @@ function processScannedId(raw) {
       const cid = decodeURIComponent(boxParam);
       const c = containers.find(x => x.id === cid);
       if (c) { showPage('containers', document.getElementById('btab-containers') || document.getElementById('tab-containers')); setTimeout(() => openContainerDetail(cid), 200); }
-      else { notify('Case not found: ' + cid, 'error'); }
+      else { notify('Box not found: ' + cid, 'error'); }
       return;
     }
   } catch(e) { /* not a URL, treat as raw ID */ }
@@ -5551,7 +5745,7 @@ async function confirmCheckoutNote() {
       f.checkedOutBy = currentUser.id;
       f.checkedOutAt = ts;
       if (!f.comments) f.comments = [];
-      f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: `Checked out via case${note ? ' · ' + note : ''}`, action: 'checkout' });
+      f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: `Checked out via box${note ? ' · ' + note : ''}`, action: 'checkout' });
       const h = { ts, fixtureId: f.id, fixtureName: f.name, userId: currentUser.id, userName: currentUser.name, action: 'checkout', note };
       history.unshift(h);
       await saveData({ fixture: f, historyEntry: h });
@@ -5559,7 +5753,7 @@ async function confirmCheckoutNote() {
     closeModal('container-detail-modal');
     refreshCurrentPage();
     haptic('success');
-    notify(`↗ Checked out ${fixturesInBox.length} fixture${fixturesInBox.length !== 1 ? 's' : ''} from case`, 'success');
+    notify(`↗ Checked out ${fixturesInBox.length} fixture${fixturesInBox.length !== 1 ? 's' : ''} from box`, 'success');
     return;
   }
 
@@ -6221,7 +6415,7 @@ async function printSelectedQR() {
 function printAllQR() { window.print(); }
 
 // ═══════════════════════════════════════════════════════
-//  CONTAINERS (Cases & Boxes)
+//  CONTAINERS (Boxes)
 // ═══════════════════════════════════════════════════════
 let containers = JSON.parse(localStorage.getItem('luma:containers') || '[]');
 let containerCounter = containers.length ? Math.max(...containers.map(c => parseInt(c.id.replace('BOX-',''))||0)) + 1 : 1;
@@ -6252,7 +6446,7 @@ function renderContainersPage() {
   const el = document.getElementById('containers-list');
   if (!el) return;
   if (!containers.length) {
-    el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3);"><div style="font-size:48px;margin-bottom:16px;">📦</div><div style="font-size:16px;">No cases yet. Create one to start grouping fixtures.</div></div>';
+    el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3);"><div style="font-size:48px;margin-bottom:16px;">📦</div><div style="font-size:16px;">No boxes yet. Create one to start grouping fixtures.</div></div>';
     return;
   }
   el.innerHTML = containers.map(c => {
@@ -6345,7 +6539,7 @@ function toggleNcFixture(fid) {
 
 async function addContainer() {
   const name = document.getElementById('nc-name').value.trim();
-  if (!name) { notify('Case name is required', 'error'); return; }
+  if (!name) { notify('Box name is required', 'error'); return; }
   const id = 'BOX-' + String(containerCounter).padStart(4, '0');
   containerCounter++;
   const c = { id, name, desc: document.getElementById('nc-desc').value.trim(), createdAt: new Date().toISOString() };
@@ -6361,7 +6555,7 @@ async function addContainer() {
   await saveContainers();
   closeModal('add-container-modal');
   renderContainersPage();
-  notify('✓ Case created: ' + name, 'success');
+  notify('✓ Box created: ' + name, 'success');
   setTimeout(() => openContainerDetail(id), 200);
 }
 
@@ -6380,9 +6574,9 @@ function openContainerDetail(cid) {
   let caseActionBtn = '';
   if (fixturesInBox.length > 0) {
     if (allAvail) {
-      caseActionBtn = `<button class="btn btn-success" style="width:100%;justify-content:center;padding:12px;font-size:15px;" onclick="checkoutCase('${cid}')">↗ Check Out Entire Case</button>`;
+      caseActionBtn = `<button class="btn btn-success" style="width:100%;justify-content:center;padding:12px;font-size:15px;" onclick="checkoutCase('${cid}')">↗ Check Out Entire Box</button>`;
     } else if (allMine) {
-      caseActionBtn = `<button class="btn btn-danger" style="width:100%;justify-content:center;padding:12px;font-size:15px;" onclick="returnCase('${cid}')">↙ Return Entire Case</button>`;
+      caseActionBtn = `<button class="btn btn-danger" style="width:100%;justify-content:center;padding:12px;font-size:15px;" onclick="returnCase('${cid}')">↙ Return Entire Box</button>`;
     } else if (someOut) {
       caseActionBtn = `<div style="display:flex;gap:8px;flex-direction:column;">
         ${avail > 0 ? `<button class="btn btn-success" style="width:100%;justify-content:center;padding:11px;" onclick="checkoutCase('${cid}')">↗ Check Out Available (${avail})</button>` : ''}
@@ -6405,7 +6599,7 @@ function openContainerDetail(cid) {
       </div>
       ${caseActionBtn ? `<div style="margin-bottom:16px;">${caseActionBtn}</div>` : ''}
       <div style="background:#fff;border-radius:10px;padding:14px;display:inline-block;margin-bottom:14px;" id="cd-qr-wrap-${cid}"></div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:20px;">Scan this QR code to view all fixtures in this case</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:20px;">Scan this QR code to view all fixtures in this box</div>
     </div>
     ${fixturesInBox.length ? `
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:10px;">Fixtures in this case</div>
@@ -6419,9 +6613,9 @@ function openContainerDetail(cid) {
           <button class="btn btn-blue btn-sm" onclick="openDetailModal('${f.id}')">View</button>
         </div>`;
       }).join('')}
-    ` : '<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px 0;">No fixtures assigned to this case yet.<br><span style="font-size:12px;">Edit a fixture and set its Case/Box field.</span></div>'}
+    ` : '<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px 0;">No fixtures assigned to this box yet.<br><span style="font-size:12px;">Edit a fixture and set its Box field.</span></div>'}
     <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="btn btn-secondary btn-sm" onclick="printContainerLabel('${cid}')">🖨 Print Case Label</button>
+      <button class="btn btn-secondary btn-sm" onclick="printContainerLabel('${cid}')">🖨 Print Box Label</button>
       <button class="btn btn-secondary btn-sm" onclick="copyQRLink('container','${cid}')">🔗 Copy Link</button>
     </div>
   `;
@@ -6443,7 +6637,7 @@ async function checkoutCase(cid) {
   checkoutNoteFid = null;
   checkoutNoteBulk = [];
   document.getElementById('checkout-note-title').textContent =
-    `Check Out Case${c ? ' · ' + c.name : ''} (${fixturesInBox.length} fixture${fixturesInBox.length !== 1 ? 's' : ''})`;
+    `Check Out Box${c ? ' · ' + c.name : ''} (${fixturesInBox.length} fixture${fixturesInBox.length !== 1 ? 's' : ''})`;
   document.getElementById('checkout-note-fixture-info').innerHTML =
     fixturesInBox.slice(0, 4).map(f =>
       `<span class="fid" style="margin-right:4px;">${f.id}</span><span style="font-size:12px;color:var(--text2);">${f.name}</span>`
@@ -6464,7 +6658,7 @@ async function returnCase(cid) {
     f.checkedOutBy = null;
     f.checkedOutAt = null;
     if (!f.comments) f.comments = [];
-    f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: 'Returned via case', action: 'return' });
+    f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: 'Returned via box', action: 'return' });
     const h = logEvent(f, 'return');
     await saveData({ fixture: f, historyEntry: h });
   }
@@ -6481,7 +6675,7 @@ async function takeOverCase(cid) {
   for (const f of fixturesInBox) {
     const prev = users.find(x => x.id === f.checkedOutBy);
     if (!f.comments) f.comments = [];
-    f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: `taken from ${prev?.name || 'unknown'} via case`, action: 'transfer' });
+    f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: `taken from ${prev?.name || 'unknown'} via box`, action: 'transfer' });
     f.checkedOutBy = currentUser.id;
     f.checkedOutAt = ts;
     const h = logEvent(f, 'transfer');
@@ -6495,14 +6689,14 @@ async function takeOverCase(cid) {
 
 
 async function deleteContainer(cid) {
-  if (!confirm('Delete this case? Fixtures will remain but will be unassigned.')) return;
+  if (!confirm('Delete this box? Fixtures will remain but will be unassigned.')) return;
   containers = containers.filter(c => c.id !== cid);
   // Unassign fixtures
   fixtures.forEach(f => { if (f.containerId === cid) { f.containerId = null; saveData({ fixture: f }); } });
   await saveContainers();
   closeModal('container-detail-modal');
   renderContainersPage();
-  notify('Case deleted', 'info');
+  notify('Box deleted', 'info');
 }
 
 function printContainerLabel(cid) {
@@ -6540,7 +6734,7 @@ function printContainerLabel(cid) {
 }
 
 // ═══════════════════════════════════════════════════════
-//  CASE PRINT SELECT MODE
+//  BOX PRINT SELECT MODE
 // ═══════════════════════════════════════════════════════
 let casePrintMode = false;
 let casePrintSelected = new Set();
@@ -6592,7 +6786,7 @@ function clearCaseSelection() {
 }
 
 async function printSelectedCases() {
-  if (!casePrintSelected.size) { notify('No cases selected', 'error'); return; }
+  if (!casePrintSelected.size) { notify('No boxes selected', 'error'); return; }
   const ids = [...casePrintSelected];
   const overlay = document.createElement('div');
   overlay.id = 'print-single-overlay';
@@ -6658,7 +6852,7 @@ async function handleContainerScanLanding(forceCid) {
   if (fbDb) { dot.style.background = 'var(--green)'; }
   const body = document.getElementById('scan-landing-body');
   if (!c) {
-    body.innerHTML = `<div style="text-align:center;padding:60px 20px;"><div style="font-size:48px;">📦</div><div style="margin-top:16px;color:var(--text);">Case not found: ${cid}</div></div>`;
+    body.innerHTML = `<div style="text-align:center;padding:60px 20px;"><div style="font-size:48px;">📦</div><div style="margin-top:16px;color:var(--text);">Box not found: ${cid}</div></div>`;
     return true;
   }
   const fixturesInBox = fixtures.filter(f => f.containerId === cid);
@@ -6677,7 +6871,7 @@ async function handleContainerScanLanding(forceCid) {
           <span class="sbadge ${f.status==='available'?'available':'out'}" style="flex-shrink:0;">${f.status==='available'?'In':'Out'}</span>
           <span style="color:var(--text3);font-size:14px;">›</span>
         </div>`;
-      }).join('') : '<div style="color:var(--text3);font-size:13px;padding:12px 0;">No fixtures assigned to this case.</div>'}
+      }).join('') : '<div style="color:var(--text3);font-size:13px;padding:12px 0;">No fixtures assigned to this box.</div>'}
     </div>
     <button class="btn btn-secondary" style="width:100%;justify-content:center;padding:12px;" onclick="goToAppFromScan('${cid}')">Open in App</button>
   `;
@@ -6689,7 +6883,7 @@ async function handleContainerScanLanding(forceCid) {
 function populateNewContainerSelect() {
   const sel = document.getElementById('new-container');
   if (!sel) return;
-  sel.innerHTML = '<option value="">— Not in a case —</option>' +
+  sel.innerHTML = '<option value="">— Not in a box —</option>' +
     containers.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join('');
 }
 
@@ -6697,7 +6891,7 @@ function populateContainerSelect() {
   const sel = document.getElementById('ef-container');
   if (!sel) return;
   const cur = sel.value;
-  sel.innerHTML = '<option value="">— Not in a case —</option>' +
+  sel.innerHTML = '<option value="">— Not in a box —</option>' +
     containers.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join('');
   if (cur && containers.find(c => c.id === cur)) sel.value = cur;
 }
@@ -7075,7 +7269,7 @@ async function copyQRLink(type, id) {
 }
 
 // ═══════════════════════════════════════════════════════
-//  BATCH ADD FIXTURES TO CASE MODAL
+//  BATCH ADD FIXTURES TO BOX MODAL
 // ═══════════════════════════════════════════════════════
 let bafcSelectedCase = null;
 let bafcSelectedFixtures = new Set();
@@ -7093,16 +7287,16 @@ function openBatchAddFixturesToCase() {
   modal.innerHTML = `
     <div class="modal" style="max-width:580px;">
       <div class="modal-header">
-        <div class="modal-title">📦 Add Fixtures to a Case</div>
+        <div class="modal-title">📦 Add Fixtures to a Box</div>
         <button class="modal-close" onclick="document.getElementById('bafc-modal').remove()">×</button>
       </div>
       <div class="modal-body" style="max-height:75vh;overflow-y:auto;">
         <div class="form-group">
-          <label class="form-label">Select Case</label>
+          <label class="form-label">Select Box</label>
           <div style="position:relative;">
             <select class="form-input" id="bafc-case-select" onchange="bafcOnCaseChange()"
               style="-webkit-appearance:none;appearance:none;background:var(--surface2);cursor:pointer;padding-right:32px;">
-              <option value="">— Choose a case —</option>
+              <option value="">— Choose a box —</option>
               ${containers.map(c => {
                 const n = fixtures.filter(f => f.containerId === c.id).length;
                 return `<option value="${c.id}">${c.name} (${c.id}) · ${n} fixture${n!==1?'s':''}</option>`;
@@ -7123,7 +7317,7 @@ function openBatchAddFixturesToCase() {
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="document.getElementById('bafc-modal').remove()">Cancel</button>
-        <button class="btn btn-primary" id="bafc-add-btn" onclick="bafcConfirm()" style="display:none;">Add to Case</button>
+        <button class="btn btn-primary" id="bafc-add-btn" onclick="bafcConfirm()" style="display:none;">Add to Box</button>
       </div>
     </div>
   `;
@@ -7170,7 +7364,7 @@ function renderBafcList() {
   }
   if (countEl) countEl.textContent = bafcSelectedFixtures.size + ' fixture' + (bafcSelectedFixtures.size !== 1 ? 's' : '') + ' selected';
   if (addBtn) addBtn.style.display = bafcSelectedFixtures.size > 0 ? '' : 'none';
-  if (addBtn) addBtn.textContent = `Add ${bafcSelectedFixtures.size || ''} to Case`;
+  if (addBtn) addBtn.textContent = `Add ${bafcSelectedFixtures.size || ''} to Box`;
 }
 
 function bafcToggle(fid) {
@@ -7262,7 +7456,7 @@ function loginPageQuickScan() {
 }
 
 // ═══════════════════════════════════════════════════════
-//  CASE SCAN LANDING — FIXTURE DETAIL PANEL
+//  BOX SCAN LANDING — FIXTURE DETAIL PANEL
 // ═══════════════════════════════════════════════════════
 function scanLandingOpenFixture(fid, cid) {
   const f = fixtures.find(x => x.id === fid);
@@ -7290,7 +7484,7 @@ function scanLandingOpenFixture(fid, cid) {
       ${f.partNo ? `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text3);font-size:13px;">Part #</span><span style="font-size:13px;font-family:'DM Mono',monospace;">${f.partNo}</span></div>` : ''}
       ${f.specSheet ? `<div style="padding:8px 0;"><a href="${f.specSheet}" target="_blank" style="color:var(--accent);text-decoration:none;font-size:13px;">📄 View Spec Sheet ↗</a></div>` : ''}
     </div>
-    <button onclick="scanLandingBackToCase()" class="btn btn-secondary" style="width:100%;justify-content:center;padding:13px;">← Back to Case</button>
+    <button onclick="scanLandingBackToCase()" class="btn btn-secondary" style="width:100%;justify-content:center;padding:13px;">← Back to Box</button>
   `;
   document.getElementById('scan-landing').scrollTop = 0;
 }
