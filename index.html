@@ -124,10 +124,10 @@ overflow: hidden;
 /* Halo: fixed to viewport top-center, sized to glow over the logo text */
 #login-halo {
 position: fixed;
-top: 58%; left: 50%;
+top: 50%; left: 50%;
 transform: translate(-50%, -50%);
-width: 700px; height: 700px;
-background: radial-gradient(circle, rgba(245,200,66,0.45) 0%, rgba(245,200,66,0.20) 30%, rgba(245,200,66,0.06) 58%, transparent 74%);
+width: 130vmax; height: 130vmax;
+background: radial-gradient(circle, rgba(245,200,66,0.42) 0%, rgba(245,200,66,0.18) 28%, rgba(245,200,66,0.06) 55%, transparent 72%);
 pointer-events: none;
 z-index: 1;
 }
@@ -2344,47 +2344,99 @@ font-size: 11px; cursor: pointer; color: #000;
       </div>
       <div class="form-group">
         <label class="form-label">Avatar</label>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;max-height:120px;overflow-y:auto;" id="eu-avatar-picker">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;max-height:160px;overflow-y:auto;padding-right:4px;" id="eu-avatar-picker">
           <span class="av-opt" onclick="pickEditAvatar(this)">💡</span>
           <span class="av-opt" onclick="pickEditAvatar(this)">🔦</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🌟</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">⚡</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🎨</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🏗️</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🎯</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🌙</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🕯️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🔆</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎛️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎚️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">📡</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🖥️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">⚙️</span>
           <span class="av-opt" onclick="pickEditAvatar(this)">🔧</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🏠</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">👷</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🧑‍🎨</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🪩</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🎪</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🌈</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🔮</span>
           <span class="av-opt" onclick="pickEditAvatar(this)">🛠️</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🎭</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🏆</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🥇</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🪛</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🔩</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🧲</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">⚡</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🔋</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">💻</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">👷</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">👩‍💻</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">👨‍💻</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🧑‍🎨</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🧑‍🔧</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🧑‍🏭</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🕵️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🧙</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🦸</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎩</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🪄</span>
           <span class="av-opt" onclick="pickEditAvatar(this)">🦁</span>
           <span class="av-opt" onclick="pickEditAvatar(this)">🐯</span>
           <span class="av-opt" onclick="pickEditAvatar(this)">🦊</span>
           <span class="av-opt" onclick="pickEditAvatar(this)">🐺</span>
           <span class="av-opt" onclick="pickEditAvatar(this)">🦅</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🌊</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🦉</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🐉</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🦋</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🐸</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🦈</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🐬</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🦝</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🦦</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🐧</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🦜</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🐙</span>
           <span class="av-opt" onclick="pickEditAvatar(this)">🔥</span>
           <span class="av-opt" onclick="pickEditAvatar(this)">❄️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🌊</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">⚡</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🌪️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🌙</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">☀️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🌟</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">✨</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🌈</span>
           <span class="av-opt" onclick="pickEditAvatar(this)">🌿</span>
           <span class="av-opt" onclick="pickEditAvatar(this)">🍀</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🎸</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🎹</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🎺</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🎻</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🥁</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🎵</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🎶</span>
-          <span class="av-opt" onclick="pickEditAvatar(this)">🎤</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🌵</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🍄</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🌊</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🪸</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎨</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎭</span>
           <span class="av-opt" onclick="pickEditAvatar(this)">🎬</span>
           <span class="av-opt" onclick="pickEditAvatar(this)">📸</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎤</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎸</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎹</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🥁</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎺</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎻</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎵</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎶</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🪗</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🖌️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">✏️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">📐</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🚀</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🛸</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🏆</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎯</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎪</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎰</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🎲</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">♟️</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🪐</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">💎</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">👑</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🔮</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🪩</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🫧</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">🌀</span>
+          <span class="av-opt" onclick="pickEditAvatar(this)">☄️</span>
         </div>
       </div>
     </div>
@@ -3758,6 +3810,7 @@ setTimeout(() => window.print(), 150);
 //  ADMIN — USER MANAGEMENT
 // ═══════════════════════════════════════════════════════
 let selectedAv = ‘💡’;
+let selectedEditAv = ‘💡’;
 
 function renderUserList() {
 const el = document.getElementById(‘user-list’);
@@ -3778,14 +3831,23 @@ document.getElementById(‘nu-name’).value = ‘’;
 document.getElementById(‘nu-pin’).value = ‘’;
 document.getElementById(‘nu-role’).value = ‘user’;
 selectedAv = ‘💡’;
-document.querySelectorAll(’.av-opt’).forEach((el,i) => { el.style.border = i===0?‘2px solid var(–accent)’:‘2px solid transparent’; });
+const picker = document.getElementById(‘avatar-picker’);
+if (picker) picker.querySelectorAll(’.av-opt’).forEach((el, i) => el.classList.toggle(‘selected’, i === 0));
 openModal(‘add-user-modal’);
 }
 
 function pickAvatar(el) {
-document.querySelectorAll(’.av-opt’).forEach(a=>a.style.border=‘2px solid transparent’);
-el.style.border = ‘2px solid var(–accent)’;
-selectedAv = el.textContent;
+const picker = document.getElementById(‘avatar-picker’);
+if (picker) picker.querySelectorAll(’.av-opt’).forEach(a => a.classList.remove(‘selected’));
+el.classList.add(‘selected’);
+selectedAv = el.textContent.trim();
+}
+
+function pickEditAvatar(el) {
+const picker = document.getElementById(‘eu-avatar-picker’);
+if (picker) picker.querySelectorAll(’.av-opt’).forEach(a => a.classList.remove(‘selected’));
+el.classList.add(‘selected’);
+selectedEditAv = el.textContent.trim();
 }
 
 async function addUser() {
@@ -3810,6 +3872,14 @@ document.getElementById(‘eu-id’).value   = u.id;
 document.getElementById(‘eu-name’).value = u.name;
 document.getElementById(‘eu-pin’).value  = ‘’;
 document.getElementById(‘eu-role’).value = u.role;
+selectedEditAv = u.avatar || ‘💡’;
+// Highlight current avatar in picker
+const euPicker = document.getElementById(‘eu-avatar-picker’);
+if (euPicker) {
+euPicker.querySelectorAll(’.av-opt’).forEach(el => {
+el.classList.toggle(‘selected’, el.textContent.trim() === selectedEditAv);
+});
+}
 openModal(‘edit-user-modal’);
 }
 
