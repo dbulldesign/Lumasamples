@@ -256,6 +256,54 @@ body {
 }
 .pin-back-btn:hover { color: var(--text2); }
 
+/* ── PULL TO REFRESH ── */
+#ptr-indicator {
+  position: fixed;
+  top: 0; left: 50%;
+  transform: translateX(-50%) translateY(-60px);
+  z-index: 9000;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 8px 18px 8px 12px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 600; color: var(--text2);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  transition: transform 0.25s cubic-bezier(0.34,1.4,0.64,1), opacity 0.2s;
+  opacity: 0; pointer-events: none;
+  font-family: 'DM Sans', sans-serif;
+}
+#ptr-indicator.visible  { opacity: 1; }
+#ptr-indicator.ready    { color: var(--accent); }
+#ptr-indicator.loading  { transform: translateX(-50%) translateY(12px); opacity: 1; }
+#ptr-spinner { font-size: 16px; transition: transform 0.25s; }
+#ptr-indicator.loading #ptr-spinner { animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── OFFLINE BANNER ── */
+#offline-banner {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 9998;
+  background: #b45309;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'DM Mono', monospace;
+  text-align: center;
+  padding: 7px 16px;
+  letter-spacing: 0.03em;
+  animation: slideDownBanner 0.2s ease;
+}
+@keyframes slideDownBanner {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+body.offline-mode #offline-banner { display: block; }
+body.offline-mode header { margin-top: 34px; }
+body.offline-mode #bottom-tabs { padding-bottom: calc(env(safe-area-inset-bottom, 0px)); }
+
 /* ── HEADER ── */
 header {
   display: flex;
@@ -351,6 +399,14 @@ body.light-mode header.scrolled { box-shadow: 0 2px 16px rgba(0,0,0,0.12); }
 .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .nav-tab .tab-icon { font-size: 14px; }
 .nav-tab.admin-tab { color: rgba(96,165,250,0.5); }
+.nav-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--red); color: #fff;
+  font-size: 9px; font-weight: 700; font-family: 'DM Mono', monospace;
+  min-width: 15px; height: 15px; border-radius: 8px;
+  padding: 0 4px; margin-left: 5px; line-height: 1;
+  vertical-align: middle; pointer-events: none;
+}
 .nav-tab.admin-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
 .nav-tab.admin-tab:hover { color: var(--blue); }
 
@@ -520,7 +576,7 @@ body.oled-mode {
 
 /* ── TOOLBAR ── */
 .toolbar { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
-.search-box {
+.search-box { position: relative;
   flex: 1; min-width: 200px;
   display: flex; align-items: center;
   background: var(--surface);
@@ -528,6 +584,31 @@ body.oled-mode {
   border-radius: var(--radius-sm);
   padding: 0 14px; gap: 8px;
 }
+/* ── SEARCH HISTORY DROPDOWN ── */
+#search-history-drop {
+  position: absolute;
+  top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  z-index: 500;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  display: none;
+}
+#search-history-drop.open { display: block; }
+.sh-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; cursor: pointer;
+  font-size: 13px; color: var(--text2);
+  transition: background 0.1s;
+}
+.sh-row:hover { background: var(--surface3); color: var(--text); }
+.sh-icon { font-size: 12px; color: var(--text3); flex-shrink: 0; }
+.sh-clear { font-size: 11px; color: var(--text3); padding: 8px 14px;
+  cursor: pointer; text-align: right; border-top: 1px solid var(--border); }
+.sh-clear:hover { color: var(--red); }
+
 .search-box input {
   flex: 1; background: none; border: none; outline: none;
   color: var(--text); font-size: 14px; padding: 10px 0;
@@ -1446,6 +1527,8 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
      MAIN APP
 ════════════════════════════════════════ -->
 <div id="app" style="display:none;background:var(--bg);min-height:100vh;">
+  <div id="offline-banner">⚠ No internet connection — showing cached data</div>
+  <div id="ptr-indicator"><span id="ptr-spinner">↓</span><span id="ptr-label">Pull to refresh</span></div>
   <header>
     <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
       <div class="logo" onclick="showPage('home', document.querySelector('[data-page=home]'))" style="cursor:pointer;flex-shrink:0;">LumaSamples</div>
@@ -1466,7 +1549,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 
   <div class="nav-tabs" id="nav-tabs">
     <div class="nav-tab active" data-page="home" onclick="showPage('home',this)"><span class="tab-icon">🏠</span> Home</div>
-    <div class="nav-tab" data-page="library" onclick="showPage('library',this)"><span class="tab-icon">💡</span> Library</div>
+    <div class="nav-tab" data-page="library" onclick="showPage('library',this)"><span class="tab-icon">💡</span> Library<span class="nav-badge" id="library-nav-badge" style="display:none;"></span></div>
     <div class="nav-tab" id="tab-containers" data-page="containers" onclick="showPage('containers',this)"><span class="tab-icon">📦</span> Cases</div>
     <div class="nav-tab" data-page="history" onclick="showPage('history',this)"><span class="tab-icon">📋</span> History</div>
     <div class="nav-tab admin-tab" id="tab-add" data-page="add" onclick="showPage('add',this)" style="display:none;"><span class="tab-icon">➕</span> Add Fixture</div>
@@ -1497,7 +1580,12 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
       <div class="toolbar">
         <div class="search-box">
           <span style="color:var(--text3);">🔍</span>
-          <input type="text" id="search-input" placeholder="Search fixtures..." oninput="debounce('lib',renderLibrary,150)()">
+          <input type="text" id="search-input" placeholder="Search fixtures..."
+          oninput="debounce('lib',onSearchInput,150)()"
+          onfocus="showSearchHistory()"
+          onblur="setTimeout(hideSearchHistory,180)"
+          autocomplete="off">
+        <div id="search-history-drop"></div>
         </div>
         <select class="filter-select" id="filter-status" onchange="renderLibrary()">
           <option value="">All Status</option>
@@ -2016,6 +2104,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
   </button>
   <button class="btab" id="btab-library" onclick="showPage('library',this)">
     <span class="btab-icon">💡</span>Library
+    <span class="btab-badge" id="library-badge" style="display:none;"></span>
   </button>
   <button class="btab" id="btab-containers" onclick="showPage('containers',this)">
     <span class="btab-icon">📦</span>Cases
@@ -3304,6 +3393,7 @@ function loginSuccess(user) {
   // Non-admin settings tab
   const btabSetup = document.getElementById('btab-setup');
   if (btabSetup) btabSetup.style.display = isAdmin ? 'none' : '';
+  updateLibraryBadge();
   showPage('home', document.querySelector('[data-page="home"]'));
   loadContainers();
   checkPendingScan();
@@ -3716,6 +3806,7 @@ function updateCasesBadge() {
 }
 
 function refreshCurrentPage() {
+  updateLibraryBadge();
   const active = document.querySelector('.page.active');
   if (!active) return;
   const id = active.id.replace('page-','');
@@ -3724,6 +3815,150 @@ function refreshCurrentPage() {
   if (id==='history')   renderHistory();
   if (id==='containers') renderContainersPage();
   if (id==='admin')     { renderAdminFixtures(); renderForceReturn(); renderOverdueReport(); }
+}
+
+// ── Pull to refresh ──
+(function() {
+  let startY = 0, currentY = 0, pulling = false, triggered = false;
+  const THRESHOLD = 72; // px to trigger refresh
+
+  function getMainEl() { return document.querySelector('main'); }
+
+  document.addEventListener('touchstart', e => {
+    const main = getMainEl();
+    if (!main || main.scrollTop > 0) return; // only when at top
+    if (!document.body.classList.contains('app-visible')) return;
+    startY = e.touches[0].clientY;
+    pulling = true; triggered = false;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!pulling) return;
+    const main = getMainEl();
+    if (!main || main.scrollTop > 0) { pulling = false; return; }
+    currentY = e.touches[0].clientY;
+    const dy = Math.max(0, currentY - startY);
+    if (dy < 4) return;
+    const ind = document.getElementById('ptr-indicator');
+    const lbl = document.getElementById('ptr-label');
+    const spin = document.getElementById('ptr-spinner');
+    if (!ind) return;
+    // Rubber-band the pull distance
+    const pull = Math.min(dy * 0.45, 56);
+    ind.style.transform = `translateX(-50%) translateY(${pull - 60}px)`;
+    ind.classList.add('visible');
+    if (dy > THRESHOLD && !triggered) {
+      ind.classList.add('ready');
+      if (lbl) lbl.textContent = 'Release to refresh';
+      if (spin) spin.textContent = '↑';
+    } else if (dy <= THRESHOLD) {
+      ind.classList.remove('ready');
+      if (lbl) lbl.textContent = 'Pull to refresh';
+      if (spin) spin.textContent = '↓';
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', async () => {
+    if (!pulling) return;
+    pulling = false;
+    const dy = currentY - startY;
+    const ind = document.getElementById('ptr-indicator');
+    const lbl = document.getElementById('ptr-label');
+    const spin = document.getElementById('ptr-spinner');
+    if (dy > THRESHOLD && ind) {
+      triggered = true;
+      ind.classList.add('loading');
+      ind.classList.remove('ready');
+      if (lbl) lbl.textContent = 'Refreshing…';
+      if (spin) spin.textContent = '↻';
+      // Perform refresh
+      try {
+        if (window.fbDb) {
+          const snap = await fbGet('lumasamples');
+          if (snap && snap.exists()) applyRemoteData(snap.val());
+        }
+        refreshCurrentPage();
+        notify('Refreshed', 'success');
+      } catch(e) { notify('Refresh failed', 'error'); }
+      await new Promise(r => setTimeout(r, 600));
+      ind.classList.remove('loading', 'visible');
+      ind.style.transform = '';
+    } else if (ind) {
+      ind.classList.remove('visible', 'ready');
+      ind.style.transform = '';
+    }
+  });
+})();
+
+// ── Recent search history ──
+const SEARCH_HIST_KEY = 'luma:searchHistory';
+const MAX_SEARCH_HIST = 8;
+
+function loadSearchHistory() {
+  try { return JSON.parse(localStorage.getItem(SEARCH_HIST_KEY) || '[]'); } catch { return []; }
+}
+function saveSearchTerm(term) {
+  if (!term || term.length < 2) return;
+  let hist = loadSearchHistory().filter(h => h !== term);
+  hist.unshift(term);
+  hist = hist.slice(0, MAX_SEARCH_HIST);
+  try { localStorage.setItem(SEARCH_HIST_KEY, JSON.stringify(hist)); } catch {}
+}
+function clearSearchHistory() {
+  try { localStorage.removeItem(SEARCH_HIST_KEY); } catch {}
+  hideSearchHistory();
+}
+function showSearchHistory() {
+  const hist = loadSearchHistory();
+  const drop = document.getElementById('search-history-drop');
+  if (!drop || !hist.length) return;
+  const q = (document.getElementById('search-input').value || '').trim();
+  const filtered = q ? hist.filter(h => h.toLowerCase().includes(q.toLowerCase())) : hist;
+  if (!filtered.length) { drop.classList.remove('open'); return; }
+  drop.innerHTML = filtered.map(h =>
+    `<div class="sh-row" onmousedown="applySearchTerm('${h.replace(/'/g,"\'")}')">`+
+    `<span class="sh-icon">🕐</span>${h}</div>`
+  ).join('') + `<div class="sh-clear" onmousedown="clearSearchHistory()">Clear history</div>`;
+  drop.classList.add('open');
+}
+function hideSearchHistory() {
+  const drop = document.getElementById('search-history-drop');
+  if (drop) drop.classList.remove('open');
+}
+function applySearchTerm(term) {
+  const inp = document.getElementById('search-input');
+  if (inp) { inp.value = term; renderLibrary(); }
+  hideSearchHistory();
+}
+function onSearchInput() {
+  renderLibrary();
+  showSearchHistory();
+  // Save non-trivial searches with a small debounce
+  const term = (document.getElementById('search-input').value || '').trim();
+  if (term.length >= 2) {
+    clearTimeout(window._searchSaveTimer);
+    window._searchSaveTimer = setTimeout(() => saveSearchTerm(term), 1200);
+  }
+}
+
+// ── Offline mode detection ──
+function setOfflineMode(isOffline) {
+  document.body.classList.toggle('offline-mode', isOffline);
+}
+window.addEventListener('online',  () => setOfflineMode(false));
+window.addEventListener('offline', () => setOfflineMode(true));
+// Set initial state
+if (!navigator.onLine) setOfflineMode(true);
+
+function updateLibraryBadge() {
+  const count = fixtures.filter(f => f.status === 'out').length;
+  const show = count > 0;
+  ['library-badge','library-nav-badge'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = count;
+    el.style.display = show ? '' : 'none';
+  });
 }
 
 function buildCommentListHTML(f) {
