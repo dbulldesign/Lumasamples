@@ -1565,7 +1565,7 @@ body.is-tablet .login-enter-id-desktop { display: none !important; }
         placeholder="Fixture ID or Box ID…"
         style="background:none;border:none;outline:none;color:var(--text);font-size:13px;font-family:'DM Mono',monospace;letter-spacing:0.3px;width:100%;min-width:0;padding:5px 0;"
         oninput="this.value=this.value.toUpperCase();loginDesktopIdInput(this)"
-        onkeydown="if(event.key='Enter'){closeLoginSuggestions();loginDesktopGo()}"
+        onkeydown="if(event.key==='Enter'){closeLoginSuggestions();loginDesktopGo()}"
         onblur="setTimeout(closeLoginSuggestions,200)"
         autocomplete="off" autocorrect="off" spellcheck="false">
       <button onclick="closeLoginSuggestions();loginDesktopGo()" style="background:var(--accent);color:#000;border:none;border-radius:7px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;flex-shrink:0;">Go</button>
@@ -2349,7 +2349,7 @@ body.is-tablet .login-enter-id-desktop { display: none !important; }
         <input class="form-input" id="manual-id-input-phone" placeholder="e.g. 42 or FL-0042 or BOX-001"
           style="flex:1;text-transform:uppercase;"
           oninput="this.value=this.value.toUpperCase();onPhoneIdInput(this)"
-          onkeydown="if(event.key='Enter'){closePhoneSuggestions();processManualId('phone')}"
+          onkeydown="if(event.key==='Enter'){closePhoneSuggestions();processManualId('phone')}"
           onblur="setTimeout(closePhoneSuggestions,200)"
           autocomplete="off" spellcheck="false">
         <button class="btn btn-secondary" onclick="closePhoneSuggestions();processManualId('phone')">Go</button>
@@ -7512,6 +7512,7 @@ renderLoginScreen();
 }
 
 init();
+</script>
 
 <!-- ═══════════════════════════════════════════════════════
      IN-APP MOBILE/TABLET SCAN SHEET
@@ -7573,6 +7574,5 @@ init();
 
   </div>
 </div>
-</script>
 </body>
 </html>
