@@ -4705,6 +4705,13 @@ function processScannedId(raw) {
     }
   } catch(e) { /* not a URL, treat as raw ID */ }
   const f = fixtures.find(x=>x.id===id);
+  // On phone the scan modal is never open — open detail modal directly
+  if (document.body.classList.contains('is-phone')) {
+    closeScanModal();
+    if (f) openDetailModal(f.id);
+    else notify('Fixture "' + id + '" not found', 'error');
+    return;
+  }
   const el = document.getElementById('scan-result');
   el.style.display = 'block';
   if (!f) { el.innerHTML=`<div style="color:var(--red);">❌ Fixture "${id}" not found.</div>`; return; }
