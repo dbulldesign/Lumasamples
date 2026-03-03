@@ -1533,17 +1533,6 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
   </div>
 </div>
 
-<!-- ── LOGIN LIVE QR SCANNER OVERLAY ── -->
-<div id="login-qr-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:#000;">
-  <video id="login-qr-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>
-  <canvas id="login-qr-canvas" style="display:none;"></canvas>
-  <div style="position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;">
-    <div style="width:240px;height:240px;border:3px solid #f5c842;border-radius:20px;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);"></div>
-  </div>
-  <div id="login-qr-status" style="position:absolute;bottom:120px;left:0;right:0;text-align:center;font-size:15px;color:#fff;font-family:'DM Sans',sans-serif;text-shadow:0 1px 6px rgba(0,0,0,0.9);">Point camera at QR code</div>
-  <button onclick="closeLoginQrScanner()" style="position:absolute;top:max(20px,env(safe-area-inset-top,20px));right:20px;background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:24px;border-radius:50%;width:44px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
-</div>
-
 <!-- ═══════════════════════════════════════
      MAIN APP
 ════════════════════════════════════════ -->
@@ -3309,7 +3298,7 @@ function openLoginDetail(fid) {
   setTimeout(() => {
     const el = document.getElementById('ldm-qr-' + f.id);
     if (el && !el.querySelector('canvas')) {
-      new QRCode(el, { text: fixtureUrl(f.id), width: 125, height: 125, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+      new QRCode(el, { text: fixtureUrl(f.id), width: 160, height: 160, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
     }
   }, 60);
 }
@@ -4088,7 +4077,7 @@ function openDetailModal(fid) {
   setTimeout(() => {
     const el = document.getElementById('detail-qr-'+f.id);
     if (el && !el.querySelector('canvas')) {
-      new QRCode(el, { text:fixtureUrl(f.id), width:138, height:138, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
+      new QRCode(el, { text:fixtureUrl(f.id), width:180, height:180, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
     }
   }, 60);
 }
@@ -4180,7 +4169,7 @@ async function addFixture() {
   document.getElementById('new-qr-name-text').textContent = f.name;
   const qrEl = document.getElementById('new-qr-code');
   qrEl.innerHTML = '';
-  new QRCode(qrEl, { text:fixtureUrl(f.id), width:188, height:188, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
+  new QRCode(qrEl, { text:fixtureUrl(f.id), width:220, height:220, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.H });
   // Reset form
   ['new-name','new-brand','new-partno','new-wattage','new-voltage','new-location','new-specsheet','new-output-wattage'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('new-fixtype').value='';
@@ -6584,7 +6573,7 @@ function openContainerDetail(cid) {
   setTimeout(() => {
     const el = document.getElementById('cd-qr-wrap-' + cid);
     if (el && !el.querySelector('canvas')) {
-      new QRCode(el, { text: containerUrl(cid), width: 150, height: 150, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+      new QRCode(el, { text: containerUrl(cid), width: 200, height: 200, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
     }
   }, 80);
 }
@@ -7392,8 +7381,11 @@ function _inAppQrScanLoop() {
   const canvas = document.getElementById('login-qr-canvas');
   if (!video || !canvas) return;
   if (video.readyState === video.HAVE_ENOUGH_DATA) {
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // Scan at 480px wide max — plenty for QR, much faster than full res
+    const SCAN_W = 480;
+    const scale = Math.min(1, SCAN_W / video.videoWidth);
+    canvas.width  = Math.round(video.videoWidth  * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -7447,12 +7439,12 @@ function loginPageQuickScan() {
 function _loginQrScanLoop() {
   const video = document.getElementById('login-qr-video');
   const canvas = document.getElementById('login-qr-canvas');
-  const statusEl = document.getElementById('login-qr-status');
   if (!video || !canvas) return;
-
   if (video.readyState === video.HAVE_ENOUGH_DATA) {
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    const SCAN_W = 480;
+    const scale = Math.min(1, SCAN_W / video.videoWidth);
+    canvas.width  = Math.round(video.videoWidth  * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -7621,5 +7613,16 @@ async function init() {
 
 init();
 </script>
+
+<!-- ── QR SCANNER OVERLAY (shared: login + in-app) ── -->
+<div id="login-qr-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:#000;">
+  <video id="login-qr-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>
+  <canvas id="login-qr-canvas" style="display:none;"></canvas>
+  <div style="position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;">
+    <div style="width:260px;height:260px;border:3px solid #f5c842;border-radius:20px;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);"></div>
+  </div>
+  <div id="login-qr-status" style="position:absolute;bottom:120px;left:0;right:0;text-align:center;font-size:15px;color:#fff;font-family:'DM Sans',sans-serif;text-shadow:0 1px 6px rgba(0,0,0,0.9);">Point camera at QR code</div>
+  <button onclick="closeLoginQrScanner()" style="position:absolute;top:max(20px,env(safe-area-inset-top,20px));right:20px;background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:24px;border-radius:50%;width:44px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+</div>
 </body>
 </html>
