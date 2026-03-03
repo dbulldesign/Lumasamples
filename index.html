@@ -2972,10 +2972,10 @@ function applyRemoteData(data) {
   else if ('fixtureTypes' in data) fixtureTypes = [];
   if (data.containers) containers = Object.values(data.containers);
   else if ('containers' in data) containers = [];
-  // History: always sync — if key is absent or null (remote delete), clear locally too
-  if (data.history)   history   = Object.values(data.history)
+  // History: update if present; if explicitly null (cleared remotely), reset to []
+  if (data.history)        history = Object.values(data.history)
     .sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 500);
-  else                history   = []; // key absent = was deleted remotely
+  else if (data.history === null) history = [];
   if (data.counter) {
     const rc = parseInt(data.counter);
     if (!isNaN(rc) && rc > fixtureCounter) fixtureCounter = rc;
@@ -4913,7 +4913,8 @@ async function clearHistory() {
   await storeSet(KEY_HISTORY, JSON.stringify([]));
   if (fbDb) {
     try {
-      await fbDb.ref('lumasamples/history').remove();
+      // Set to null so Firebase listener fires on all devices with data.history === null
+      await fbDb.ref('lumasamples/history').set(null);
       notify('✓ History cleared from Firebase + local storage', 'success');
     } catch(e) {
       notify('✓ Local history cleared (Firebase error: ' + e.message + ')', 'info');
