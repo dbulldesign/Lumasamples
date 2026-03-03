@@ -1533,6 +1533,17 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
   </div>
 </div>
 
+<!-- ── LOGIN LIVE QR SCANNER OVERLAY ── -->
+<div id="login-qr-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:#000;">
+  <video id="login-qr-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>
+  <canvas id="login-qr-canvas" style="display:none;"></canvas>
+  <div style="position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;">
+    <div style="width:240px;height:240px;border:3px solid #f5c842;border-radius:20px;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);"></div>
+  </div>
+  <div id="login-qr-status" style="position:absolute;bottom:120px;left:0;right:0;text-align:center;font-size:15px;color:#fff;font-family:'DM Sans',sans-serif;text-shadow:0 1px 6px rgba(0,0,0,0.9);">Point camera at QR code</div>
+  <button onclick="closeLoginQrScanner()" style="position:absolute;top:max(20px,env(safe-area-inset-top,20px));right:20px;background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:24px;border-radius:50%;width:44px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+</div>
+
 <!-- ═══════════════════════════════════════
      MAIN APP
 ════════════════════════════════════════ -->
@@ -7344,8 +7355,79 @@ async function bafcConfirm() {
 // ═══════════════════════════════════════════════════════
 //  LOGIN PAGE QUICK SCAN
 // ═══════════════════════════════════════════════════════
+let _loginQrStream = null;
+let _loginQrLoop = null;
+
 function loginPageQuickScan() {
-  // Use native camera via hidden file input — instant, no permission loop, iOS native quality
+  const overlay = document.getElementById('login-qr-overlay');
+  if (!overlay) return;
+  overlay.style.display = 'block';
+  const statusEl = document.getElementById('login-qr-status');
+  const video = document.getElementById('login-qr-video');
+
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+    .then(stream => {
+      _loginQrStream = stream;
+      video.srcObject = stream;
+      video.play();
+      _loginQrScanLoop();
+    })
+    .catch(() => {
+      // Camera permission denied — fall back to file input
+      overlay.style.display = 'none';
+      _loginQrFallback();
+    });
+}
+
+function _loginQrScanLoop() {
+  const video = document.getElementById('login-qr-video');
+  const canvas = document.getElementById('login-qr-canvas');
+  const statusEl = document.getElementById('login-qr-status');
+  if (!video || !canvas) return;
+
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+    if (code) {
+      closeLoginQrScanner();
+      _loginQrNavigate(code.data.trim());
+      return;
+    }
+  }
+  _loginQrLoop = requestAnimationFrame(_loginQrScanLoop);
+}
+
+function closeLoginQrScanner() {
+  if (_loginQrLoop) { cancelAnimationFrame(_loginQrLoop); _loginQrLoop = null; }
+  if (_loginQrStream) { _loginQrStream.getTracks().forEach(t => t.stop()); _loginQrStream = null; }
+  const overlay = document.getElementById('login-qr-overlay');
+  if (overlay) overlay.style.display = 'none';
+  const video = document.getElementById('login-qr-video');
+  if (video) { video.srcObject = null; }
+}
+
+function _loginQrNavigate(raw) {
+  let redirect = '';
+  try {
+    const url = new URL(raw);
+    const fParam = url.searchParams.get('f');
+    const boxParam = url.searchParams.get('box');
+    if (fParam) redirect = '?f=' + encodeURIComponent(fParam);
+    else if (boxParam) redirect = '?box=' + encodeURIComponent(boxParam);
+  } catch(e) {
+    if (raw.startsWith('BOX-')) redirect = '?box=' + encodeURIComponent(raw);
+    else redirect = '?f=' + encodeURIComponent(raw);
+  }
+  if (redirect) window.location.href = window.location.pathname + redirect + '&from=login';
+  else notify('QR code not recognised', 'error');
+}
+
+function _loginQrFallback() {
+  // Fallback to file-based QR scan if camera unavailable
   let inp = document.getElementById('login-camera-input');
   if (!inp) {
     inp = document.createElement('input');
@@ -7358,47 +7440,18 @@ function loginPageQuickScan() {
       const file = this.files && this.files[0];
       if (!file) return;
       this.value = '';
-      // Show processing indicator
-      const btn = document.getElementById('login-scan-btn');
-      const origText = btn ? btn.innerHTML : '';
-      if (btn) btn.innerHTML = '<span style="font-size:16px;">⏳</span> Reading…';
       try {
         const bitmap = await createImageBitmap(file);
         const canvas = document.createElement('canvas');
-        const MAX = 1024;
-        const scale = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
-        canvas.width  = Math.round(bitmap.width  * scale);
+        const scale = Math.min(1, 1024 / Math.max(bitmap.width, bitmap.height));
+        canvas.width = Math.round(bitmap.width * scale);
         canvas.height = Math.round(bitmap.height * scale);
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        let code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-        if (!code) code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'onlyInvert' });
-
-        if (btn) btn.innerHTML = origText;
-
-        if (code) {
-          // Navigate to the deep-link landing page
-          let raw = code.data.trim();
-          let redirect = '';
-          try {
-            const url = new URL(raw);
-            const fParam = url.searchParams.get('f');
-            const boxParam = url.searchParams.get('box');
-            if (fParam) redirect = '?f=' + encodeURIComponent(fParam);
-            else if (boxParam) redirect = '?box=' + encodeURIComponent(boxParam);
-          } catch(e) {
-            if (raw.startsWith('BOX-')) redirect = '?box=' + encodeURIComponent(raw);
-            else redirect = '?f=' + encodeURIComponent(raw);
-          }
-          if (redirect) window.location.href = window.location.pathname + redirect;
-        } else {
-          if (btn) btn.innerHTML = origText;
-          alert('No QR code found in photo. Try again with better lighting.');
-        }
-      } catch(e) {
-        if (btn) btn.innerHTML = origText;
-      }
+        canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
+        if (code) _loginQrNavigate(code.data.trim());
+        else notify('No QR code found in photo', 'error');
+      } catch(e) {}
     });
     document.body.appendChild(inp);
   }
