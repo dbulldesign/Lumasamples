@@ -4501,10 +4501,9 @@ async function forceReturn(fid) {
 //  QR SCANNER
 // ═══════════════════════════════════════════════════════
 function openScanModal() {
-  // On phone: skip the modal, go straight to camera
+  // On phone: open live QR scanner overlay
   if (document.body.classList.contains('is-phone')) {
-    const inp = document.getElementById('qr-camera-input');
-    if (inp) { inp.value = ''; inp.click(); }
+    openInAppLiveScanner();
     return;
   }
   openModal('scan-modal');
@@ -7355,6 +7354,70 @@ async function bafcConfirm() {
 // ═══════════════════════════════════════════════════════
 //  LOGIN PAGE QUICK SCAN
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  IN-APP LIVE QR SCANNER (phone scan button inside app)
+// ═══════════════════════════════════════════════════════
+let _inAppQrStream = null;
+let _inAppQrLoop = null;
+
+function openInAppLiveScanner() {
+  // Reuse the login overlay element — works from inside the app too
+  const overlay = document.getElementById('login-qr-overlay');
+  if (!overlay) return;
+  // Swap the close button behavior to handle in-app context
+  overlay.setAttribute('data-context', 'inapp');
+  overlay.style.display = 'block';
+  const video = document.getElementById('login-qr-video');
+  const statusEl = document.getElementById('login-qr-status');
+  if (statusEl) statusEl.textContent = 'Point camera at QR code';
+
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+    .then(stream => {
+      _inAppQrStream = stream;
+      video.srcObject = stream;
+      video.play();
+      _inAppQrScanLoop();
+    })
+    .catch(() => {
+      overlay.style.display = 'none';
+      // Camera denied — open the ID entry modal
+      openModal('scan-modal');
+      const inp = document.getElementById('manual-id-input');
+      if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 80); }
+    });
+}
+
+function _inAppQrScanLoop() {
+  const video = document.getElementById('login-qr-video');
+  const canvas = document.getElementById('login-qr-canvas');
+  if (!video || !canvas) return;
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+    if (code) {
+      _closeInAppQrScanner();
+      haptic('success');
+      processScannedId(code.data.trim());
+      return;
+    }
+  }
+  _inAppQrLoop = requestAnimationFrame(_inAppQrScanLoop);
+}
+
+function _closeInAppQrScanner() {
+  if (_inAppQrLoop) { cancelAnimationFrame(_inAppQrLoop); _inAppQrLoop = null; }
+  if (_inAppQrStream) { _inAppQrStream.getTracks().forEach(t => t.stop()); _inAppQrStream = null; }
+  const overlay = document.getElementById('login-qr-overlay');
+  if (overlay) overlay.style.display = 'none';
+  const video = document.getElementById('login-qr-video');
+  if (video) video.srcObject = null;
+}
+
+
 let _loginQrStream = null;
 let _loginQrLoop = null;
 
@@ -7373,9 +7436,11 @@ function loginPageQuickScan() {
       _loginQrScanLoop();
     })
     .catch(() => {
-      // Camera permission denied — fall back to file input
+      // Camera denied — open ID entry modal (same as desktop)
       overlay.style.display = 'none';
-      _loginQrFallback();
+      openModal('scan-modal');
+      const inp = document.getElementById('manual-id-input');
+      if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 80); }
     });
 }
 
@@ -7402,12 +7467,14 @@ function _loginQrScanLoop() {
 }
 
 function closeLoginQrScanner() {
+  // Stop whichever scanner is active
+  _closeInAppQrScanner();
   if (_loginQrLoop) { cancelAnimationFrame(_loginQrLoop); _loginQrLoop = null; }
   if (_loginQrStream) { _loginQrStream.getTracks().forEach(t => t.stop()); _loginQrStream = null; }
   const overlay = document.getElementById('login-qr-overlay');
   if (overlay) overlay.style.display = 'none';
   const video = document.getElementById('login-qr-video');
-  if (video) { video.srcObject = null; }
+  if (video) video.srcObject = null;
 }
 
 function _loginQrNavigate(raw) {
