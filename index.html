@@ -1480,6 +1480,39 @@ body.is-tablet .login-enter-id-desktop { display: none !important; }
 </style>
 </head>
 <body>
+<script>
+// Early JS diagnostic + safety patch
+window._jsWorks = true;
+// If main script fails, this fallback makes the static admin card work
+window.setTimeout(function() {
+  if (typeof startPinEntry === 'undefined') {
+    // Main script failed - patch onclick manually
+    var grid = document.getElementById('login-user-grid');
+    if (grid) {
+      var cards = grid.querySelectorAll('[onclick]');
+      cards.forEach(function(c) {
+        var uid = c.getAttribute('onclick').match(/'([^']+)'/);
+        if (uid) c.addEventListener('click', function() {
+          // Show pin entry manually
+          document.getElementById('login-user-grid').style.display = 'none';
+          var pe = document.getElementById('pin-entry');
+          if (pe) {
+            pe.style.display = 'block';
+            var avatar = document.getElementById('pin-avatar');
+            var name = document.getElementById('pin-name');
+            if (avatar) avatar.textContent = '⚙️';
+            if (name) name.textContent = 'Admin (PIN: 4116)';
+            // Show pin dots and pad
+            var hint = pe.querySelector('.pin-hint');
+            if (hint) hint.textContent = 'JS failed to load — tap here to reload';
+            pe.onclick = function() { window.location.reload(true); };
+          }
+        });
+      });
+    }
+  }
+}, 1500);
+</script>
 
 <!-- ═══════════════════════════════════════
      LOGIN SCREEN
