@@ -6192,7 +6192,7 @@ function printAllQR() { window.print(); }
 // ═══════════════════════════════════════════════════════
 //  CONTAINERS (Boxes)
 // ═══════════════════════════════════════════════════════
-let containers = JSON.parse(localStorage.getItem(‘luma:containers’) || ‘[]’);
+let containers; try { containers = JSON.parse(localStorage.getItem(‘luma:containers’) || ‘[]’); } catch(e) { containers = []; }
 let containerCounter = containers.length ? Math.max(…containers.map(c => parseInt(c.id.replace(‘BOX-’,’’))||0)) + 1 : 1;
 
 function containerUrl(id) {
@@ -7499,7 +7499,7 @@ async function init() {
 initTheme();
 detectAndApplyLayout();
 window.addEventListener(‘resize’, detectAndApplyLayout);
-
+try {
 // Check for container scan (?box=BOX-xxxx)
 const isContainerScan = await handleContainerScanLanding();
 if (isContainerScan) return;
@@ -7508,10 +7508,21 @@ const isDeepLink = await handleScanLanding();
 if (isDeepLink) return;
 await loadData();
 await loadContainers();
+} catch(e) {
+console.error(‘LumaSamples init error:’, e);
+// Even if something failed, still try to render login with whatever data we have
+ensureAdmin();
+}
 renderLoginScreen();
 }
 
+// Safety net: if the page is already loaded when this runs, call init() now
+// Otherwise wait for DOMContentLoaded
+if (document.readyState === ‘loading’) {
+document.addEventListener(‘DOMContentLoaded’, init);
+} else {
 init();
+}
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
