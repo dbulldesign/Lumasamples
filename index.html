@@ -2929,25 +2929,25 @@ let fbUnsubscribe = null;
 let _fbRefreshTimer = null;
 function fbStartListening() {
   fbStopListening();
-  fbDb.ref('lumasamples').on('value',
-    snap => {
-      if (!snap.exists()) return;
-      applyRemoteData(snap.val());
-      // Debounce renders — Firebase fires rapidly on multi-field writes
-      clearTimeout(_fbRefreshTimer);
-      _fbRefreshTimer = setTimeout(() => {
-        localSave();
-        refreshCurrentPage();
-        // Only re-render login when it's actually showing
-        const loginVisible = document.getElementById('login-screen') &&
-          document.getElementById('login-screen').style.display !== 'none';
-        if (loginVisible) renderLoginScreen();
-        setSyncStatus('synced', 'Live · ' + new Date().toLocaleTimeString());
-      }, 400);
-    },
-    err => setSyncStatus('error', 'Firebase: ' + err.message)
-  );
-  fbUnsubscribe = () => fbDb.ref('lumasamples').off('value');
+  const ref = fbDb.ref('lumasamples');
+  const handler = snap => {
+    // snap.val() is null if the whole node was deleted; treat as empty object
+    const data = (snap.exists() && snap.val()) ? snap.val() : {};
+    applyRemoteData(data);
+    // Debounce renders — Firebase fires rapidly on multi-field writes
+    clearTimeout(_fbRefreshTimer);
+    _fbRefreshTimer = setTimeout(() => {
+      localSave();
+      refreshCurrentPage();
+      // Only re-render login when it's actually showing
+      const loginVisible = document.getElementById('login-screen') &&
+        document.getElementById('login-screen').style.display !== 'none';
+      if (loginVisible) renderLoginScreen();
+      setSyncStatus('synced', 'Live · ' + new Date().toLocaleTimeString());
+    }, 400);
+  };
+  ref.on('value', handler, err => setSyncStatus('error', 'Firebase: ' + err.message));
+  fbUnsubscribe = () => ref.off('value', handler);
 }
 
 function fbStopListening() {
@@ -2956,18 +2956,26 @@ function fbStopListening() {
 
 // ── Apply remote snapshot to local state ──
 function applyRemoteData(data) {
+  // Use 'in' checks so that deleted keys (null from Firebase) still clear local data
   if (data.fixtures)  fixtures  = Object.values(data.fixtures).map(f => { delete f._txt; return normalizeFixture(f); });
+  else if ('fixtures' in data)  fixtures  = [];
   markAllDirty(); // remote sync replaced local data — must re-persist on next save
   if (data.users)     users     = Object.values(data.users).map(normalizeUser);
+  else if ('users' in data)     users     = [];
   if (data.locations) locations = Array.isArray(data.locations)
     ? data.locations.filter(Boolean)
     : Object.values(data.locations).filter(Boolean);
+  else if ('locations' in data) locations = [];
   if (data.fixtureTypes) fixtureTypes = Array.isArray(data.fixtureTypes)
     ? data.fixtureTypes.filter(Boolean)
     : Object.values(data.fixtureTypes).filter(Boolean);
+  else if ('fixtureTypes' in data) fixtureTypes = [];
   if (data.containers) containers = Object.values(data.containers);
+  else if ('containers' in data) containers = [];
+  // History: always sync — if key is absent or null (remote delete), clear locally too
   if (data.history)   history   = Object.values(data.history)
     .sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 500);
+  else                history   = []; // key absent = was deleted remotely
   if (data.counter) {
     const rc = parseInt(data.counter);
     if (!isNaN(rc) && rc > fixtureCounter) fixtureCounter = rc;
