@@ -2607,6 +2607,15 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
         <div class="form-group"></div>
       </div>
       <div class="form-group">
+        <label class="form-label">Box</label>
+        <div style="position:relative;">
+          <select class="form-input" id="ef-container" style="padding-right:32px;-webkit-appearance:none;appearance:none;background:var(--surface2);cursor:pointer;">
+            <option value="">— Not in a box —</option>
+          </select>
+          <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;font-size:12px;">▾</span>
+        </div>
+      </div>
+      <div class="form-group">
         <label class="form-label">Spec Sheet URL</label>
         <input class="form-input" id="ef-specsheet" placeholder="https://… (link to PDF or product page)" type="url">
       </div>
@@ -3953,7 +3962,7 @@ function openDetailModal(fid) {
         <div style="margin-bottom:10px;"><span class="fid">${f.id}</span> <span class="sbadge ${f.status==='available'?'available':'out'}" style="margin-left:8px;">${f.status==='available'?'Available':'Checked Out'}</span></div>
         <div style="font-size:18px;font-weight:700;margin-bottom:12px;">${f.name}</div>
         <table style="font-size:13px;border-collapse:collapse;">
-          ${drow('Part #',f.partNo)}${drow('Brand',f.brand)}${drow('Fixture Type', f.fixtureType || f.category)}${drow('Wattage',f.wattage)}${drow('Finish',f.finish)}${drow('Location',f.location)}${drowCase('Case',f.containerId)}${drow('Notes',f.notes)}${drowLink('Spec Sheet',f.specSheet)}
+          ${drow('Part #',f.partNo)}${drow('Brand',f.brand)}${drow('Fixture Type', f.fixtureType || f.category)}${drow('Wattage',f.wattage)}${drow('Finish',f.finish)}${drow('Location',f.location)}${drowCase('Box',f.containerId,f.id)}${drow('Notes',f.notes)}${drowLink('Spec Sheet',f.specSheet)}
           ${u?`<tr><td style="padding:5px 0;color:var(--text3);width:80px;">With</td><td style="padding:5px 0;color:var(--red);">${u.avatar} ${u.name} · ${timeAgo(f.checkedOutAt)}</td></tr>`:''}
           ${(()=>{const lastCo=history.find(h=>h.fixtureId===f.id&&h.action==='checkout'&&h.note);return lastCo?`<tr><td style="padding:5px 0;color:var(--text3);width:80px;">Last job</td><td style="padding:5px 0;font-size:12px;color:var(--text2);">${lastCo.note}</td></tr>`:''})()}
         </table>
@@ -3987,11 +3996,12 @@ function openDetailModal(fid) {
 }
 
 function drow(l,v) { return v ? `<tr><td style="padding:5px 0;color:var(--text3);width:80px;">${l}</td><td style="padding:5px 0;">${v}</td></tr>` : ''; }
-function drowCase(l, cid) {
-  if (!cid) return '';
-  const c = containers.find(x => x.id === cid);
-  if (!c) return '';
-  return `<tr><td style="padding:5px 0;color:var(--text3);width:80px;">${l}</td><td style="padding:5px 0;"><span style="cursor:pointer;color:var(--blue);font-size:13px;" onclick="closeModal('detail-modal');setTimeout(()=>openContainerDetail('${cid}'),100);">📦 ${c.name}</span></td></tr>`;
+function drowCase(l, cid, fid) {
+  const c = cid ? containers.find(x => x.id === cid) : null;
+  if (c) {
+    return `<tr><td style="padding:5px 0;color:var(--text3);width:80px;">${l}</td><td style="padding:5px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="cursor:pointer;color:var(--blue);font-size:13px;" onclick="closeModal('detail-modal');setTimeout(()=>openContainerDetail('${cid}'),100);">📦 ${c.name}</span><button class="btn btn-secondary btn-sm" onclick="openAssignBoxFromDetail('${fid}')">Change</button></td></tr>`;
+  }
+  return `<tr><td style="padding:5px 0;color:var(--text3);width:80px;">${l}</td><td style="padding:5px 0;"><button class="btn btn-secondary btn-sm" onclick="openAssignBoxFromDetail('${fid}')">+ Assign to Box</button></td></tr>`;
 }
 function drowLink(l,v) { return v ? `<tr><td style="padding:5px 0;color:var(--text3);width:80px;">${l}</td><td style="padding:5px 0;"><a href="${v}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:5px;font-size:13px;">📄 View Spec Sheet <span style="font-size:10px;opacity:0.7;">↗</span></a></td></tr>` : ''; }
 
@@ -6472,12 +6482,23 @@ function openContainerDetail(cid) {
           ${u ? `<span style="font-size:11px;color:var(--text2);">${u.avatar||'👤'} ${u.name}</span>` : ''}
           <span class="sbadge ${f.status==='available'?'available':'out'}">${f.status==='available'?'In':'Out'}</span>
           <button class="btn btn-blue btn-sm" onclick="openDetailModal('${f.id}')">View</button>
+          <button class="btn btn-secondary btn-sm" onclick="removeFixtureFromBox('${f.id}','${cid}')" title="Remove from box">✕</button>
         </div>`;
       }).join('')}
-    ` : '<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px 0;">No fixtures assigned to this case yet.<br><span style="font-size:12px;">Edit a fixture and set its Case/Box field.</span></div>'}
+    ` : '<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px 0;">No fixtures in this box yet.</div>'}
     <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="btn btn-secondary btn-sm" onclick="printContainerLabel('${cid}')">🖨 Print Case Label</button>
+      <button class="btn btn-secondary btn-sm" onclick="printContainerLabel('${cid}')">🖨 Print Box Label</button>
       <button class="btn btn-secondary btn-sm" onclick="copyQRLink('container','${cid}')">🔗 Copy Link</button>
+    </div>
+    <div style="margin-top:14px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:8px;">Add Fixture to Box</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <select id="cd-add-fixture-sel" style="flex:1;min-width:140px;padding:8px 10px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;">
+          <option value="">— Select fixture —</option>
+          ${fixtures.filter(f => !f.containerId || f.containerId === '').map(f => `<option value="${f.id}">${f.id} · ${f.name}</option>`).join('')}
+        </select>
+        <button class="btn btn-blue btn-sm" onclick="addFixtureToBoxFromDetail('${cid}')">+ Add</button>
+      </div>
     </div>
   `;
   openModal('container-detail-modal');
@@ -6487,6 +6508,39 @@ function openContainerDetail(cid) {
       new QRCode(el, { text: containerUrl(cid), width: 150, height: 150, colorDark: '#111', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
     }
   }, 80);
+}
+
+async function removeFixtureFromBox(fid, cid) {
+  const f = fixtures.find(x => x.id === fid);
+  if (!f) return;
+  f.containerId = '';
+  await saveData({ fixture: f });
+  openContainerDetail(cid);
+  notify('Fixture removed from box', 'info');
+}
+
+async function addFixtureToBoxFromDetail(cid) {
+  const sel = document.getElementById('cd-add-fixture-sel');
+  if (!sel || !sel.value) { notify('Select a fixture first', 'error'); return; }
+  const f = fixtures.find(x => x.id === sel.value);
+  if (!f) return;
+  f.containerId = cid;
+  await saveData({ fixture: f });
+  openContainerDetail(cid);
+  notify('✓ Fixture added to box', 'success');
+}
+
+function openAssignBoxFromDetail(fid) {
+  // Close detail modal and open edit modal on the box field
+  closeModal('detail-modal');
+  setTimeout(() => {
+    openEditFixture(fid);
+    // Scroll to container field after modal opens
+    setTimeout(() => {
+      const sel = document.getElementById('ef-container');
+      if (sel) sel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 200);
+  }, 150);
 }
 
 async function checkoutCase(cid) {
@@ -6752,7 +6806,7 @@ function populateContainerSelect() {
   const sel = document.getElementById('ef-container');
   if (!sel) return;
   const cur = sel.value;
-  sel.innerHTML = '<option value="">— Not in a case —</option>' +
+  sel.innerHTML = '<option value="">— Not in a box —</option>' +
     containers.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join('');
   if (cur && containers.find(c => c.id === cur)) sel.value = cur;
 }
