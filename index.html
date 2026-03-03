@@ -1117,7 +1117,7 @@ body.is-phone .ulc-name { font-size: 15px; }
 /* table/section/login-screen mobile via @media (max-width:580px) */
 /* login-screen padding handled by base CSS */
 
-/* Login page — device-specific scan/enter-id controls */
+/* Login page — device scan/enter-id controls */
 body:not(.is-phone):not(.is-tablet) .login-scan-mobile { display: none !important; }
 body.is-phone .login-enter-id-desktop,
 body.is-tablet .login-enter-id-desktop { display: none !important; }
@@ -1588,13 +1588,7 @@ font-size: 11px; cursor: pointer; color: #000;
 
   <!-- User selection -->
 
-  <div id="login-user-grid" class="user-cards">
-    <div class="user-login-card admin-card" onclick="startPinEntry('admin-1')">
-      <span class="ulc-avatar">⚙️</span>
-      <div class="ulc-name">Admin</div>
-      <span class="ulc-role admin">admin</span>
-    </div>
-  </div>
+  <div id="login-user-grid" class="user-cards"></div>
   <div id="pin-entry" style="display:none;" class="pin-screen">
     <div class="pin-header">
       <div class="pin-avatar" id="pin-avatar"></div>
@@ -1621,7 +1615,7 @@ font-size: 11px; cursor: pointer; color: #000;
       <button class="pin-key" onclick="pinPress('0')">0</button>
       <button class="pin-key del" onclick="pinBackspace()">⌫</button>
     </div>
-    <button class="pin-back-btn" onclick="showUserSelect()" style="margin-top:24px;padding:14px 8px;">← Back</button>
+    <button class="pin-back-btn" onclick="showUserSelect()">← Back</button>
   </div>
 </div>
 
@@ -2862,7 +2856,7 @@ const DEFAULT_FIX_TYPES = [‘Downlight’,‘Uplight’,‘Wall Sconce’,‘Pe
 const DEFAULT_LOCATIONS = [‘Shelf A-1’,‘Shelf A-2’,‘Shelf B-1’,‘Shelf B-2’,‘Shelf B-3’,‘Shelf C-1’,‘Shelf C-2’,‘Storage Room’,‘Display Floor’,‘Front Desk’,‘Back Office’];
 
 let fixtures  = [];
-let users     = [{id:‘admin-1’,name:‘Admin’,pin:‘4116’,role:‘admin’,avatar:‘⚙️’}]; // pre-seeded; overwritten by localLoad()
+let users     = [];
 let history   = [];
 let locations = [];
 let fixtureTypes = [];
@@ -3356,9 +3350,6 @@ if (!isNaN(n) && n >= fixtureCounter) fixtureCounter = n + 1;
 //  LOGIN / PIN
 // ═══════════════════════════════════════════════════════
 function renderLoginScreen() {
-// Don’t reset UI if user is mid-PIN entry
-const pinEntry = document.getElementById(‘pin-entry’);
-if (pinEntry && pinEntry.style.display !== ‘none’) return;
 const grid = document.getElementById(‘login-user-grid’);
 if (!grid) return;
 // Safety: if users somehow empty, show just Admin default
@@ -3399,27 +3390,13 @@ return `<div class="login-co-row" onclick="openLoginDetail('${f.id}')" style="cu
 }
 
 function startPinEntry(uid) {
-try {
 pinTarget = users.find(u => u.id === uid);
-if (!pinTarget) {
-// Users not loaded yet — try admin fallback
-pinTarget = { id:‘admin-1’, name:‘Admin’, pin:‘4116’, role:‘admin’, avatar:‘⚙️’ };
-}
 pinBuffer = ‘’;
 document.getElementById(‘pin-avatar’).textContent = pinTarget.avatar;
 document.getElementById(‘pin-name’).textContent = pinTarget.name;
 updatePinDots();
 document.getElementById(‘login-user-grid’).style.display = ‘none’;
 document.getElementById(‘pin-entry’).style.display = ‘block’;
-// Hide scan button & co-board during PIN entry to prevent layout shifts
-const scanBtn = document.getElementById(‘login-scan-btn’);
-if (scanBtn) scanBtn.style.visibility = ‘hidden’;
-const coBoard = document.getElementById(‘login-co-board’);
-if (coBoard) coBoard.style.visibility = ‘hidden’;
-} catch(e) {
-// Show visible error so we can diagnose
-alert(’startPinEntry error: ’ + e.message + ‘\nuid=’ + uid + ‘\npinTarget=’ + JSON.stringify(pinTarget));
-}
 }
 
 function showUserSelect() {
@@ -3427,11 +3404,6 @@ pinBuffer = ‘’;
 pinTarget = null;
 document.getElementById(‘pin-entry’).style.display = ‘none’;
 document.getElementById(‘login-user-grid’).style.display = ‘grid’;
-// Restore scan button & co-board
-const scanBtn = document.getElementById(‘login-scan-btn’);
-if (scanBtn) scanBtn.style.visibility = ‘’;
-const coBoard = document.getElementById(‘login-co-board’);
-if (coBoard) coBoard.style.visibility = ‘’;
 }
 
 function pinPress(digit) {
@@ -6186,7 +6158,7 @@ function printAllQR() { window.print(); }
 // ═══════════════════════════════════════════════════════
 //  CONTAINERS (Cases & Boxes)
 // ═══════════════════════════════════════════════════════
-let containers; try { containers = JSON.parse(localStorage.getItem(‘luma:containers’) || ‘[]’); } catch(e) { containers = []; }
+let containers = JSON.parse(localStorage.getItem(‘luma:containers’) || ‘[]’);
 let containerCounter = containers.length ? Math.max(…containers.map(c => parseInt(c.id.replace(‘BOX-’,’’))||0)) + 1 : 1;
 
 function containerUrl(id) {
@@ -6559,7 +6531,6 @@ await loadContainers();
 const c = containers.find(x => x.id === cid);
 document.getElementById(‘scan-landing’).style.display = ‘block’;
 document.getElementById(‘login-screen’).style.display = ‘none’; document.getElementById(‘login-halo’).style.display = ‘none’;
-// Show back button if navigated from login page scan
 const fromLoginC = new URLSearchParams(window.location.search).get(‘from’) === ‘login’;
 const backBtnC = document.getElementById(‘scan-landing-back-btn’);
 if (backBtnC) backBtnC.style.display = fromLoginC ? ‘flex’ : ‘none’;
@@ -6580,6 +6551,19 @@ ${u ? `<span style="font-size:11px;color:var(--text2);">${u.avatar||'👤'}</spa
 </div>`; }).join('') : '<div style="color:var(--text3);font-size:13px;padding:12px 0;">No fixtures assigned to this case.</div>'} </div> <button class="btn btn-secondary" style="width:100%;justify-content:center;padding:12px;" onclick="goToAppFromScan('${cid}')">Open in App</button> `;
 cleanScanUrl();
 return true;
+}
+
+// Populate container
+
+function scanLandingGoBack() {
+closeLmsCamera();
+document.getElementById(‘scan-landing’).style.display = ‘none’;
+document.getElementById(‘login-screen’).style.display = ‘’;
+const halo = document.getElementById(‘login-halo’);
+if (halo) halo.style.display = ‘’;
+if (window.history && window.history.replaceState) {
+window.history.replaceState({}, ‘’, window.location.pathname);
+}
 }
 
 // Populate container dropdown in edit fixture modal
@@ -6647,17 +6631,6 @@ const f = fixtures.find(x => x.id === fid);
 renderScanLanding(f, fid);
 cleanScanUrl();
 return true;
-}
-
-function scanLandingGoBack() {
-closeLmsCamera();
-document.getElementById(‘scan-landing’).style.display = ‘none’;
-document.getElementById(‘login-screen’).style.display = ‘’;
-const halo = document.getElementById(‘login-halo’);
-if (halo) halo.style.display = ‘’;
-if (window.history && window.history.replaceState) {
-window.history.replaceState({}, ‘’, window.location.pathname);
-}
 }
 
 function renderScanLanding(f, fid) {
@@ -7412,6 +7385,63 @@ renderGsStatus();
 }
 
 // ═══════════════════════════════════════════════════════
+//  CASE SCAN LANDING — FIXTURE DETAIL PANEL
+// ═══════════════════════════════════════════════════════
+function scanLandingOpenFixture(fid, cid) {
+const f = fixtures.find(x => x.id === fid);
+if (!f) return;
+const u = f.checkedOutBy ? users.find(x => x.id === f.checkedOutBy) : null;
+
+// Build detail panel over scan-landing-body
+const body = document.getElementById(‘scan-landing-body’);
+const savedScrollY = document.getElementById(‘scan-landing’).scrollTop;
+body.setAttribute(‘data-case-scroll’, savedScrollY);
+body.setAttribute(‘data-case-id’, cid);
+
+body.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);background:var(--accent-dim);display:inline-block;padding:3px 8px;border-radius:5px;margin-bottom:8px;">${f.id}</div> <div style="font-size:22px;font-weight:700;margin-bottom:4px;">${f.name}</div> ${f.brand ?`<div style="font-size:13px;color:var(--text2);margin-bottom:12px;">${f.brand}</div>`: ''} <div style="margin-bottom:16px;"> <span class="sbadge ${f.status==='available'?'available':'out'}" style="font-size:12px;">${f.status==='available'?'Available':'Checked Out'}</span> ${u ?`<span style="font-size:13px;color:var(--text2);margin-left:10px;">${u.avatar||‘👤’} ${u.name}</span>`: ''} </div> <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:20px;"> ${f.fixtureType||f.category ?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text3);font-size:13px;">Type</span><span style="font-size:13px;">${f.fixtureType||f.category}</span></div>`: ''} ${f.wattage ?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text3);font-size:13px;">Wattage</span><span style="font-size:13px;">${f.wattage}</span></div>`: ''} ${f.location ?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text3);font-size:13px;">Location</span><span style="font-size:13px;">${f.location}</span></div>`: ''} ${f.partNo ?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text3);font-size:13px;">Part #</span><span style="font-size:13px;font-family:'DM Mono',monospace;">${f.partNo}</span></div>`: ''} ${f.specSheet ?`<div style="padding:8px 0;"><a href="${f.specSheet}" target="_blank" style="color:var(--accent);text-decoration:none;font-size:13px;">📄 View Spec Sheet ↗</a></div>`: ''} </div> <button onclick="scanLandingBackToCase()" class="btn btn-secondary" style="width:100%;justify-content:center;padding:13px;">← Back to Case</button>`;
+document.getElementById(‘scan-landing’).scrollTop = 0;
+}
+
+function scanLandingBackToCase() {
+const body = document.getElementById(‘scan-landing-body’);
+const cid = body.getAttribute(‘data-case-id’) || _activeCaseLandingId;
+const scrollY = parseInt(body.getAttribute(‘data-case-scroll’) || ‘0’);
+if (cid) {
+handleContainerScanLanding(cid).then(() => {
+setTimeout(() => { document.getElementById(‘scan-landing’).scrollTop = scrollY; }, 50);
+});
+}
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADMIN INLINE FIREBASE CONNECT
+// ═══════════════════════════════════════════════════════
+async function adminConnectFirebase() {
+const input = document.getElementById(‘admin-project-id’);
+const feedback = document.getElementById(‘admin-connect-feedback’);
+const pid = (input?.value || ‘’).trim();
+if (!pid) { notify(‘Enter a Firebase Project ID’, ‘error’); return; }
+// Mirror to setup field and reuse connectFromSetup logic
+const setupInput = document.getElementById(‘setup-project-id’);
+if (setupInput) setupInput.value = pid;
+feedback.style.display = ‘block’;
+feedback.style.background = ‘var(–surface3)’;
+feedback.textContent = ‘Connecting…’;
+try {
+await connectFromSetup();
+feedback.style.display = ‘none’;
+} catch(e) {
+feedback.style.background = ‘var(–red-dim)’;
+feedback.textContent = ’Connection failed: ’ + e.message;
+}
+}
+
+function adminDisconnectFirebase() {
+disconnectFromSetup();
+renderGsStatus();
+}
+
+// ═══════════════════════════════════════════════════════
 function openInAppScanSheet() {
 const overlay = document.getElementById(‘inapp-scan-sheet-overlay’);
 const sheet   = document.getElementById(‘inapp-scan-sheet’);
@@ -7545,21 +7575,19 @@ async function init() {
 initTheme();
 detectAndApplyLayout();
 window.addEventListener(‘resize’, detectAndApplyLayout);
-try {
+
+// Check for container scan (?box=BOX-xxxx)
 const isContainerScan = await handleContainerScanLanding();
 if (isContainerScan) return;
+// Check for native camera QR scan link (?f=FL-xxxx)
 const isDeepLink = await handleScanLanding();
 if (isDeepLink) return;
 await loadData();
 await loadContainers();
-} catch(e) {
-console.error(‘LumaSamples init error:’, e);
-ensureAdmin();
-}
 renderLoginScreen();
 }
 
-init().catch(e => console.error(‘init failed:’, e));
+init();
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
