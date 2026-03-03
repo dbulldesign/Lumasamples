@@ -2956,16 +2956,16 @@ function fbStopListening() {
 
 // ── Apply remote snapshot to local state ──
 function applyRemoteData(data) {
-  if (data.fixtures)  fixtures  = Object.values(data.fixtures).map(f => { delete f._txt; return normalizeFixture(f); });
+  if (data.fixtures)  fixtures  = Object.values(data.fixtures).filter(Boolean).map(f => { delete f._txt; return normalizeFixture(f); });
   markAllDirty(); // remote sync replaced local data — must re-persist on next save
-  if (data.users)     users     = Object.values(data.users).map(normalizeUser);
+  if (data.users)     users     = Object.values(data.users).filter(Boolean).map(normalizeUser);
   if (data.locations) locations = Array.isArray(data.locations)
     ? data.locations.filter(Boolean)
     : Object.values(data.locations).filter(Boolean);
   if (data.fixtureTypes) fixtureTypes = Array.isArray(data.fixtureTypes)
     ? data.fixtureTypes.filter(Boolean)
     : Object.values(data.fixtureTypes).filter(Boolean);
-  if (data.containers) containers = Object.values(data.containers);
+  if (data.containers) containers = Object.values(data.containers).filter(Boolean);
   if (data.history)   history   = Object.values(data.history)
     .sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 500);
   if (data.counter) {
