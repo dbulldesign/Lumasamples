@@ -1584,9 +1584,15 @@ body.is-tablet .login-enter-id-desktop { display: none !important; }
     <div id="login-co-list"></div>
   </div>
 
-  <!-- User selection -->
+  <!-- User selection (pre-seeded so admin shows even before JS runs) -->
 
-  <div id="login-user-grid" class="user-cards"></div>
+  <div id="login-user-grid" class="user-cards">
+    <div class="user-login-card admin-card" onclick="startPinEntry('admin-1')">
+      <span class="ulc-avatar">⚙️</span>
+      <div class="ulc-name">Admin</div>
+      <span class="ulc-role admin">admin</span>
+    </div>
+  </div>
   <div id="pin-entry" style="display:none;" class="pin-screen">
     <div class="pin-header">
       <div class="pin-avatar" id="pin-avatar"></div>
@@ -3349,11 +3355,17 @@ if (!isNaN(n) && n >= fixtureCounter) fixtureCounter = n + 1;
 // ═══════════════════════════════════════════════════════
 function renderLoginScreen() {
 const grid = document.getElementById(‘login-user-grid’);
-if (!grid) return;
+if (!grid) {
+// Grid not found - try to create it
+console.error(‘login-user-grid not found in DOM!’);
+return;
+}
 // Safety: if users somehow empty, show just Admin default
-if (!users || users.length === 0) {
+if (!users || !Array.isArray(users) || users.length === 0) {
 users = [{ id:‘admin-1’, name:‘Admin’, pin:‘4116’, role:‘admin’, avatar:‘⚙️’ }];
 }
+// Force grid visible
+grid.style.display = ‘grid’;
 grid.innerHTML = users.map(u => `<div class="user-login-card ${u.role==='admin'?'admin-card':''}" onclick="startPinEntry('${u.id}')"> <span class="ulc-avatar">${u.avatar}</span> <div class="ulc-name">${u.name}</div> <span class="ulc-role ${u.role}">${u.role}</span> </div>`).join(’’);
 renderLoginCheckedOut();
 }
@@ -7516,13 +7528,20 @@ ensureAdmin();
 renderLoginScreen();
 }
 
-// Safety net: if the page is already loaded when this runs, call init() now
-// Otherwise wait for DOMContentLoaded
-if (document.readyState === ‘loading’) {
-document.addEventListener(‘DOMContentLoaded’, init);
-} else {
-init();
+// Call init directly — login-user-grid is in the DOM before this script runs
+init().catch(e => console.error(‘init failed:’, e));
+
+// Hard fallback: if grid is still empty after 800ms, force-render users
+setTimeout(function() {
+var grid = document.getElementById(‘login-user-grid’);
+var loginVisible = document.getElementById(‘login-screen’) &&
+document.getElementById(‘login-screen’).style.display !== ‘none’ &&
+getComputedStyle(document.getElementById(‘login-screen’)).display !== ‘none’;
+if (grid && !grid.children.length && loginVisible) {
+if (!users || !users.length) users = [{id:‘admin-1’,name:‘Admin’,pin:‘4116’,role:‘admin’,avatar:‘⚙️’}];
+renderLoginScreen();
 }
+}, 800);
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
