@@ -2090,7 +2090,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
   <div class="gs-box">
     <div class="gs-input-row">
       <span style="font-size:18px;color:var(--text3);">🔍</span>
-      <input class="gs-input" id="gs-input" placeholder="Search fixtures, IDs, locations, brands..." oninput="runGlobalSearch()" autocomplete="off">
+      <input class="gs-input" id="gs-input" placeholder="Search fixtures, boxes, IDs, locations, brands…" oninput="runGlobalSearch()" autocomplete="off">
       <button onclick="closeGlobalSearch()" style="background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:0 4px;">×</button>
     </div>
     <div class="gs-results" id="gs-results">
@@ -5537,35 +5537,66 @@ function runGlobalSearch() {
   const q = (document.getElementById('gs-input').value || '').toLowerCase().trim();
   const res = document.getElementById('gs-results');
   if (!q) {
-    res.innerHTML = '<div class="gs-empty">Start typing to search everything…</div>';
+    res.innerHTML = '<div class="gs-empty">Start typing to search fixtures and boxes…</div>';
     return;
   }
-  const matched = fixtures.filter(f => {
+
+  const matchedFixtures = fixtures.filter(f => {
     const txt = [f.id, f.name, f.brand, f.fixtureType, f.category, f.location, f.partNo, f.notes].join(' ').toLowerCase();
     return txt.includes(q);
   }).slice(0, 20);
 
-  if (!matched.length) {
-    res.innerHTML = '<div class="gs-empty">No fixtures found for "' + q + '"</div>';
+  const matchedBoxes = containers.filter(c => {
+    const txt = [c.id, c.name, c.desc].join(' ').toLowerCase();
+    return txt.includes(q);
+  }).slice(0, 10);
+
+  if (!matchedFixtures.length && !matchedBoxes.length) {
+    res.innerHTML = '<div class="gs-empty">No results for "' + q + '"</div>';
     return;
   }
-  res.innerHTML = '<div class="gs-section-label">Fixtures (' + matched.length + ')</div>' +
-    matched.map(f => {
-      const u = f.checkedOutBy ? users.find(x => x.id === f.checkedOutBy) : null;
-      return `<div class="gs-result" onclick="gsOpenFixture('${f.id}')">
-        <span class="gs-result-id">${f.id}</span>
-        <span class="gs-result-name">${f.name}</span>
-        <span class="gs-result-meta">${[f.fixtureType||f.category, f.location].filter(Boolean).join(' · ')} ${f.status==='out'?(u?'· 👤 '+u.name:'· Out'):'· Available'}</span>
-        <span class="sbadge ${f.status==='available'?'available':'out'}" style="flex-shrink:0;">${f.status==='available'?'✓':'Out'}</span>
-      </div>`;
-    }).join('');
+
+  let html = '';
+
+  if (matchedFixtures.length) {
+    html += '<div class="gs-section-label">Fixtures (' + matchedFixtures.length + ')</div>' +
+      matchedFixtures.map(f => {
+        const u = f.checkedOutBy ? users.find(x => x.id === f.checkedOutBy) : null;
+        return `<div class="gs-result" onclick="gsOpenFixture('${f.id}')">
+          <span class="gs-result-id">${f.id}</span>
+          <span class="gs-result-name">${f.name}</span>
+          <span class="gs-result-meta">${[f.fixtureType||f.category, f.location].filter(Boolean).join(' · ')} ${f.status==='out'?(u?'· 👤 '+u.name:'· Out'):'· Available'}</span>
+          <span class="sbadge ${f.status==='available'?'available':'out'}" style="flex-shrink:0;">${f.status==='available'?'✓':'Out'}</span>
+        </div>`;
+      }).join('');
+  }
+
+  if (matchedBoxes.length) {
+    html += '<div class="gs-section-label" style="margin-top:' + (matchedFixtures.length ? '12px' : '0') + '">Boxes (' + matchedBoxes.length + ')</div>' +
+      matchedBoxes.map(c => {
+        const count = fixtures.filter(f => f.containerId === c.id).length;
+        const out = fixtures.filter(f => f.containerId === c.id && f.status === 'out').length;
+        return `<div class="gs-result" onclick="gsOpenBox('${c.id}')">
+          <span class="gs-result-id">📦 ${c.id}</span>
+          <span class="gs-result-name">${c.name}</span>
+          <span class="gs-result-meta">${count} fixture${count!==1?'s':''} · ${out} out</span>
+        </div>`;
+      }).join('');
+  }
+
+  res.innerHTML = html;
 }
 
 function gsOpenFixture(fid) {
   closeGlobalSearch();
-  // Navigate to library and open detail
   showPage('library', document.querySelector('[data-page="library"]'));
   setTimeout(() => openDetailModal(fid), 100);
+}
+
+function gsOpenBox(cid) {
+  closeGlobalSearch();
+  showPage('containers', document.getElementById('btab-containers') || document.getElementById('tab-containers'));
+  setTimeout(() => openContainerDetail(cid), 200);
 }
 
 // ═══════════════════════════════════════════════════════
