@@ -656,8 +656,8 @@ transition: all 0.15s; white-space: nowrap;
 /* Desktop/tablet: show text label; phone: show camera icon */
 body:not(.is-phone):not(.is-tablet) .scan-btn-label::before { content: ‘Enter ID’; font-size: 13px; }
 body:not(.is-phone):not(.is-tablet) .scan-btn-label { font-size: 0; } /* hide emoji on desktop */
-body.is-phone .scan-btn-label { font-size: 18px; } /* show emoji on phone */
 body.is-tablet .scan-btn-label { font-size: 18px; } /* show emoji on tablet */
+body.is-phone .scan-btn-label { font-size: 18px; } /* show emoji on phone */
 .btn-sync { background: var(–surface3); border: 1px solid var(–border2); color: var(–text2); padding: 5px 10px; font-size: 16px; border-radius: 10px; min-width: 36px; }
 .btn-sync:hover { border-color: var(–text3); color: var(–text); }
 .btn-sync.syncing { color: var(–accent); border-color: rgba(245,200,66,0.4); animation: syncPulse 1s infinite; }
@@ -1116,6 +1116,11 @@ body.is-phone .ulc-name { font-size: 15px; }
 
 /* table/section/login-screen mobile via @media (max-width:580px) */
 /* login-screen padding handled by base CSS */
+
+/* Login page — device-specific scan/enter-id controls */
+body:not(.is-phone):not(.is-tablet) .login-scan-mobile { display: none !important; }
+body.is-phone .login-enter-id-desktop,
+body.is-tablet .login-enter-id-desktop { display: none !important; }
 body.is-phone .pin-screen { max-width: 300px; }
 body.is-phone .pin-pad { gap: 6px; margin-bottom: 12px; }
 body.is-phone .pin-key { height: 46px; font-size: 20px; border-radius: 10px; min-height: unset; }
@@ -1424,7 +1429,7 @@ font-size: 13px;
 .usage-count { font-family: ‘DM Mono’, monospace; font-size: 11px; color: var(–text3); white-space: nowrap; }
 
 /* ══════════════════════════════════════════
-CONTAINERS (boxes)
+CONTAINERS (cases/boxes)
 ══════════════════════════════════════════ */
 .container-card {
 background: var(–surface); border: 1px solid var(–border);
@@ -1472,47 +1477,9 @@ font-size: 11px; cursor: pointer; color: #000;
 .print-select-mode .print-card .pcheck { display: flex; }
 .print-select-mode .print-card.print-selected .pcheck { background: var(–accent); border-color: var(–accent); }
 
-/* Login page — device-specific scan/enter-id controls */
-body:not(.is-phone):not(.is-tablet) .login-scan-mobile { display: none !important; }
-body.is-phone .login-enter-id-desktop,
-body.is-tablet .login-enter-id-desktop { display: none !important; }
-
 </style>
 </head>
 <body>
-<script>
-// Early JS diagnostic + safety patch
-window._jsWorks = true;
-// If main script fails, this fallback makes the static admin card work
-window.setTimeout(function() {
-  if (typeof startPinEntry === 'undefined') {
-    // Main script failed - patch onclick manually
-    var grid = document.getElementById('login-user-grid');
-    if (grid) {
-      var cards = grid.querySelectorAll('[onclick]');
-      cards.forEach(function(c) {
-        var uid = c.getAttribute('onclick').match(/'([^']+)'/);
-        if (uid) c.addEventListener('click', function() {
-          // Show pin entry manually
-          document.getElementById('login-user-grid').style.display = 'none';
-          var pe = document.getElementById('pin-entry');
-          if (pe) {
-            pe.style.display = 'block';
-            var avatar = document.getElementById('pin-avatar');
-            var name = document.getElementById('pin-name');
-            if (avatar) avatar.textContent = '⚙️';
-            if (name) name.textContent = 'Admin (PIN: 4116)';
-            // Show pin dots and pad
-            var hint = pe.querySelector('.pin-hint');
-            if (hint) hint.textContent = 'JS failed to load — tap here to reload';
-            pe.onclick = function() { window.location.reload(true); };
-          }
-        });
-      });
-    }
-  }
-}, 1500);
-</script>
 
 <!-- ═══════════════════════════════════════
      LOGIN SCREEN
@@ -1608,6 +1575,8 @@ window.setTimeout(function() {
 
   <!-- Checked out board -->
 
+  <!-- Checked out board -->
+
   <div id="login-co-board" style="width:100%;max-width:560px;margin-bottom:28px;display:none;">
     <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
       <span>Currently Checked Out</span>
@@ -1617,7 +1586,7 @@ window.setTimeout(function() {
     <div id="login-co-list"></div>
   </div>
 
-  <!-- User selection (pre-seeded so admin shows even before JS runs) -->
+  <!-- User selection -->
 
   <div id="login-user-grid" class="user-cards">
     <div class="user-login-card admin-card" onclick="startPinEntry('admin-1')">
@@ -1684,7 +1653,7 @@ window.setTimeout(function() {
   <div class="nav-tabs" id="nav-tabs">
     <div class="nav-tab active" data-page="home" onclick="showPage('home',this)"><span class="tab-icon">🏠</span> Home</div>
     <div class="nav-tab" data-page="library" onclick="showPage('library',this)"><span class="tab-icon">💡</span> Library</div>
-    <div class="nav-tab" id="tab-containers" data-page="containers" onclick="showPage('containers',this)"><span class="tab-icon">📦</span> Boxes</div>
+    <div class="nav-tab" id="tab-containers" data-page="containers" onclick="showPage('containers',this)"><span class="tab-icon">📦</span> Cases</div>
     <div class="nav-tab" data-page="history" onclick="showPage('history',this)"><span class="tab-icon">📋</span> History</div>
     <div class="nav-tab admin-tab" id="tab-add" data-page="add" onclick="showPage('add',this)" style="display:none;"><span class="tab-icon">➕</span> Add Fixture</div>
     <div class="nav-tab admin-tab" id="tab-print" data-page="print" onclick="showPage('print',this)" style="display:none;"><span class="tab-icon">🖨</span> Print QR</div>
@@ -1840,9 +1809,9 @@ window.setTimeout(function() {
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Box / Container</label>
+        <label class="form-label">Case / Container</label>
         <select class="form-input" id="new-container">
-          <option value="">— Not in a box —</option>
+          <option value="">— Not in a case —</option>
         </select>
       </div>
     </div>
@@ -2112,11 +2081,11 @@ window.setTimeout(function() {
 <!-- CONTAINERS PAGE -->
 <div class="page" id="page-containers">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
-    <h2 style="font-size:20px;font-weight:700;color:var(--text);">📦 Boxes</h2>
+    <h2 style="font-size:20px;font-weight:700;color:var(--text);">📦 Cases &amp; Boxes</h2>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn btn-secondary" id="case-print-select-btn" onclick="toggleCasePrintMode()">☑ Select to Print</button>
-      <button class="btn btn-blue" onclick="openBatchAddFixturesToCase()">+ Add Fixtures to Box</button>
-      <button class="btn btn-primary" onclick="openAddContainerModal()">+ New Box</button>
+      <button class="btn btn-blue" onclick="openBatchAddFixturesToCase()">+ Add Fixtures to Case</button>
+      <button class="btn btn-primary" onclick="openAddContainerModal()">+ New Case</button>
     </div>
   </div>
   <div id="case-print-bar" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -2125,7 +2094,7 @@ window.setTimeout(function() {
     <button class="btn btn-secondary btn-sm" onclick="clearCaseSelection()">Clear</button>
     <button class="btn btn-primary btn-sm" onclick="printSelectedCases()">🖨 Print Selected</button>
   </div>
-  <p id="containers-desc" style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;">Each box has its own QR code. Scan a box QR to see all fixtures inside it. Tag fixtures to a box by editing them.</p>
+  <p id="containers-desc" style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;">Each case has its own QR code. Scan a case QR to see all fixtures inside it. Tag fixtures to a case by editing them.</p>
   <div id="containers-list"></div>
 </div>
 <!-- SETUP PAGE -->
@@ -2243,7 +2212,7 @@ window.setTimeout(function() {
     <span class="btab-icon">💡</span>Library
   </button>
   <button class="btab" id="btab-containers" onclick="showPage('containers',this)">
-    <span class="btab-icon">📦</span>Boxes
+    <span class="btab-icon">📦</span>Cases
     <span class="btab-badge" id="cases-badge" style="display:none;"></span>
   </button>
   <button class="btab" id="btab-history" onclick="showPage('history',this)">
@@ -2271,7 +2240,7 @@ window.setTimeout(function() {
   <!-- Header bar -->
   <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:10;">
     <div style="display:flex;align-items:center;gap:10px;">
-      <button id="scan-landing-back-btn" onclick="scanLandingGoBack()" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;color:var(--text2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px;">← Back</button>
+      <button id="scan-landing-back-btn" onclick="scanLandingGoBack()" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;color:var(--text2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">← Back</button>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--accent);">LumaSamples</div>
     </div>
     <div id="scan-landing-sync-dot" style="width:8px;height:8px;border-radius:50%;background:var(--red);" title=""></div>
@@ -2291,13 +2260,13 @@ window.setTimeout(function() {
 <div class="modal-overlay" id="add-container-modal">
   <div class="modal" style="max-width:440px;">
     <div class="modal-header">
-      <div class="modal-title">📦 New Box</div>
+      <div class="modal-title">📦 New Case / Box</div>
       <button class="modal-close" onclick="closeModal('add-container-modal')">×</button>
     </div>
     <div class="modal-body" style="max-height:80vh;overflow-y:auto;">
       <div class="form-group">
-        <label class="form-label">Box Name</label>
-        <input class="form-input" id="nc-name" placeholder="e.g. Road Box A, Living Room Kit">
+        <label class="form-label">Case Name</label>
+        <input class="form-input" id="nc-name" placeholder="e.g. Road Case A, Living Room Kit">
       </div>
       <div class="form-group">
         <label class="form-label">Description <span style="color:var(--text3);font-weight:400;">(optional)</span></label>
@@ -2315,7 +2284,7 @@ window.setTimeout(function() {
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('add-container-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="addContainer()">✦ Create Box</button>
+      <button class="btn btn-primary" onclick="addContainer()">✦ Create Case</button>
     </div>
   </div>
 </div>
@@ -2323,13 +2292,13 @@ window.setTimeout(function() {
 <div class="modal-overlay" id="container-detail-modal">
   <div class="modal" style="max-width:540px;">
     <div class="modal-header">
-      <div class="modal-title" id="cd-title">Box Detail</div>
+      <div class="modal-title" id="cd-title">Case Detail</div>
       <button class="modal-close" onclick="closeModal('container-detail-modal')">×</button>
     </div>
     <div class="modal-body" id="cd-body"></div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('container-detail-modal')">Close</button>
-      <button class="btn btn-danger btn-sm" id="cd-delete-btn" onclick="">Delete Box</button>
+      <button class="btn btn-danger btn-sm" id="cd-delete-btn" onclick="">Delete Case</button>
     </div>
   </div>
 </div>
@@ -2353,7 +2322,7 @@ window.setTimeout(function() {
 <div class="modal-overlay" id="scan-modal">
   <div class="modal" style="max-width:380px;">
     <div class="modal-header">
-      <div class="modal-title"><span class="scan-modal-title-phone">📷 Scan QR Code</span><span class="scan-modal-title-desktop">Enter Fixture / Box ID</span></div>
+      <div class="modal-title"><span class="scan-modal-title-phone">📷 Scan QR Code</span><span class="scan-modal-title-desktop">Enter Fixture / Case ID</span></div>
       <button class="modal-close" onclick="closeScanModal()">×</button>
     </div>
     <div class="modal-body">
@@ -2393,13 +2362,13 @@ window.setTimeout(function() {
           autocomplete="off" spellcheck="false">
         <button class="btn btn-secondary" onclick="closePhoneSuggestions();processManualId('phone')">Go</button>
       </div>
-      <div id="id-suggestions-phone" style="position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:600;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,0.35);display:none;overflow:hidden;"></div>
+      <div id="id-suggestions-phone" style="position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:600;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);box-shadow:0 8px 28px rgba(0,0,0,0.45);display:none;overflow:hidden;max-height:240px;overflow-y:auto;"></div>
     </div>
   </div>
   <!-- Desktop/tablet: primary UI, no camera -->
   <div class="scan-desktop-only" style="padding:4px 0 8px;">
     <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.5;">
-      Type a fixture number (<span style="font-family:'DM Mono',monospace;color:var(--accent);">42</span> or <span style="font-family:'DM Mono',monospace;color:var(--accent);">FL-0042</span>) or a box ID (<span style="font-family:'DM Mono',monospace;color:var(--accent);">BOX-001</span>).
+      Type a fixture number (<span style="font-family:'DM Mono',monospace;color:var(--accent);">42</span> or <span style="font-family:'DM Mono',monospace;color:var(--accent);">FL-0042</span>) or a case ID (<span style="font-family:'DM Mono',monospace;color:var(--accent);">BOX-001</span>).
     </p>
     <div style="display:flex;gap:8px;">
       <input class="form-input" id="manual-id-input"
@@ -3388,17 +3357,11 @@ if (!isNaN(n) && n >= fixtureCounter) fixtureCounter = n + 1;
 // ═══════════════════════════════════════════════════════
 function renderLoginScreen() {
 const grid = document.getElementById(‘login-user-grid’);
-if (!grid) {
-// Grid not found - try to create it
-console.error(‘login-user-grid not found in DOM!’);
-return;
-}
+if (!grid) return;
 // Safety: if users somehow empty, show just Admin default
-if (!users || !Array.isArray(users) || users.length === 0) {
+if (!users || users.length === 0) {
 users = [{ id:‘admin-1’, name:‘Admin’, pin:‘4116’, role:‘admin’, avatar:‘⚙️’ }];
 }
-// Force grid visible
-grid.style.display = ‘grid’;
 grid.innerHTML = users.map(u => `<div class="user-login-card ${u.role==='admin'?'admin-card':''}" onclick="startPinEntry('${u.id}')"> <span class="ulc-avatar">${u.avatar}</span> <div class="ulc-name">${u.name}</div> <span class="ulc-role ${u.role}">${u.role}</span> </div>`).join(’’);
 renderLoginCheckedOut();
 }
@@ -4050,7 +4013,7 @@ if (!f) return;
 const u = f.checkedOutBy ? users.find(x=>x.id===f.checkedOutBy) : null;
 const isMe = f.checkedOutBy === currentUser?.id;
 const isAdmin = currentUser?.role === ‘admin’;
-document.getElementById(‘detail-body’).innerHTML = ` <div style="display:flex;gap:20px;flex-wrap:wrap;"> <div style="flex:1;min-width:180px;"> <div style="margin-bottom:10px;"><span class="fid">${f.id}</span> <span class="sbadge ${f.status==='available'?'available':'out'}" style="margin-left:8px;">${f.status==='available'?'Available':'Checked Out'}</span></div> <div style="font-size:18px;font-weight:700;margin-bottom:12px;">${f.name}</div> <table style="font-size:13px;border-collapse:collapse;"> ${drow('Part #',f.partNo)}${drow('Brand',f.brand)}${drow('Fixture Type', f.fixtureType || f.category)}${drow('Wattage',f.wattage)}${drow('Finish',f.finish)}${drow('Location',f.location)}${drowCase('Box',f.containerId)}${drow('Notes',f.notes)}${drowLink('Spec Sheet',f.specSheet)} ${u?`<tr><td style="padding:5px 0;color:var(--text3);width:80px;">With</td><td style="padding:5px 0;color:var(--red);">${u.avatar} ${u.name} · ${timeAgo(f.checkedOutAt)}</td></tr>`:''} ${(()=>{const lastCo=history.find(h=>h.fixtureId===f.id&&h.action==='checkout'&&h.note);return lastCo?`<tr><td style="padding:5px 0;color:var(--text3);width:80px;">Last job</td><td style="padding:5px 0;font-size:12px;color:var(--text2);">${lastCo.note}</td></tr>`:''})()} </table> </div> <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"> <div id="detail-qr-${f.id}" class="qr-print-block" style="padding:14px;"></div> <div style="font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;">${f.id}</div> </div> </div> `;
+document.getElementById(‘detail-body’).innerHTML = ` <div style="display:flex;gap:20px;flex-wrap:wrap;"> <div style="flex:1;min-width:180px;"> <div style="margin-bottom:10px;"><span class="fid">${f.id}</span> <span class="sbadge ${f.status==='available'?'available':'out'}" style="margin-left:8px;">${f.status==='available'?'Available':'Checked Out'}</span></div> <div style="font-size:18px;font-weight:700;margin-bottom:12px;">${f.name}</div> <table style="font-size:13px;border-collapse:collapse;"> ${drow('Part #',f.partNo)}${drow('Brand',f.brand)}${drow('Fixture Type', f.fixtureType || f.category)}${drow('Wattage',f.wattage)}${drow('Finish',f.finish)}${drow('Location',f.location)}${drowCase('Case',f.containerId)}${drow('Notes',f.notes)}${drowLink('Spec Sheet',f.specSheet)} ${u?`<tr><td style="padding:5px 0;color:var(--text3);width:80px;">With</td><td style="padding:5px 0;color:var(--red);">${u.avatar} ${u.name} · ${timeAgo(f.checkedOutAt)}</td></tr>`:''} ${(()=>{const lastCo=history.find(h=>h.fixtureId===f.id&&h.action==='checkout'&&h.note);return lastCo?`<tr><td style="padding:5px 0;color:var(--text3);width:80px;">Last job</td><td style="padding:5px 0;font-size:12px;color:var(--text2);">${lastCo.note}</td></tr>`:''})()} </table> </div> <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"> <div id="detail-qr-${f.id}" class="qr-print-block" style="padding:14px;"></div> <div style="font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;">${f.id}</div> </div> </div> `;
 document.getElementById(‘detail-footer’).innerHTML = `<button class="btn btn-secondary" onclick="closeModal('detail-modal')">Close</button> <button class="btn btn-blue" onclick="closeModal('detail-modal');openEditFixture('${f.id}')">✏️ Edit</button> ${f.status==='available' ?`<button class="btn btn-success" onclick="quickCheckout('${f.id}');closeModal('detail-modal')">↗ Check Out</button>`: isMe ?`<button class="btn btn-danger" onclick="quickReturn('${f.id}');closeModal('detail-modal')">↙ Return to Stock</button>`:`<span style="display:inline-flex;gap:8px;flex-wrap:wrap;">
 <button class="btn btn-warning" onclick="swapOwnership('${f.id}');closeModal('detail-modal')">⇄ Take Over</button>
 <button class="btn btn-danger" onclick="quickReturn('${f.id}');closeModal('detail-modal')">↙ Return to Stock</button>
@@ -4412,17 +4375,18 @@ if (isPhone || isTablet) {
 openInAppScanSheet();
 return;
 }
-// Desktop: open text-entry modal
 openModal(‘scan-modal’);
+// Reset state
 const scanResult = document.getElementById(‘scan-result’);
 if (scanResult) { scanResult.style.display = ‘none’; scanResult.innerHTML = ‘’; }
 const inp = document.getElementById(‘manual-id-input’);
 if (inp) { inp.value = ‘’; }
 const sugg = document.getElementById(‘id-suggestions’);
 if (sugg) sugg.innerHTML = ‘’;
-const suggPhone = document.getElementById(‘id-suggestions-phone’);
-if (suggPhone) { suggPhone.innerHTML = ‘’; suggPhone.style.display=‘none’; }
+// Auto-focus on desktop/tablet
+if (!document.body.classList.contains(‘is-phone’)) {
 setTimeout(() => { if (inp) inp.focus(); }, 80);
+}
 const camInp = document.getElementById(‘qr-camera-input’);
 if (camInp) camInp.value = ‘’;
 }
@@ -4544,7 +4508,7 @@ if (source === ‘phone’) closeScanModal();
 processScannedId(id);
 }
 
-// Resolve a user-typed string to a fixture/box ID:
+// Resolve a user-typed string to a fixture/case ID:
 // “42” → “FL-0042”, “42” → also checks BOX, etc.
 function resolveFixtureId(input) {
 if (!input) return ‘’;
@@ -4597,44 +4561,7 @@ const inp = document.getElementById(‘manual-id-input’);
 if (inp) inp.value = id;
 const sugg = document.getElementById(‘id-suggestions’);
 if (sugg) sugg.innerHTML = ‘’;
-const suggPhone = document.getElementById(‘id-suggestions-phone’);
-if (suggPhone) { suggPhone.innerHTML = ‘’; suggPhone.style.display=‘none’; }
 processScannedId(id);
-}
-function onPhoneIdInput(el) {
-const raw = el.value.trim();
-const sugg = document.getElementById(‘id-suggestions-phone’);
-if (!sugg || raw.length < 1) { if (sugg) { sugg.style.display=‘none’; sugg.innerHTML=’’; } return; }
-const upper = raw.toUpperCase();
-let matches = [];
-if (/^\d+$/.test(upper)) {
-const padded = ‘FL-’ + upper.padStart(4, ‘0’);
-matches = fixtures.filter(f => f.id === padded || f.id.startsWith(‘FL-’ + upper));
-} else {
-matches = fixtures.filter(f => f.id.startsWith(upper) || f.name.toUpperCase().includes(upper));
-const cMatches = containers.filter(c => c.id.startsWith(upper) || c.name.toUpperCase().includes(upper));
-if (cMatches.length) matches = […matches, …cMatches.map(c => ({ …c, _isBox: true }))];
-}
-matches = matches.slice(0, 6);
-if (!matches.length) { sugg.style.display=‘none’; sugg.innerHTML=’’; return; }
-sugg.innerHTML = matches.map(m => {
-const isBox = m._isBox;
-const status = !isBox ? `<span class="sbadge ${m.status === 'available' ? 'available' : 'out'}" style="font-size:10px;padding:1px 6px;">${m.status === 'available' ? 'In' : 'Out'}</span>` : ‘’;
-return `<div onclick="applyPhoneSuggestion('${m.id}')" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background=''"> <span style="font-size:14px;">${isBox ? '📦' : '💡'}</span> <span style="font-family:'DM Mono',monospace;color:var(--accent);font-size:12px;">${m.id}</span> <span style="flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.name}</span> ${status} </div>`;
-}).join(’’);
-sugg.style.display = ‘block’;
-}
-
-function applyPhoneSuggestion(id) {
-const inp = document.getElementById(‘manual-id-input-phone’);
-if (inp) inp.value = id;
-closePhoneSuggestions();
-processScannedId(id);
-}
-
-function closePhoneSuggestions() {
-const sugg = document.getElementById(‘id-suggestions-phone’);
-if (sugg) { sugg.style.display=‘none’; sugg.innerHTML=’’; }
 }
 
 function processScannedId(raw) {
@@ -4651,7 +4578,7 @@ closeScanModal();
 const cid = decodeURIComponent(boxParam);
 const c = containers.find(x => x.id === cid);
 if (c) { showPage(‘containers’, document.getElementById(‘btab-containers’) || document.getElementById(‘tab-containers’)); setTimeout(() => openContainerDetail(cid), 200); }
-else { notify(’Box not found: ’ + cid, ‘error’); }
+else { notify(’Case not found: ’ + cid, ‘error’); }
 return;
 }
 } catch(e) { /* not a URL, treat as raw ID */ }
@@ -5577,7 +5504,7 @@ f.status = ‘out’;
 f.checkedOutBy = currentUser.id;
 f.checkedOutAt = ts;
 if (!f.comments) f.comments = [];
-f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: `Checked out via box${note ? ' · ' + note : ''}`, action: ‘checkout’ });
+f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: `Checked out via case${note ? ' · ' + note : ''}`, action: ‘checkout’ });
 const h = { ts, fixtureId: f.id, fixtureName: f.name, userId: currentUser.id, userName: currentUser.name, action: ‘checkout’, note };
 history.unshift(h);
 await saveData({ fixture: f, historyEntry: h });
@@ -5585,7 +5512,7 @@ await saveData({ fixture: f, historyEntry: h });
 closeModal(‘container-detail-modal’);
 refreshCurrentPage();
 haptic(‘success’);
-notify(`↗ Checked out ${fixturesInBox.length} fixture${fixturesInBox.length !== 1 ? 's' : ''} from box`, ‘success’);
+notify(`↗ Checked out ${fixturesInBox.length} fixture${fixturesInBox.length !== 1 ? 's' : ''} from case`, ‘success’);
 return;
 }
 
@@ -6235,7 +6162,7 @@ setTimeout(() => window.print(), 300);
 function printAllQR() { window.print(); }
 
 // ═══════════════════════════════════════════════════════
-//  CONTAINERS (Boxes)
+//  CONTAINERS (Cases & Boxes)
 // ═══════════════════════════════════════════════════════
 let containers; try { containers = JSON.parse(localStorage.getItem(‘luma:containers’) || ‘[]’); } catch(e) { containers = []; }
 let containerCounter = containers.length ? Math.max(…containers.map(c => parseInt(c.id.replace(‘BOX-’,’’))||0)) + 1 : 1;
@@ -6266,7 +6193,7 @@ function renderContainersPage() {
 const el = document.getElementById(‘containers-list’);
 if (!el) return;
 if (!containers.length) {
-el.innerHTML = ‘<div style="text-align:center;padding:60px 20px;color:var(--text3);"><div style="font-size:48px;margin-bottom:16px;">📦</div><div style="font-size:16px;">No boxes yet. Create one to start grouping fixtures.</div></div>’;
+el.innerHTML = ‘<div style="text-align:center;padding:60px 20px;color:var(--text3);"><div style="font-size:48px;margin-bottom:16px;">📦</div><div style="font-size:16px;">No cases yet. Create one to start grouping fixtures.</div></div>’;
 return;
 }
 el.innerHTML = containers.map(c => {
@@ -6330,7 +6257,7 @@ renderNcFixturePicker();
 
 async function addContainer() {
 const name = document.getElementById(‘nc-name’).value.trim();
-if (!name) { notify(‘Box name is required’, ‘error’); return; }
+if (!name) { notify(‘Case name is required’, ‘error’); return; }
 const id = ‘BOX-’ + String(containerCounter).padStart(4, ‘0’);
 containerCounter++;
 const c = { id, name, desc: document.getElementById(‘nc-desc’).value.trim(), createdAt: new Date().toISOString() };
@@ -6346,7 +6273,7 @@ ncSelectedFixtures.clear();
 await saveContainers();
 closeModal(‘add-container-modal’);
 renderContainersPage();
-notify(’✓ Box created: ’ + name, ‘success’);
+notify(’✓ Case created: ’ + name, ‘success’);
 setTimeout(() => openContainerDetail(id), 200);
 }
 
@@ -6365,9 +6292,9 @@ const someOut = out > 0;
 let caseActionBtn = ‘’;
 if (fixturesInBox.length > 0) {
 if (allAvail) {
-caseActionBtn = `<button class="btn btn-success" style="width:100%;justify-content:center;padding:12px;font-size:15px;" onclick="checkoutCase('${cid}')">↗ Check Out Entire Box</button>`;
+caseActionBtn = `<button class="btn btn-success" style="width:100%;justify-content:center;padding:12px;font-size:15px;" onclick="checkoutCase('${cid}')">↗ Check Out Entire Case</button>`;
 } else if (allMine) {
-caseActionBtn = `<button class="btn btn-danger" style="width:100%;justify-content:center;padding:12px;font-size:15px;" onclick="returnCase('${cid}')">↙ Return Entire Box</button>`;
+caseActionBtn = `<button class="btn btn-danger" style="width:100%;justify-content:center;padding:12px;font-size:15px;" onclick="returnCase('${cid}')">↙ Return Entire Case</button>`;
 } else if (someOut) {
 caseActionBtn = `<div style="display:flex;gap:8px;flex-direction:column;"> ${avail > 0 ? `<button class="btn btn-success" style="width:100%;justify-content:center;padding:11px;" onclick="checkoutCase('${cid}')">↗ Check Out Available (${avail})</button>`: ''} ${myOut > 0 ?`<button class="btn btn-danger" style="width:100%;justify-content:center;padding:11px;" onclick="returnCase('${cid}')">↙ Return My Fixtures (${myOut})</button>` : ''} <button class="btn btn-warning" style="width:100%;justify-content:center;padding:11px;" onclick="takeOverCase('${cid}')">⇄ Take Over All Checked-Out</button> </div>`;
 }
@@ -6375,13 +6302,13 @@ caseActionBtn = `<div style="display:flex;gap:8px;flex-direction:column;"> ${ava
 
 document.getElementById(‘cd-title’).textContent = ‘📦 ’ + c.name;
 document.getElementById(‘cd-delete-btn’).onclick = () => deleteContainer(cid);
-document.getElementById(‘cd-body’).innerHTML = `<div style="margin-bottom:14px;"> ${c.desc ?`<div style="font-size:13px;color:var(--text2);margin-bottom:8px;">${c.desc}</div>`: ''} <div style="font-size:12px;color:var(--text3);margin-bottom:14px;font-family:'DM Mono',monospace;">${c.id}</div> <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;"> <span style="font-size:13px;"><strong>${fixturesInBox.length}</strong> <span style="color:var(--text3);">fixtures</span></span> <span style="font-size:13px;color:var(--green);"><strong>${avail}</strong> available</span> ${out ?`<span style="font-size:13px;color:var(--red);"><strong>${out}</strong> out</span>`: ''} </div> ${caseActionBtn ?`<div style="margin-bottom:16px;">${caseActionBtn}</div>`: ''} <div style="background:#fff;border-radius:10px;padding:14px;display:inline-block;margin-bottom:14px;" id="cd-qr-wrap-${cid}"></div> <div style="font-size:11px;color:var(--text3);margin-bottom:20px;">Scan this QR code to view all fixtures in this box</div> </div> ${fixturesInBox.length ?`
+document.getElementById(‘cd-body’).innerHTML = `<div style="margin-bottom:14px;"> ${c.desc ?`<div style="font-size:13px;color:var(--text2);margin-bottom:8px;">${c.desc}</div>`: ''} <div style="font-size:12px;color:var(--text3);margin-bottom:14px;font-family:'DM Mono',monospace;">${c.id}</div> <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;"> <span style="font-size:13px;"><strong>${fixturesInBox.length}</strong> <span style="color:var(--text3);">fixtures</span></span> <span style="font-size:13px;color:var(--green);"><strong>${avail}</strong> available</span> ${out ?`<span style="font-size:13px;color:var(--red);"><strong>${out}</strong> out</span>`: ''} </div> ${caseActionBtn ?`<div style="margin-bottom:16px;">${caseActionBtn}</div>`: ''} <div style="background:#fff;border-radius:10px;padding:14px;display:inline-block;margin-bottom:14px;" id="cd-qr-wrap-${cid}"></div> <div style="font-size:11px;color:var(--text3);margin-bottom:20px;">Scan this QR code to view all fixtures in this case</div> </div> ${fixturesInBox.length ?`
 <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:10px;">Fixtures in this case</div>
 ${fixturesInBox.map(f => {
 const u = f.checkedOutBy ? users.find(x => x.id === f.checkedOutBy) : null;
 return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);"> <span class="fid">${f.id}</span> <span style="flex:1;font-size:13px;font-weight:500;">${f.name}</span> ${u ? `<span style="font-size:11px;color:var(--text2);">${u.avatar||‘👤’} ${u.name}</span>` : ''} <span class="sbadge ${f.status==='available'?'available':'out'}">${f.status==='available'?'In':'Out'}</span> <button class="btn btn-blue btn-sm" onclick="openDetailModal('${f.id}')">View</button> </div>`;
 }).join(’’)}
-`: '<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px 0;">No fixtures assigned to this box yet.<br><span style="font-size:12px;">Edit a fixture and set its Box field.</span></div>'} <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;"> <button class="btn btn-secondary btn-sm" onclick="printContainerLabel('${cid}')">🖨 Print Box Label</button> <button class="btn btn-secondary btn-sm" onclick="copyQRLink('container','${cid}')">🔗 Copy Link</button> </div>`;
+`: '<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px 0;">No fixtures assigned to this case yet.<br><span style="font-size:12px;">Edit a fixture and set its Case/Box field.</span></div>'} <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;"> <button class="btn btn-secondary btn-sm" onclick="printContainerLabel('${cid}')">🖨 Print Case Label</button> <button class="btn btn-secondary btn-sm" onclick="copyQRLink('container','${cid}')">🔗 Copy Link</button> </div>`;
 openModal(‘container-detail-modal’);
 setTimeout(() => {
 const el = document.getElementById(‘cd-qr-wrap-’ + cid);
@@ -6400,7 +6327,7 @@ checkoutNoteCid = cid;
 checkoutNoteFid = null;
 checkoutNoteBulk = [];
 document.getElementById(‘checkout-note-title’).textContent =
-`Check Out Box${c ? ' · ' + c.name : ''} (${fixturesInBox.length} fixture${fixturesInBox.length !== 1 ? 's' : ''})`;
+`Check Out Case${c ? ' · ' + c.name : ''} (${fixturesInBox.length} fixture${fixturesInBox.length !== 1 ? 's' : ''})`;
 document.getElementById(‘checkout-note-fixture-info’).innerHTML =
 fixturesInBox.slice(0, 4).map(f =>
 `<span class="fid" style="margin-right:4px;">${f.id}</span><span style="font-size:12px;color:var(--text2);">${f.name}</span>`
@@ -6421,7 +6348,7 @@ f.status = ‘available’;
 f.checkedOutBy = null;
 f.checkedOutAt = null;
 if (!f.comments) f.comments = [];
-f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: ‘Returned via box’, action: ‘return’ });
+f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: ‘Returned via case’, action: ‘return’ });
 const h = logEvent(f, ‘return’);
 await saveData({ fixture: f, historyEntry: h });
 }
@@ -6438,7 +6365,7 @@ const ts = new Date().toISOString();
 for (const f of fixturesInBox) {
 const prev = users.find(x => x.id === f.checkedOutBy);
 if (!f.comments) f.comments = [];
-f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: `taken from ${prev?.name || 'unknown'} via box`, action: ‘transfer’ });
+f.comments.push({ ts, userId: currentUser.id, userName: currentUser.name, text: `taken from ${prev?.name || 'unknown'} via case`, action: ‘transfer’ });
 f.checkedOutBy = currentUser.id;
 f.checkedOutAt = ts;
 const h = logEvent(f, ‘transfer’);
@@ -6451,14 +6378,14 @@ notify(`⇄ Took over ${fixturesInBox.length} fixture${fixturesInBox.length !== 
 }
 
 async function deleteContainer(cid) {
-if (!confirm(‘Delete this box? Fixtures will remain but will be unassigned.’)) return;
+if (!confirm(‘Delete this case? Fixtures will remain but will be unassigned.’)) return;
 containers = containers.filter(c => c.id !== cid);
 // Unassign fixtures
 fixtures.forEach(f => { if (f.containerId === cid) { f.containerId = null; saveData({ fixture: f }); } });
 await saveContainers();
 closeModal(‘container-detail-modal’);
 renderContainersPage();
-notify(‘Box deleted’, ‘info’);
+notify(‘Case deleted’, ‘info’);
 }
 
 function printContainerLabel(cid) {
@@ -6496,7 +6423,7 @@ setTimeout(() => window.print(), 150);
 }
 
 // ═══════════════════════════════════════════════════════
-//  BOX PRINT SELECT MODE
+//  CASE PRINT SELECT MODE
 // ═══════════════════════════════════════════════════════
 let casePrintMode = false;
 let casePrintSelected = new Set();
@@ -6548,7 +6475,7 @@ if (el) el.textContent = ‘0 selected’;
 }
 
 async function printSelectedCases() {
-if (!casePrintSelected.size) { notify(‘No boxes selected’, ‘error’); return; }
+if (!casePrintSelected.size) { notify(‘No cases selected’, ‘error’); return; }
 const ids = […casePrintSelected];
 const overlay = document.createElement(‘div’);
 overlay.id = ‘print-single-overlay’;
@@ -6618,7 +6545,7 @@ const dot = document.getElementById(‘scan-landing-sync-dot’);
 if (fbDb) { dot.style.background = ‘var(–green)’; }
 const body = document.getElementById(‘scan-landing-body’);
 if (!c) {
-body.innerHTML = `<div style="text-align:center;padding:60px 20px;"><div style="font-size:48px;">📦</div><div style="margin-top:16px;color:var(--text);">Box not found: ${cid}</div></div>`;
+body.innerHTML = `<div style="text-align:center;padding:60px 20px;"><div style="font-size:48px;">📦</div><div style="margin-top:16px;color:var(--text);">Case not found: ${cid}</div></div>`;
 return true;
 }
 const fixturesInBox = fixtures.filter(f => f.containerId === cid);
@@ -6628,7 +6555,7 @@ body.innerHTML = `<div style="margin-bottom:8px;font-family:'DM Mono',monospace;
 ${u ? `<span style="font-size:11px;color:var(--text2);">${u.avatar||'👤'}</span>` : ‘’}
 <span class="sbadge ${f.status==='available'?'available':'out'}" style="flex-shrink:0;">${f.status===‘available’?‘In’:‘Out’}</span>
 <span style="color:var(--text3);font-size:14px;">›</span>
-</div>`; }).join('') : '<div style="color:var(--text3);font-size:13px;padding:12px 0;">No fixtures assigned to this box.</div>'} </div> <button class="btn btn-secondary" style="width:100%;justify-content:center;padding:12px;" onclick="goToAppFromScan('${cid}')">Open in App</button> `;
+</div>`; }).join('') : '<div style="color:var(--text3);font-size:13px;padding:12px 0;">No fixtures assigned to this case.</div>'} </div> <button class="btn btn-secondary" style="width:100%;justify-content:center;padding:12px;" onclick="goToAppFromScan('${cid}')">Open in App</button> `;
 cleanScanUrl();
 return true;
 }
@@ -6637,7 +6564,7 @@ return true;
 function populateNewContainerSelect() {
 const sel = document.getElementById(‘new-container’);
 if (!sel) return;
-sel.innerHTML = ‘<option value="">— Not in a box —</option>’ +
+sel.innerHTML = ‘<option value="">— Not in a case —</option>’ +
 containers.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join(’’);
 }
 
@@ -6645,7 +6572,7 @@ function populateContainerSelect() {
 const sel = document.getElementById(‘ef-container’);
 if (!sel) return;
 const cur = sel.value;
-sel.innerHTML = ‘<option value="">— Not in a box —</option>’ +
+sel.innerHTML = ‘<option value="">— Not in a case —</option>’ +
 containers.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join(’’);
 if (cur && containers.find(c => c.id === cur)) sel.value = cur;
 }
@@ -6700,6 +6627,17 @@ cleanScanUrl();
 return true;
 }
 
+function scanLandingGoBack() {
+closeLmsCamera();
+document.getElementById(‘scan-landing’).style.display = ‘none’;
+document.getElementById(‘login-screen’).style.display = ‘’;
+const halo = document.getElementById(‘login-halo’);
+if (halo) halo.style.display = ‘’;
+if (window.history && window.history.replaceState) {
+window.history.replaceState({}, ‘’, window.location.pathname);
+}
+}
+
 function renderScanLanding(f, fid) {
 const body = document.getElementById(‘scan-landing-body’);
 if (!f) {
@@ -6747,19 +6685,6 @@ body.innerHTML = `<div style="margin-bottom:6px;display:flex;align-items:center;
 ```
 
 `;
-}
-
-function scanLandingGoBack() {
-// Stop any camera streams
-closeLmsCamera();
-// Hide scan landing, show login
-document.getElementById(‘scan-landing’).style.display = ‘none’;
-document.getElementById(‘login-screen’).style.display = ‘’;
-if (document.getElementById(‘login-halo’)) document.getElementById(‘login-halo’).style.display = ‘’;
-// Clean URL
-if (window.history && window.history.replaceState) {
-window.history.replaceState({}, ‘’, window.location.pathname);
-}
 }
 
 function goToAppFromScan(fid) {
@@ -7009,7 +6934,7 @@ document.body.removeChild(ta);
 }
 
 // ═══════════════════════════════════════════════════════
-//  BATCH ADD FIXTURES TO BOX MODAL
+//  BATCH ADD FIXTURES TO CASE MODAL
 // ═══════════════════════════════════════════════════════
 let bafcSelectedCase = null;
 let bafcSelectedFixtures = new Set();
@@ -7024,7 +6949,7 @@ if (existing) existing.remove();
 const modal = document.createElement(‘div’);
 modal.className = ‘modal-overlay’;
 modal.id = ‘bafc-modal’;
-modal.innerHTML = `<div class="modal" style="max-width:580px;"> <div class="modal-header"> <div class="modal-title">📦 Add Fixtures to a Box</div> <button class="modal-close" onclick="document.getElementById('bafc-modal').remove()">×</button> </div> <div class="modal-body" style="max-height:75vh;overflow-y:auto;"> <div class="form-group"> <label class="form-label">Select Box</label> <div style="position:relative;"> <select class="form-input" id="bafc-case-select" onchange="bafcOnCaseChange()" style="-webkit-appearance:none;appearance:none;background:var(--surface2);cursor:pointer;padding-right:32px;"> <option value="">— Choose a box —</option> ${containers.map(c => { const n = fixtures.filter(f => f.containerId === c.id).length; return`<option value="${c.id}">${c.name} (${c.id}) · ${n} fixture${n!==1?‘s’:’’}</option>`; }).join('')} </select> <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;font-size:12px;">▾</span> </div> </div> <div class="form-group" id="bafc-fixtures-group" style="display:none;"> <label class="form-label">Available Unassigned Fixtures</label> <div class="search-box" style="margin-bottom:8px;"> <span style="color:var(--text3);">🔍</span> <input type="text" id="bafc-search" style="flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14px;padding:8px 0;" placeholder="Search..." oninput="renderBafcList()"> </div> <div id="bafc-fixture-list" style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);"></div> <div id="bafc-selected-count" style="font-size:12px;color:var(--text3);margin-top:6px;">0 fixtures selected</div> </div> </div> <div class="modal-footer"> <button class="btn btn-secondary" onclick="document.getElementById('bafc-modal').remove()">Cancel</button> <button class="btn btn-primary" id="bafc-add-btn" onclick="bafcConfirm()" style="display:none;">Add to Box</button> </div> </div> `;
+modal.innerHTML = `<div class="modal" style="max-width:580px;"> <div class="modal-header"> <div class="modal-title">📦 Add Fixtures to a Case</div> <button class="modal-close" onclick="document.getElementById('bafc-modal').remove()">×</button> </div> <div class="modal-body" style="max-height:75vh;overflow-y:auto;"> <div class="form-group"> <label class="form-label">Select Case</label> <div style="position:relative;"> <select class="form-input" id="bafc-case-select" onchange="bafcOnCaseChange()" style="-webkit-appearance:none;appearance:none;background:var(--surface2);cursor:pointer;padding-right:32px;"> <option value="">— Choose a case —</option> ${containers.map(c => { const n = fixtures.filter(f => f.containerId === c.id).length; return`<option value="${c.id}">${c.name} (${c.id}) · ${n} fixture${n!==1?‘s’:’’}</option>`; }).join('')} </select> <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;font-size:12px;">▾</span> </div> </div> <div class="form-group" id="bafc-fixtures-group" style="display:none;"> <label class="form-label">Available Unassigned Fixtures</label> <div class="search-box" style="margin-bottom:8px;"> <span style="color:var(--text3);">🔍</span> <input type="text" id="bafc-search" style="flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14px;padding:8px 0;" placeholder="Search..." oninput="renderBafcList()"> </div> <div id="bafc-fixture-list" style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);"></div> <div id="bafc-selected-count" style="font-size:12px;color:var(--text3);margin-top:6px;">0 fixtures selected</div> </div> </div> <div class="modal-footer"> <button class="btn btn-secondary" onclick="document.getElementById('bafc-modal').remove()">Cancel</button> <button class="btn btn-primary" id="bafc-add-btn" onclick="bafcConfirm()" style="display:none;">Add to Case</button> </div> </div> `;
 document.body.appendChild(modal);
 modal.style.display = ‘flex’;
 }
@@ -7063,7 +6988,7 @@ return `<div onclick="bafcToggle('${f.id}')" style="display:flex;align-items:cen
 }
 if (countEl) countEl.textContent = bafcSelectedFixtures.size + ’ fixture’ + (bafcSelectedFixtures.size !== 1 ? ‘s’ : ‘’) + ’ selected’;
 if (addBtn) addBtn.style.display = bafcSelectedFixtures.size > 0 ? ‘’ : ‘none’;
-if (addBtn) addBtn.textContent = `Add ${bafcSelectedFixtures.size || ''} to Box`;
+if (addBtn) addBtn.textContent = `Add ${bafcSelectedFixtures.size || ''} to Case`;
 }
 
 function bafcToggle(fid) {
@@ -7408,7 +7333,62 @@ renderGsStatus();
 }
 
 // ═══════════════════════════════════════════════════════
-//  IN-APP MOBILE/TABLET SCAN SHEET
+//  CASE SCAN LANDING — FIXTURE DETAIL PANEL
+// ═══════════════════════════════════════════════════════
+function scanLandingOpenFixture(fid, cid) {
+const f = fixtures.find(x => x.id === fid);
+if (!f) return;
+const u = f.checkedOutBy ? users.find(x => x.id === f.checkedOutBy) : null;
+
+// Build detail panel over scan-landing-body
+const body = document.getElementById(‘scan-landing-body’);
+const savedScrollY = document.getElementById(‘scan-landing’).scrollTop;
+body.setAttribute(‘data-case-scroll’, savedScrollY);
+body.setAttribute(‘data-case-id’, cid);
+
+body.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);background:var(--accent-dim);display:inline-block;padding:3px 8px;border-radius:5px;margin-bottom:8px;">${f.id}</div> <div style="font-size:22px;font-weight:700;margin-bottom:4px;">${f.name}</div> ${f.brand ?`<div style="font-size:13px;color:var(--text2);margin-bottom:12px;">${f.brand}</div>`: ''} <div style="margin-bottom:16px;"> <span class="sbadge ${f.status==='available'?'available':'out'}" style="font-size:12px;">${f.status==='available'?'Available':'Checked Out'}</span> ${u ?`<span style="font-size:13px;color:var(--text2);margin-left:10px;">${u.avatar||‘👤’} ${u.name}</span>`: ''} </div> <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:20px;"> ${f.fixtureType||f.category ?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text3);font-size:13px;">Type</span><span style="font-size:13px;">${f.fixtureType||f.category}</span></div>`: ''} ${f.wattage ?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text3);font-size:13px;">Wattage</span><span style="font-size:13px;">${f.wattage}</span></div>`: ''} ${f.location ?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text3);font-size:13px;">Location</span><span style="font-size:13px;">${f.location}</span></div>`: ''} ${f.partNo ?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text3);font-size:13px;">Part #</span><span style="font-size:13px;font-family:'DM Mono',monospace;">${f.partNo}</span></div>`: ''} ${f.specSheet ?`<div style="padding:8px 0;"><a href="${f.specSheet}" target="_blank" style="color:var(--accent);text-decoration:none;font-size:13px;">📄 View Spec Sheet ↗</a></div>`: ''} </div> <button onclick="scanLandingBackToCase()" class="btn btn-secondary" style="width:100%;justify-content:center;padding:13px;">← Back to Case</button>`;
+document.getElementById(‘scan-landing’).scrollTop = 0;
+}
+
+function scanLandingBackToCase() {
+const body = document.getElementById(‘scan-landing-body’);
+const cid = body.getAttribute(‘data-case-id’) || _activeCaseLandingId;
+const scrollY = parseInt(body.getAttribute(‘data-case-scroll’) || ‘0’);
+if (cid) {
+handleContainerScanLanding(cid).then(() => {
+setTimeout(() => { document.getElementById(‘scan-landing’).scrollTop = scrollY; }, 50);
+});
+}
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADMIN INLINE FIREBASE CONNECT
+// ═══════════════════════════════════════════════════════
+async function adminConnectFirebase() {
+const input = document.getElementById(‘admin-project-id’);
+const feedback = document.getElementById(‘admin-connect-feedback’);
+const pid = (input?.value || ‘’).trim();
+if (!pid) { notify(‘Enter a Firebase Project ID’, ‘error’); return; }
+// Mirror to setup field and reuse connectFromSetup logic
+const setupInput = document.getElementById(‘setup-project-id’);
+if (setupInput) setupInput.value = pid;
+feedback.style.display = ‘block’;
+feedback.style.background = ‘var(–surface3)’;
+feedback.textContent = ‘Connecting…’;
+try {
+await connectFromSetup();
+feedback.style.display = ‘none’;
+} catch(e) {
+feedback.style.background = ‘var(–red-dim)’;
+feedback.textContent = ’Connection failed: ’ + e.message;
+}
+}
+
+function adminDisconnectFirebase() {
+disconnectFromSetup();
+renderGsStatus();
+}
+
 // ═══════════════════════════════════════════════════════
 function openInAppScanSheet() {
 const overlay = document.getElementById(‘inapp-scan-sheet-overlay’);
@@ -7539,38 +7519,32 @@ if (/^\d+$/.test(raw)) id = ‘FL-’ + raw.padStart(4, ‘0’);
 closeInAppScanSheet();
 processScannedId(id);
 }
-
 async function init() {
 initTheme();
 detectAndApplyLayout();
 window.addEventListener(‘resize’, detectAndApplyLayout);
 try {
-// Check for container scan (?box=BOX-xxxx)
 const isContainerScan = await handleContainerScanLanding();
 if (isContainerScan) return;
-// Check for native camera QR scan link (?f=FL-xxxx)
 const isDeepLink = await handleScanLanding();
 if (isDeepLink) return;
 await loadData();
 await loadContainers();
 } catch(e) {
 console.error(‘LumaSamples init error:’, e);
-// Even if something failed, still try to render login with whatever data we have
 ensureAdmin();
 }
 renderLoginScreen();
 }
 
-// Call init directly — login-user-grid is in the DOM before this script runs
 init().catch(e => console.error(‘init failed:’, e));
 
-// Hard fallback: if grid is still empty after 800ms, force-render users
+// Hard fallback: if grid is still empty after 800ms, force render
 setTimeout(function() {
 var grid = document.getElementById(‘login-user-grid’);
-var loginVisible = document.getElementById(‘login-screen’) &&
-document.getElementById(‘login-screen’).style.display !== ‘none’ &&
-getComputedStyle(document.getElementById(‘login-screen’)).display !== ‘none’;
-if (grid && !grid.children.length && loginVisible) {
+var ls = document.getElementById(‘login-screen’);
+var lsVisible = ls && ls.style.display !== ‘none’;
+if (grid && !grid.children.length && lsVisible) {
 if (!users || !users.length) users = [{id:‘admin-1’,name:‘Admin’,pin:‘4116’,role:‘admin’,avatar:‘⚙️’}];
 renderLoginScreen();
 }
