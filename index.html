@@ -4704,10 +4704,19 @@ function processScannedId(raw) {
       return;
     }
   } catch(e) { /* not a URL, treat as raw ID */ }
+  // Pad short numeric IDs e.g. "42" -> "FL-0042"
+  if (/^\d+$/.test(id)) id = 'FL-' + id.padStart(4, '0');
   const f = fixtures.find(x=>x.id===id);
+  // On phone the scan modal is never open — go straight to the detail modal
+  if (document.body.classList.contains('is-phone')) {
+    closeScanModal();
+    if (f) openDetailModal(f.id);
+    else notify('Fixture "' + id + '" not found', 'error');
+    return;
+  }
   const el = document.getElementById('scan-result');
   el.style.display = 'block';
-  if (!f) { el.innerHTML=`<div style="color:var(--red);">❌ Fixture "${id}" not found.</div>`; return; }
+  if (!f) { el.innerHTML=`<div style="color:var(--red);">Fixture "${id}" not found.</div>`; return; }
   const u = f.checkedOutBy ? users.find(x=>x.id===f.checkedOutBy) : null;
   const isMe = f.checkedOutBy === currentUser?.id;
   const isAdmin = currentUser?.role === 'admin';
