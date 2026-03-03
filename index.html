@@ -2862,7 +2862,7 @@ const DEFAULT_FIX_TYPES = [‘Downlight’,‘Uplight’,‘Wall Sconce’,‘Pe
 const DEFAULT_LOCATIONS = [‘Shelf A-1’,‘Shelf A-2’,‘Shelf B-1’,‘Shelf B-2’,‘Shelf B-3’,‘Shelf C-1’,‘Shelf C-2’,‘Storage Room’,‘Display Floor’,‘Front Desk’,‘Back Office’];
 
 let fixtures  = [];
-let users     = [];
+let users     = [{id:‘admin-1’,name:‘Admin’,pin:‘4116’,role:‘admin’,avatar:‘⚙️’}]; // pre-seeded; overwritten by localLoad()
 let history   = [];
 let locations = [];
 let fixtureTypes = [];
@@ -3397,6 +3397,10 @@ return `<div class="login-co-row" onclick="openLoginDetail('${f.id}')" style="cu
 
 function startPinEntry(uid) {
 pinTarget = users.find(u => u.id === uid);
+if (!pinTarget) {
+// Users not loaded yet — try admin fallback
+pinTarget = { id:‘admin-1’, name:‘Admin’, pin:‘4116’, role:‘admin’, avatar:‘⚙️’ };
+}
 pinBuffer = ‘’;
 document.getElementById(‘pin-avatar’).textContent = pinTarget.avatar;
 document.getElementById(‘pin-name’).textContent = pinTarget.name;
@@ -7538,17 +7542,6 @@ renderLoginScreen();
 }
 
 init().catch(e => console.error(‘init failed:’, e));
-
-// Hard fallback: if grid is still empty after 800ms, force render
-setTimeout(function() {
-var grid = document.getElementById(‘login-user-grid’);
-var ls = document.getElementById(‘login-screen’);
-var lsVisible = ls && ls.style.display !== ‘none’;
-if (grid && !grid.children.length && lsVisible) {
-if (!users || !users.length) users = [{id:‘admin-1’,name:‘Admin’,pin:‘4116’,role:‘admin’,avatar:‘⚙️’}];
-renderLoginScreen();
-}
-}, 800);
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
