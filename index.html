@@ -2095,7 +2095,7 @@ font-size: 11px; cursor: pointer; color: #000;
   <div class="gs-box">
     <div class="gs-input-row">
       <span style="font-size:18px;color:var(--text3);">🔍</span>
-      <input class="gs-input" id="gs-input" placeholder="Search fixtures, boxes, IDs, locations, brands…" oninput="runGlobalSearch()" autocomplete="off">
+      <input class="gs-input" id="gs-input" placeholder="Search fixtures, IDs, locations, brands..." oninput="runGlobalSearch()" autocomplete="off">
       <button onclick="closeGlobalSearch()" style="background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:0 4px;">×</button>
     </div>
     <div class="gs-results" id="gs-results">
@@ -2939,11 +2939,10 @@ let fbUnsubscribe = null;
 let _fbRefreshTimer = null;
 function fbStartListening() {
 fbStopListening();
-const ref = fbDb.ref(‘lumasamples’);
-const handler = snap => {
-// snap.val() is null if the whole node was deleted; treat as empty object
-const data = (snap.exists() && snap.val()) ? snap.val() : {};
-applyRemoteData(data);
+fbDb.ref(‘lumasamples’).on(‘value’,
+snap => {
+if (!snap.exists()) return;
+applyRemoteData(snap.val());
 // Debounce renders — Firebase fires rapidly on multi-field writes
 clearTimeout(_fbRefreshTimer);
 _fbRefreshTimer = setTimeout(() => {
@@ -2955,9 +2954,10 @@ document.getElementById(‘login-screen’).style.display !== ‘none’;
 if (loginVisible) renderLoginScreen();
 setSyncStatus(‘synced’, ’Live · ’ + new Date().toLocaleTimeString());
 }, 400);
-};
-ref.on(‘value’, handler, err => setSyncStatus(‘error’, ’Firebase: ’ + err.message));
-fbUnsubscribe = () => ref.off(‘value’, handler);
+},
+err => setSyncStatus(‘error’, ’Firebase: ’ + err.message)
+);
+fbUnsubscribe = () => fbDb.ref(‘lumasamples’).off(‘value’);
 }
 
 function fbStopListening() {
@@ -2966,10 +2966,9 @@ if (fbUnsubscribe) { try { fbUnsubscribe(); } catch(e) {} fbUnsubscribe = null; 
 
 // ── Apply remote snapshot to local state ──
 function applyRemoteData(data) {
-// Use ‘in’ checks so that deleted keys (null from Firebase) still clear local data
-if (data.fixtures)  fixtures  = Object.values(data.fixtures).filter(Boolean).map(f => { delete f._txt; return normalizeFixture(f); });
+if (data.fixtures)  fixtures  = Object.values(data.fixtures).map(f => { delete f._txt; return normalizeFixture(f); });
 markAllDirty(); // remote sync replaced local data — must re-persist on next save
-if (data.users)     users     = Object.values(data.users).filter(Boolean).map(normalizeUser).filter(Boolean);
+if (data.users)     users     = Object.values(data.users).map(normalizeUser);
 if (data.locations) locations = Array.isArray(data.locations)
 ? data.locations.filter(Boolean)
 : Object.values(data.locations).filter(Boolean);
@@ -2977,10 +2976,8 @@ if (data.fixtureTypes) fixtureTypes = Array.isArray(data.fixtureTypes)
 ? data.fixtureTypes.filter(Boolean)
 : Object.values(data.fixtureTypes).filter(Boolean);
 if (data.containers) containers = Object.values(data.containers);
-// History: update if present; if explicitly null (cleared remotely), reset to []
-if (data.history)        history = Object.values(data.history)
+if (data.history)   history   = Object.values(data.history)
 .sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 500);
-else if (data.history === null) history = [];
 if (data.counter) {
 const rc = parseInt(data.counter);
 if (!isNaN(rc) && rc > fixtureCounter) fixtureCounter = rc;
@@ -3007,7 +3004,6 @@ containerId: f.containerId||null,
 };
 }
 function normalizeUser(u) {
-if (!u) return null;
 return { id:u.id||’’, name:u.name||’’, pin:u.pin||’’, role:u.role||‘user’, avatar:u.avatar||‘💡’ };
 }
 
@@ -3264,7 +3260,7 @@ if (!isNaN(n) && n >= fixtureCounter) fixtureCounter = n + 1;
 function renderLoginScreen() {
 const grid = document.getElementById(‘login-user-grid’);
 if (!grid) return;
-ensureAdmin();
+// Safety: if users somehow empty, show just Admin default
 if (!users || users.length === 0) {
 users = [{ id:‘admin-1’, name:‘Admin’, pin:‘4116’, role:‘admin’, avatar:‘⚙️’ }];
 }
@@ -3281,7 +3277,7 @@ openModal(‘login-detail-modal’);
 setTimeout(() => {
 const el = document.getElementById(‘ldm-qr-’ + f.id);
 if (el && !el.querySelector(‘canvas’)) {
-new QRCode(el, { text: fixtureUrl(f.id), width: 160, height: 160, colorDark: ‘#111’, colorLight: ‘#fff’, correctLevel: QRCode.CorrectLevel.H });
+new QRCode(el, { text: fixtureUrl(f.id), width: 125, height: 125, colorDark: ‘#111’, colorLight: ‘#fff’, correctLevel: QRCode.CorrectLevel.H });
 }
 }, 60);
 }
@@ -3928,7 +3924,7 @@ openModal(‘detail-modal’);
 setTimeout(() => {
 const el = document.getElementById(‘detail-qr-’+f.id);
 if (el && !el.querySelector(‘canvas’)) {
-new QRCode(el, { text:fixtureUrl(f.id), width:180, height:180, colorDark:’#111’, colorLight:’#fff’, correctLevel:QRCode.CorrectLevel.H });
+new QRCode(el, { text:fixtureUrl(f.id), width:138, height:138, colorDark:’#111’, colorLight:’#fff’, correctLevel:QRCode.CorrectLevel.H });
 }
 }, 60);
 }
@@ -4008,7 +4004,7 @@ document.getElementById(‘new-qr-id-text’).textContent = f.id;
 document.getElementById(‘new-qr-name-text’).textContent = f.name;
 const qrEl = document.getElementById(‘new-qr-code’);
 qrEl.innerHTML = ‘’;
-new QRCode(qrEl, { text:fixtureUrl(f.id), width:220, height:220, colorDark:’#111’, colorLight:’#fff’, correctLevel:QRCode.CorrectLevel.H });
+new QRCode(qrEl, { text:fixtureUrl(f.id), width:188, height:188, colorDark:’#111’, colorLight:’#fff’, correctLevel:QRCode.CorrectLevel.H });
 // Reset form
 [‘new-name’,‘new-brand’,‘new-partno’,‘new-wattage’,‘new-voltage’,‘new-location’,‘new-specsheet’,‘new-output-wattage’].forEach(id=>document.getElementById(id).value=’’);
 document.getElementById(‘new-fixtype’).value=’’;
@@ -4198,13 +4194,8 @@ tbody.innerHTML = list.map(f=>`<tr> <td class="mono">${f.id}</td> <td>${f.name}<
 async function deleteFixture(fid) {
 const f = fixtures.find(x=>x.id===fid);
 if (!f) return;
-if (f.status===‘out’) {
-const u = f.checkedOutBy ? users.find(x=>x.id===f.checkedOutBy) : null;
-const who = u ? ` (checked out by ${u.name})` : ’ (currently checked out)’;
-if (!confirm(`"${f.name}" (${f.id}) is checked out${who}.\n\nDelete it anyway? This cannot be undone.`)) return;
-} else {
+if (f.status===‘out’) { notify(‘Return fixture before deleting.’,‘error’); return; }
 if (!confirm(`Delete "${f.name}" (${f.id})? This cannot be undone.`)) return;
-}
 fixtures = fixtures.filter(x=>x.id!==fid);
 const hdel = logEvent(f,‘deleted’);
 await saveData({ deletedFixtureId: fid, historyEntry: hdel });
@@ -4279,9 +4270,10 @@ notify(`Force returned: ${f.name}`,‘info’);
 //  QR SCANNER
 // ═══════════════════════════════════════════════════════
 function openScanModal() {
-// On phone: open live QR scanner overlay
+// On phone: skip the modal, go straight to camera
 if (document.body.classList.contains(‘is-phone’)) {
-openInAppLiveScanner();
+const inp = document.getElementById(‘qr-camera-input’);
+if (inp) { inp.value = ‘’; inp.click(); }
 return;
 }
 openModal(‘scan-modal’);
@@ -4491,19 +4483,10 @@ else { notify(’Case not found: ’ + cid, ‘error’); }
 return;
 }
 } catch(e) { /* not a URL, treat as raw ID */ }
-// Pad short numeric IDs e.g. “42” -> “FL-0042”
-if (/^\d+$/.test(id)) id = ‘FL-’ + id.padStart(4, ‘0’);
 const f = fixtures.find(x=>x.id===id);
-// On phone the scan modal is never open — go straight to the detail modal
-if (document.body.classList.contains(‘is-phone’)) {
-closeScanModal();
-if (f) openDetailModal(f.id);
-else notify(‘Fixture “’ + id + ‘” not found’, ‘error’);
-return;
-}
 const el = document.getElementById(‘scan-result’);
 el.style.display = ‘block’;
-if (!f) { el.innerHTML=`<div style="color:var(--red);">Fixture "${id}" not found.</div>`; return; }
+if (!f) { el.innerHTML=`<div style="color:var(--red);">❌ Fixture "${id}" not found.</div>`; return; }
 const u = f.checkedOutBy ? users.find(x=>x.id===f.checkedOutBy) : null;
 const isMe = f.checkedOutBy === currentUser?.id;
 const isAdmin = currentUser?.role === ‘admin’;
@@ -4667,8 +4650,7 @@ history = [];
 await storeSet(KEY_HISTORY, JSON.stringify([]));
 if (fbDb) {
 try {
-// Set to null so Firebase listener fires on all devices with data.history === null
-await fbDb.ref(‘lumasamples/history’).set(null);
+await fbDb.ref(‘lumasamples/history’).remove();
 notify(‘✓ History cleared from Firebase + local storage’, ‘success’);
 } catch(e) {
 notify(’✓ Local history cleared (Firebase error: ’ + e.message + ‘)’, ‘info’);
@@ -5266,57 +5248,30 @@ function runGlobalSearch() {
 const q = (document.getElementById(‘gs-input’).value || ‘’).toLowerCase().trim();
 const res = document.getElementById(‘gs-results’);
 if (!q) {
-res.innerHTML = ‘<div class="gs-empty">Start typing to search fixtures and boxes…</div>’;
+res.innerHTML = ‘<div class="gs-empty">Start typing to search everything…</div>’;
 return;
 }
-
-const matchedFixtures = fixtures.filter(f => {
+const matched = fixtures.filter(f => {
 const txt = [f.id, f.name, f.brand, f.fixtureType, f.category, f.location, f.partNo, f.notes].join(’ ’).toLowerCase();
 return txt.includes(q);
 }).slice(0, 20);
 
-const matchedBoxes = containers.filter(c => {
-const txt = [c.id, c.name, c.desc].join(’ ’).toLowerCase();
-return txt.includes(q);
-}).slice(0, 10);
-
-if (!matchedFixtures.length && !matchedBoxes.length) {
-res.innerHTML = ‘<div class="gs-empty">No results for “’ + q + ‘”</div>’;
+if (!matched.length) {
+res.innerHTML = ‘<div class="gs-empty">No fixtures found for “’ + q + ‘”</div>’;
 return;
 }
-
-let html = ‘’;
-
-if (matchedFixtures.length) {
-html += ‘<div class="gs-section-label">Fixtures (’ + matchedFixtures.length + ‘)</div>’ +
-matchedFixtures.map(f => {
+res.innerHTML = ‘<div class="gs-section-label">Fixtures (’ + matched.length + ‘)</div>’ +
+matched.map(f => {
 const u = f.checkedOutBy ? users.find(x => x.id === f.checkedOutBy) : null;
 return `<div class="gs-result" onclick="gsOpenFixture('${f.id}')"> <span class="gs-result-id">${f.id}</span> <span class="gs-result-name">${f.name}</span> <span class="gs-result-meta">${[f.fixtureType||f.category, f.location].filter(Boolean).join(' · ')} ${f.status==='out'?(u?'· 👤 '+u.name:'· Out'):'· Available'}</span> <span class="sbadge ${f.status==='available'?'available':'out'}" style="flex-shrink:0;">${f.status==='available'?'✓':'Out'}</span> </div>`;
 }).join(’’);
 }
 
-if (matchedBoxes.length) {
-html += ‘<div class="gs-section-label" style="margin-top:' + (matchedFixtures.length ? '12px' : '0') + '">Boxes (’ + matchedBoxes.length + ‘)</div>’ +
-matchedBoxes.map(c => {
-const count = fixtures.filter(f => f.containerId === c.id).length;
-const out = fixtures.filter(f => f.containerId === c.id && f.status === ‘out’).length;
-return `<div class="gs-result" onclick="gsOpenBox('${c.id}')"> <span class="gs-result-id">📦 ${c.id}</span> <span class="gs-result-name">${c.name}</span> <span class="gs-result-meta">${count} fixture${count!==1?'s':''} · ${out} out</span> </div>`;
-}).join(’’);
-}
-
-res.innerHTML = html;
-}
-
 function gsOpenFixture(fid) {
 closeGlobalSearch();
+// Navigate to library and open detail
 showPage(‘library’, document.querySelector(’[data-page=“library”]’));
 setTimeout(() => openDetailModal(fid), 100);
-}
-
-function gsOpenBox(cid) {
-closeGlobalSearch();
-showPage(‘containers’, document.getElementById(‘btab-containers’) || document.getElementById(‘tab-containers’));
-setTimeout(() => openContainerDetail(cid), 200);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -6259,7 +6214,7 @@ openModal(‘container-detail-modal’);
 setTimeout(() => {
 const el = document.getElementById(‘cd-qr-wrap-’ + cid);
 if (el && !el.querySelector(‘canvas’)) {
-new QRCode(el, { text: containerUrl(cid), width: 200, height: 200, colorDark: ‘#111’, colorLight: ‘#fff’, correctLevel: QRCode.CorrectLevel.H });
+new QRCode(el, { text: containerUrl(cid), width: 150, height: 150, colorDark: ‘#111’, colorLight: ‘#fff’, correctLevel: QRCode.CorrectLevel.H });
 }
 }, 80);
 }
@@ -6943,149 +6898,8 @@ notify(`✓ Added ${count} fixture${count!==1?'s':''} to ${c?.name || bafcSelect
 // ═══════════════════════════════════════════════════════
 //  LOGIN PAGE QUICK SCAN
 // ═══════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════
-//  IN-APP LIVE QR SCANNER (phone scan button inside app)
-// ═══════════════════════════════════════════════════════
-let _inAppQrStream = null;
-let _inAppQrLoop = null;
-
-function openInAppLiveScanner() {
-// Reuse the login overlay element — works from inside the app too
-const overlay = document.getElementById(‘login-qr-overlay’);
-if (!overlay) return;
-// Swap the close button behavior to handle in-app context
-overlay.setAttribute(‘data-context’, ‘inapp’);
-overlay.style.display = ‘block’;
-const video = document.getElementById(‘login-qr-video’);
-const statusEl = document.getElementById(‘login-qr-status’);
-if (statusEl) statusEl.textContent = ‘Point camera at QR code’;
-
-navigator.mediaDevices.getUserMedia({ video: { facingMode: ‘environment’ }, audio: false })
-.then(stream => {
-_inAppQrStream = stream;
-video.srcObject = stream;
-video.play();
-_inAppQrScanLoop();
-})
-.catch(() => {
-overlay.style.display = ‘none’;
-// Camera denied — open the ID entry modal
-openModal(‘scan-modal’);
-const inp = document.getElementById(‘manual-id-input’);
-if (inp) { inp.value = ‘’; setTimeout(() => inp.focus(), 80); }
-});
-}
-
-function _inAppQrScanLoop() {
-const video = document.getElementById(‘login-qr-video’);
-const canvas = document.getElementById(‘login-qr-canvas’);
-if (!video || !canvas) return;
-if (video.readyState === video.HAVE_ENOUGH_DATA) {
-// Scan at 480px wide max — plenty for QR, much faster than full res
-const SCAN_W = 480;
-const scale = Math.min(1, SCAN_W / video.videoWidth);
-canvas.width  = Math.round(video.videoWidth  * scale);
-canvas.height = Math.round(video.videoHeight * scale);
-const ctx = canvas.getContext(‘2d’);
-ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: ‘dontInvert’ });
-if (code) {
-_closeInAppQrScanner();
-haptic(‘success’);
-processScannedId(code.data.trim());
-return;
-}
-}
-_inAppQrLoop = requestAnimationFrame(_inAppQrScanLoop);
-}
-
-function _closeInAppQrScanner() {
-if (_inAppQrLoop) { cancelAnimationFrame(_inAppQrLoop); _inAppQrLoop = null; }
-if (_inAppQrStream) { _inAppQrStream.getTracks().forEach(t => t.stop()); _inAppQrStream = null; }
-const overlay = document.getElementById(‘login-qr-overlay’);
-if (overlay) overlay.style.display = ‘none’;
-const video = document.getElementById(‘login-qr-video’);
-if (video) video.srcObject = null;
-}
-
-let _loginQrStream = null;
-let _loginQrLoop = null;
-
 function loginPageQuickScan() {
-const overlay = document.getElementById(‘login-qr-overlay’);
-if (!overlay) return;
-overlay.style.display = ‘block’;
-const statusEl = document.getElementById(‘login-qr-status’);
-const video = document.getElementById(‘login-qr-video’);
-
-navigator.mediaDevices.getUserMedia({ video: { facingMode: ‘environment’ }, audio: false })
-.then(stream => {
-_loginQrStream = stream;
-video.srcObject = stream;
-video.play();
-_loginQrScanLoop();
-})
-.catch(() => {
-// Camera denied — open ID entry modal (same as desktop)
-overlay.style.display = ‘none’;
-openModal(‘scan-modal’);
-const inp = document.getElementById(‘manual-id-input’);
-if (inp) { inp.value = ‘’; setTimeout(() => inp.focus(), 80); }
-});
-}
-
-function _loginQrScanLoop() {
-const video = document.getElementById(‘login-qr-video’);
-const canvas = document.getElementById(‘login-qr-canvas’);
-if (!video || !canvas) return;
-if (video.readyState === video.HAVE_ENOUGH_DATA) {
-const SCAN_W = 480;
-const scale = Math.min(1, SCAN_W / video.videoWidth);
-canvas.width  = Math.round(video.videoWidth  * scale);
-canvas.height = Math.round(video.videoHeight * scale);
-const ctx = canvas.getContext(‘2d’);
-ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: ‘dontInvert’ });
-if (code) {
-closeLoginQrScanner();
-_loginQrNavigate(code.data.trim());
-return;
-}
-}
-_loginQrLoop = requestAnimationFrame(_loginQrScanLoop);
-}
-
-function closeLoginQrScanner() {
-// Stop whichever scanner is active
-_closeInAppQrScanner();
-if (_loginQrLoop) { cancelAnimationFrame(_loginQrLoop); _loginQrLoop = null; }
-if (_loginQrStream) { _loginQrStream.getTracks().forEach(t => t.stop()); _loginQrStream = null; }
-const overlay = document.getElementById(‘login-qr-overlay’);
-if (overlay) overlay.style.display = ‘none’;
-const video = document.getElementById(‘login-qr-video’);
-if (video) video.srcObject = null;
-}
-
-function _loginQrNavigate(raw) {
-let redirect = ‘’;
-try {
-const url = new URL(raw);
-const fParam = url.searchParams.get(‘f’);
-const boxParam = url.searchParams.get(‘box’);
-if (fParam) redirect = ‘?f=’ + encodeURIComponent(fParam);
-else if (boxParam) redirect = ‘?box=’ + encodeURIComponent(boxParam);
-} catch(e) {
-if (raw.startsWith(‘BOX-’)) redirect = ‘?box=’ + encodeURIComponent(raw);
-else redirect = ‘?f=’ + encodeURIComponent(raw);
-}
-if (redirect) window.location.href = window.location.pathname + redirect + ‘&from=login’;
-else notify(‘QR code not recognised’, ‘error’);
-}
-
-function _loginQrFallback() {
-// Fallback to file-based QR scan if camera unavailable
+// Use native camera via hidden file input — instant, no permission loop, iOS native quality
 let inp = document.getElementById(‘login-camera-input’);
 if (!inp) {
 inp = document.createElement(‘input’);
@@ -7098,20 +6912,52 @@ inp.addEventListener(‘change’, async function() {
 const file = this.files && this.files[0];
 if (!file) return;
 this.value = ‘’;
+// Show processing indicator
+const btn = document.getElementById(‘login-scan-btn’);
+const origText = btn ? btn.innerHTML : ‘’;
+if (btn) btn.innerHTML = ‘<span style="font-size:16px;">⏳</span> Reading…’;
 try {
 const bitmap = await createImageBitmap(file);
 const canvas = document.createElement(‘canvas’);
-const scale = Math.min(1, 1024 / Math.max(bitmap.width, bitmap.height));
-canvas.width = Math.round(bitmap.width * scale);
+const MAX = 1024;
+const scale = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
+canvas.width  = Math.round(bitmap.width  * scale);
 canvas.height = Math.round(bitmap.height * scale);
-canvas.getContext(‘2d’).drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-const imageData = canvas.getContext(‘2d’).getImageData(0, 0, canvas.width, canvas.height);
-const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: ‘attemptBoth’ });
-if (code) _loginQrNavigate(code.data.trim());
-else notify(‘No QR code found in photo’, ‘error’);
-} catch(e) {}
+const ctx = canvas.getContext(‘2d’);
+ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+let code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: ‘dontInvert’ });
+if (!code) code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: ‘onlyInvert’ });
+
+```
+    if (btn) btn.innerHTML = origText;
+
+    if (code) {
+      // Navigate to the deep-link landing page
+      let raw = code.data.trim();
+      let redirect = '';
+      try {
+        const url = new URL(raw);
+        const fParam = url.searchParams.get('f');
+        const boxParam = url.searchParams.get('box');
+        if (fParam) redirect = '?f=' + encodeURIComponent(fParam);
+        else if (boxParam) redirect = '?box=' + encodeURIComponent(boxParam);
+      } catch(e) {
+        if (raw.startsWith('BOX-')) redirect = '?box=' + encodeURIComponent(raw);
+        else redirect = '?f=' + encodeURIComponent(raw);
+      }
+      if (redirect) window.location.href = window.location.pathname + redirect;
+    } else {
+      if (btn) btn.innerHTML = origText;
+      alert('No QR code found in photo. Try again with better lighting.');
+    }
+  } catch(e) {
+    if (btn) btn.innerHTML = origText;
+  }
 });
 document.body.appendChild(inp);
+```
+
 }
 inp.value = ‘’;
 inp.click();
@@ -7187,23 +7033,11 @@ const isDeepLink = await handleScanLanding();
 if (isDeepLink) return;
 await loadData();
 await loadContainers();
-ensureAdmin();
 renderLoginScreen();
 }
 
 init();
 </script>
 
-<!-- ── QR SCANNER OVERLAY (shared: login + in-app) ── -->
-
-<div id="login-qr-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:#000;">
-  <video id="login-qr-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>
-  <canvas id="login-qr-canvas" style="display:none;"></canvas>
-  <div style="position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;">
-    <div style="width:260px;height:260px;border:3px solid #f5c842;border-radius:20px;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);"></div>
-  </div>
-  <div id="login-qr-status" style="position:absolute;bottom:120px;left:0;right:0;text-align:center;font-size:15px;color:#fff;font-family:'DM Sans',sans-serif;text-shadow:0 1px 6px rgba(0,0,0,0.9);">Point camera at QR code</div>
-  <button onclick="closeLoginQrScanner()" style="position:absolute;top:max(20px,env(safe-area-inset-top,20px));right:20px;background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:24px;border-radius:50%;width:44px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
-</div>
 </body>
 </html>
