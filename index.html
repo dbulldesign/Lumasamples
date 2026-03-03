@@ -256,30 +256,6 @@ body {
 }
 .pin-back-btn:hover { color: var(--text2); }
 
-/* ── PULL TO REFRESH ── */
-#ptr-indicator {
-  position: fixed;
-  top: 0; left: 50%;
-  transform: translateX(-50%) translateY(-60px);
-  z-index: 9000;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 20px;
-  padding: 8px 18px 8px 12px;
-  display: flex; align-items: center; gap: 8px;
-  font-size: 13px; font-weight: 600; color: var(--text2);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-  transition: transform 0.25s cubic-bezier(0.34,1.4,0.64,1), opacity 0.2s;
-  opacity: 0; pointer-events: none;
-  font-family: 'DM Sans', sans-serif;
-}
-#ptr-indicator.visible  { opacity: 1; }
-#ptr-indicator.ready    { color: var(--accent); }
-#ptr-indicator.loading  { transform: translateX(-50%) translateY(12px); opacity: 1; }
-#ptr-spinner { font-size: 16px; transition: transform 0.25s; }
-#ptr-indicator.loading #ptr-spinner { animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
 /* ── SCAN MODAL DEVICE VARIANTS ── */
 body:not(.is-phone) .scan-phone-only { display: none !important; }
 body.is-phone      .scan-desktop-only { display: none !important; }
@@ -1538,8 +1514,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 ════════════════════════════════════════ -->
 <div id="app" style="display:none;background:var(--bg);min-height:100vh;">
   <div id="offline-banner">⚠ No internet connection — showing cached data</div>
-  <div id="ptr-indicator"><span id="ptr-spinner">↓</span><span id="ptr-label">Pull to refresh</span></div>
-  <header>
+    <header>
     <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
       <div class="logo" onclick="showPage('home', document.querySelector('[data-page=home]'))" style="cursor:pointer;flex-shrink:0;">LumaSamples</div>
       <div id="header-sync-dot" style="width:9px;height:9px;border-radius:50%;background:var(--red);flex-shrink:0;margin-left:2px;" title="Not connected"></div>
@@ -1991,7 +1966,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-secondary" id="case-print-select-btn" onclick="toggleCasePrintMode()">☑ Select to Print</button>
           <button class="btn btn-blue" onclick="openBatchAddFixturesToCase()">+ Add Fixtures to Case</button>
-          <button class="btn btn-primary" onclick="openAddContainerModal()">+ New Case</button>
+          <button class="btn btn-primary" onclick="openAddContainerModal()">+ New Box</button>
         </div>
       </div>
       <div id="case-print-bar" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -2159,7 +2134,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
 <div class="modal-overlay" id="add-container-modal">
   <div class="modal" style="max-width:440px;">
     <div class="modal-header">
-      <div class="modal-title">📦 New Case / Box</div>
+      <div class="modal-title">📦 New Box</div>
       <button class="modal-close" onclick="closeModal('add-container-modal')">×</button>
     </div>
     <div class="modal-body" style="max-height:80vh;overflow-y:auto;">
@@ -2183,7 +2158,7 @@ body.is-mobile.app-visible .bulk-bar { padding-bottom: calc(64px + env(safe-area
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('add-container-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="addContainer()">✦ Create Case</button>
+      <button class="btn btn-primary" onclick="addContainer()">✦ Create Box</button>
     </div>
   </div>
 </div>
@@ -3618,9 +3593,11 @@ function populateFilters() {
   const fromFixtures = [...new Set(fixtures.map(f => f.fixtureType || f.category).filter(Boolean))];
   const allTypes = [...new Set([...fixtureTypes, ...fromFixtures])].sort();
   const sel = document.getElementById('filter-category');
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">All Types</option>' + allTypes.map(t => `<option value="${t}">${t}</option>`).join('');
-  if (allTypes.includes(cur)) sel.value = cur;
+  if (sel) {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">All Types</option>' + allTypes.map(t => `<option value="${t}">${t}</option>`).join('');
+    if (allTypes.includes(cur)) sel.value = cur;
+  }
 
   // Location filter with fixture counts
   const locSel = document.getElementById('filter-location');
@@ -3846,79 +3823,6 @@ function refreshCurrentPage() {
   if (id==='containers') renderContainersPage();
   if (id==='admin')     { renderAdminFixtures(); renderForceReturn(); renderOverdueReport(); }
 }
-
-// ── Pull to refresh ──
-(function() {
-  let startY = 0, currentY = 0, pulling = false, triggered = false;
-  const THRESHOLD = 72; // px to trigger refresh
-
-  function getMainEl() { return document.querySelector('main'); }
-
-  document.addEventListener('touchstart', e => {
-    const main = getMainEl();
-    if (!main || main.scrollTop > 0) return; // only when at top
-    if (!document.body.classList.contains('app-visible')) return;
-    startY = e.touches[0].clientY;
-    pulling = true; triggered = false;
-  }, { passive: true });
-
-  document.addEventListener('touchmove', e => {
-    if (!pulling) return;
-    const main = getMainEl();
-    if (!main || main.scrollTop > 0) { pulling = false; return; }
-    currentY = e.touches[0].clientY;
-    const dy = Math.max(0, currentY - startY);
-    if (dy < 4) return;
-    const ind = document.getElementById('ptr-indicator');
-    const lbl = document.getElementById('ptr-label');
-    const spin = document.getElementById('ptr-spinner');
-    if (!ind) return;
-    // Rubber-band the pull distance
-    const pull = Math.min(dy * 0.45, 56);
-    ind.style.transform = `translateX(-50%) translateY(${pull - 60}px)`;
-    ind.classList.add('visible');
-    if (dy > THRESHOLD && !triggered) {
-      ind.classList.add('ready');
-      if (lbl) lbl.textContent = 'Release to refresh';
-      if (spin) spin.textContent = '↑';
-    } else if (dy <= THRESHOLD) {
-      ind.classList.remove('ready');
-      if (lbl) lbl.textContent = 'Pull to refresh';
-      if (spin) spin.textContent = '↓';
-    }
-  }, { passive: true });
-
-  document.addEventListener('touchend', async () => {
-    if (!pulling) return;
-    pulling = false;
-    const dy = currentY - startY;
-    const ind = document.getElementById('ptr-indicator');
-    const lbl = document.getElementById('ptr-label');
-    const spin = document.getElementById('ptr-spinner');
-    if (dy > THRESHOLD && ind) {
-      triggered = true;
-      ind.classList.add('loading');
-      ind.classList.remove('ready');
-      if (lbl) lbl.textContent = 'Refreshing…';
-      if (spin) spin.textContent = '↻';
-      // Perform refresh
-      try {
-        if (window.fbDb) {
-          const snap = await fbGet('lumasamples');
-          if (snap && snap.exists()) applyRemoteData(snap.val());
-        }
-        refreshCurrentPage();
-        notify('Refreshed', 'success');
-      } catch(e) { notify('Refresh failed', 'error'); }
-      await new Promise(r => setTimeout(r, 600));
-      ind.classList.remove('loading', 'visible');
-      ind.style.transform = '';
-    } else if (ind) {
-      ind.classList.remove('visible', 'ready');
-      ind.style.transform = '';
-    }
-  });
-})();
 
 // ── Recent search history ──
 const SEARCH_HIST_KEY = 'luma:searchHistory';
@@ -6496,12 +6400,12 @@ function toggleNcFixture(fid) {
 
 async function addContainer() {
   const name = document.getElementById('nc-name').value.trim();
-  if (!name) { notify('Case name is required', 'error'); return; }
+  if (!name) { notify('Box name is required', 'error'); return; }
   const id = 'BOX-' + String(containerCounter).padStart(4, '0');
   containerCounter++;
   const c = { id, name, desc: document.getElementById('nc-desc').value.trim(), createdAt: new Date().toISOString() };
   containers.push(c);
-  // Assign selected fixtures to this case
+  // Assign selected fixtures to this box
   if (ncSelectedFixtures.size) {
     for (const fid of ncSelectedFixtures) {
       const f = fixtures.find(x => x.id === fid);
@@ -6512,7 +6416,7 @@ async function addContainer() {
   await saveContainers();
   closeModal('add-container-modal');
   renderContainersPage();
-  notify('✓ Case created: ' + name, 'success');
+  notify('✓ Box created: ' + name, 'success');
   setTimeout(() => openContainerDetail(id), 200);
 }
 
