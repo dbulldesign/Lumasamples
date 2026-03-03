@@ -1621,7 +1621,7 @@ font-size: 11px; cursor: pointer; color: #000;
       <button class="pin-key" onclick="pinPress('0')">0</button>
       <button class="pin-key del" onclick="pinBackspace()">⌫</button>
     </div>
-    <button class="pin-back-btn" onclick="showUserSelect()">← Back</button>
+    <button class="pin-back-btn" onclick="showUserSelect()" style="margin-top:24px;padding:14px 8px;">← Back</button>
   </div>
 </div>
 
@@ -3356,6 +3356,9 @@ if (!isNaN(n) && n >= fixtureCounter) fixtureCounter = n + 1;
 //  LOGIN / PIN
 // ═══════════════════════════════════════════════════════
 function renderLoginScreen() {
+// Don’t reset UI if user is mid-PIN entry
+const pinEntry = document.getElementById(‘pin-entry’);
+if (pinEntry && pinEntry.style.display !== ‘none’) return;
 const grid = document.getElementById(‘login-user-grid’);
 if (!grid) return;
 // Safety: if users somehow empty, show just Admin default
@@ -3396,6 +3399,7 @@ return `<div class="login-co-row" onclick="openLoginDetail('${f.id}')" style="cu
 }
 
 function startPinEntry(uid) {
+try {
 pinTarget = users.find(u => u.id === uid);
 if (!pinTarget) {
 // Users not loaded yet — try admin fallback
@@ -3407,6 +3411,15 @@ document.getElementById(‘pin-name’).textContent = pinTarget.name;
 updatePinDots();
 document.getElementById(‘login-user-grid’).style.display = ‘none’;
 document.getElementById(‘pin-entry’).style.display = ‘block’;
+// Hide scan button & co-board during PIN entry to prevent layout shifts
+const scanBtn = document.getElementById(‘login-scan-btn’);
+if (scanBtn) scanBtn.style.visibility = ‘hidden’;
+const coBoard = document.getElementById(‘login-co-board’);
+if (coBoard) coBoard.style.visibility = ‘hidden’;
+} catch(e) {
+// Show visible error so we can diagnose
+alert(’startPinEntry error: ’ + e.message + ‘\nuid=’ + uid + ‘\npinTarget=’ + JSON.stringify(pinTarget));
+}
 }
 
 function showUserSelect() {
@@ -3414,6 +3427,11 @@ pinBuffer = ‘’;
 pinTarget = null;
 document.getElementById(‘pin-entry’).style.display = ‘none’;
 document.getElementById(‘login-user-grid’).style.display = ‘grid’;
+// Restore scan button & co-board
+const scanBtn = document.getElementById(‘login-scan-btn’);
+if (scanBtn) scanBtn.style.visibility = ‘’;
+const coBoard = document.getElementById(‘login-co-board’);
+if (coBoard) coBoard.style.visibility = ‘’;
 }
 
 function pinPress(digit) {
