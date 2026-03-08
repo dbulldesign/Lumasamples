@@ -1463,11 +1463,8 @@ font-size: 11px; cursor: pointer; color: #000;
   </div>
   <div class="login-logo" onclick="adminQuickLogin()" style="cursor:pointer;user-select:none;" title="Admin access">LumaSamples</div>
   <div class="login-sub">Lighting Fixture Library</div>
-  <button onclick="loginPageOpenScanMenu(this)" style="position:absolute;top:max(16px, env(safe-area-inset-top, 16px));right:16px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:8px 14px;color:var(--text2);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;line-height:1;" id="login-scan-btn">
+  <button onclick="loginPageQuickScan()" style="position:absolute;top:max(16px, env(safe-area-inset-top, 16px));right:16px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:8px 14px;color:var(--text2);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;line-height:1;" id="login-scan-btn">
     <span style="font-size:15px;display:flex;align-items:center;line-height:1;">📷</span> Scan
-  </button>
-  <button onclick="startNfcScan('login')" id="login-nfc-btn" style="display:none;position:absolute;top:max(16px, env(safe-area-inset-top, 16px));right:120px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:8px 14px;color:var(--text2);font-size:13px;cursor:pointer;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;line-height:1;">
-    <span style="font-size:15px;">📡</span> NFC
   </button>
 
   <!-- Checked out board -->
@@ -1520,7 +1517,7 @@ font-size: 11px; cursor: pointer; color: #000;
 
 <div id="app" style="display:none;background:var(--bg);min-height:100vh;">
   <div id="offline-banner">⚠ No internet connection — showing cached data</div>
-    <header>
+  <header>
     <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
       <div class="logo" onclick="showPage('home', document.querySelector('[data-page=home]'))" style="cursor:pointer;flex-shrink:0;">LumaSamples</div>
       <div id="header-sync-dot" style="width:9px;height:9px;border-radius:50%;background:var(--red);flex-shrink:0;margin-left:2px;" title="Not connected"></div>
@@ -1534,7 +1531,7 @@ font-size: 11px; cursor: pointer; color: #000;
         <span class="role-badge" id="chip-role" style="display:none;"></span>
       </div>
       <button class="btn btn-secondary no-print" onclick="openGlobalSearch()" title="Global Search" style="font-size:16px;padding:6px 10px;min-width:36px;">🔍</button>
-      <button class="btn btn-scan" id="header-scan-btn" onclick="openScanMenu(this)"><span class="scan-btn-label">📷·📡</span></button>
+      <button class="btn btn-scan" id="header-scan-btn" onclick="openScanMenu()"><span class="scan-btn-label">📷·📡</span></button>
     </div>
   </header>
 
@@ -1699,7 +1696,7 @@ font-size: 11px; cursor: pointer; color: #000;
       <div class="form-group">
         <label class="form-label">Case / Container</label>
         <select class="form-input" id="new-container">
-          <option value="">— Not in a case —</option>
+          <option value="">— Not in a box —</option>
         </select>
       </div>
     </div>
@@ -3709,6 +3706,8 @@ if (id===‘containers’) renderContainersPage();
 if (id===‘admin’)     { renderAdminFixtures(); renderForceReturn(); renderOverdueReport(); }
 }
 
+;
+
 // ── Recent search history ──
 const SEARCH_HIST_KEY = ‘luma:searchHistory’;
 const MAX_SEARCH_HIST = 8;
@@ -3854,6 +3853,7 @@ return `<tr><td style="padding:5px 0;color:var(--text3);width:80px;">${l}</td><t
 }
 return `<tr><td style="padding:5px 0;color:var(--text3);width:80px;">${l}</td><td style="padding:5px 0;"><button class="btn btn-secondary btn-sm" onclick="openAssignBoxFromDetail('${fid}')">+ Assign to Box</button></td></tr>`;
 }
+
 function drowLink(l,v) { return v ? `<tr><td style="padding:5px 0;color:var(--text3);width:80px;">${l}</td><td style="padding:5px 0;"><a href="${v}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:5px;font-size:13px;">📄 View Spec Sheet <span style="font-size:10px;opacity:0.7;">↗</span></a></td></tr>` : ‘’; }
 
 // ═══════════════════════════════════════════════════════
@@ -4190,7 +4190,7 @@ notify(`Force returned: ${f.name}`,‘info’);
 function openScanModal() {
 // On phone: open live QR scanner
 if (document.body.classList.contains(‘is-phone’)) {
-openLiveQrScanner(‘inapp’);
+openScanMenu();
 return;
 }
 openModal(‘scan-modal’);
@@ -6087,7 +6087,7 @@ const id = ‘BOX-’ + String(containerCounter).padStart(4, ‘0’);
 containerCounter++;
 const c = { id, name, desc: document.getElementById(‘nc-desc’).value.trim(), createdAt: new Date().toISOString() };
 containers.push(c);
-// Assign selected fixtures to this box
+// Assign selected fixtures to this case
 if (ncSelectedFixtures.size) {
 for (const fid of ncSelectedFixtures) {
 const f = fixtures.find(x => x.id === fid);
@@ -6141,39 +6141,6 @@ if (el && !el.querySelector(‘canvas’)) {
 new QRCode(el, { text: containerUrl(cid), width: 150, height: 150, colorDark: ‘#111’, colorLight: ‘#fff’, correctLevel: QRCode.CorrectLevel.H });
 }
 }, 80);
-}
-
-async function removeFixtureFromBox(fid, cid) {
-const f = fixtures.find(x => x.id === fid);
-if (!f) return;
-f.containerId = ‘’;
-await saveData({ fixture: f });
-openContainerDetail(cid);
-notify(‘Fixture removed from box’, ‘info’);
-}
-
-async function addFixtureToBoxFromDetail(cid) {
-const sel = document.getElementById(‘cd-add-fixture-sel’);
-if (!sel || !sel.value) { notify(‘Select a fixture first’, ‘error’); return; }
-const f = fixtures.find(x => x.id === sel.value);
-if (!f) return;
-f.containerId = cid;
-await saveData({ fixture: f });
-openContainerDetail(cid);
-notify(‘✓ Fixture added to box’, ‘success’);
-}
-
-function openAssignBoxFromDetail(fid) {
-// Close detail modal and open edit modal on the box field
-closeModal(‘detail-modal’);
-setTimeout(() => {
-openEditFixture(fid);
-// Scroll to container field after modal opens
-setTimeout(() => {
-const sel = document.getElementById(‘ef-container’);
-if (sel) sel.scrollIntoView({ behavior: ‘smooth’, block: ‘center’ });
-}, 200);
-}, 150);
 }
 
 async function checkoutCase(cid) {
@@ -6418,7 +6385,7 @@ return true;
 function populateNewContainerSelect() {
 const sel = document.getElementById(‘new-container’);
 if (!sel) return;
-sel.innerHTML = ‘<option value="">— Not in a case —</option>’ +
+sel.innerHTML = ‘<option value="">— Not in a box —</option>’ +
 containers.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join(’’);
 }
 
@@ -6858,28 +6825,6 @@ notify(`✓ Added ${count} fixture${count!==1?'s':''} to ${c?.name || bafcSelect
 function loginPageQuickScan() {
 openLiveQrScanner(‘login’);
 }
-
-function loginPageOpenScanMenu(btn) {
-const nfcAvailable = ‘NDEFReader’ in window;
-// If no NFC support, just go straight to QR
-if (!nfcAvailable) { openLiveQrScanner(‘login’); return; }
-// Show a simple inline popover under the button
-let pop = document.getElementById(‘login-scan-popover’);
-if (!pop) {
-pop = document.createElement(‘div’);
-pop.id = ‘login-scan-popover’;
-pop.style.cssText = ‘position:absolute;top:calc(100% + 8px);right:0;background:var(–surface2);border:1px solid var(–border2);border-radius:14px;padding:6px;min-width:160px;box-shadow:0 8px 32px rgba(0,0,0,0.4);z-index:9010;’;
-pop.innerHTML = ` <button onclick="document.getElementById('login-scan-popover').remove();openLiveQrScanner('login')" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;background:none;border:none;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;border-radius:10px;text-align:left;"> <span style="font-size:20px;">📷</span><div><div style="font-weight:600;">QR Code</div><div style="font-size:11px;color:var(--text3);">Camera scanner</div></div> </button> <button onclick="document.getElementById('login-scan-popover').remove();startNfcScan('login')" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;background:none;border:none;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;border-radius:10px;text-align:left;"> <span style="font-size:20px;">📡</span><div><div style="font-weight:600;">NFC Tag</div><div style="font-size:11px;color:var(--text3);">Tap to scan</div></div> </button>`;
-btn.style.position = ‘relative’;
-btn.appendChild(pop);
-setTimeout(() => document.addEventListener(‘click’, function dismiss(e) {
-if (!pop.contains(e.target) && e.target !== btn) { pop.remove(); document.removeEventListener(‘click’, dismiss); }
-}), 10);
-} else {
-pop.remove();
-}
-}
-
 // ═══════════════════════════════════════════════════════
 //  CASE SCAN LANDING — FIXTURE DETAIL PANEL
 // ═══════════════════════════════════════════════════════
@@ -6937,8 +6882,24 @@ disconnectFromSetup();
 renderGsStatus();
 }
 
+async function init() {
+initTheme();
+detectAndApplyLayout();
+window.addEventListener(‘resize’, detectAndApplyLayout);
+
+// Check for container scan (?box=BOX-xxxx)
+const isContainerScan = await handleContainerScanLanding();
+if (isContainerScan) return;
+// Check for native camera QR scan link (?f=FL-xxxx)
+const isDeepLink = await handleScanLanding();
+if (isDeepLink) return;
+await loadData();
+await loadContainers();
+renderLoginScreen();
+}
+
 // ═══════════════════════════════════════════════════════
-//  SHARED LIVE QR SCANNER (phone — login + in-app)
+//  SHARED LIVE QR SCANNER
 // ═══════════════════════════════════════════════════════
 let _liveQrStream = null, _liveQrLoop = null, _liveQrCtx = null;
 
@@ -7009,38 +6970,21 @@ processScannedId(raw);
 }
 }
 
-async function init() {
-initTheme();
-detectAndApplyLayout();
-window.addEventListener(‘resize’, detectAndApplyLayout);
-
-// Check for container scan (?box=BOX-xxxx)
-const isContainerScan = await handleContainerScanLanding();
-if (isContainerScan) return;
-// Check for native camera QR scan link (?f=FL-xxxx)
-const isDeepLink = await handleScanLanding();
-if (isDeepLink) return;
-await loadData();
-await loadContainers();
-renderLoginScreen();
-}
-
 // ═══════════════════════════════════════════════════════
-//  SCAN MENU (QR + NFC)
+//  SCAN MENU + NFC
 // ═══════════════════════════════════════════════════════
-function openScanMenu(btn) {
-// Update NFC availability label
-const nfcStatus = document.getElementById(‘scan-menu-nfc-status’);
-const nfcBtn = document.getElementById(‘scan-menu-nfc-btn’);
+function openScanMenu() {
 const nfcAvailable = ‘NDEFReader’ in window;
+const nfcStatus = document.getElementById(‘scan-menu-nfc-status’);
+const nfcBtn    = document.getElementById(‘scan-menu-nfc-btn’);
 if (nfcAvailable) {
 if (nfcStatus) nfcStatus.textContent = ‘Tap to scan’;
-if (nfcBtn) nfcBtn.style.opacity = ‘1’;
+if (nfcBtn) { nfcBtn.style.opacity = ‘1’; nfcBtn.style.pointerEvents = ‘’; }
 } else {
 if (nfcStatus) nfcStatus.textContent = ‘Not supported on this device’;
 if (nfcBtn) { nfcBtn.style.opacity = ‘0.4’; nfcBtn.style.pointerEvents = ‘none’; }
 }
-// On phone with no NFC, skip menu and go straight to QR
+// On phone with no NFC: skip menu, go straight to QR
 if (document.body.classList.contains(‘is-phone’) && !nfcAvailable) {
 openLiveQrScanner(‘inapp’);
 return;
@@ -7049,67 +6993,77 @@ document.getElementById(‘scan-menu-overlay’).style.display = ‘block’;
 }
 
 function closeScanMenu() {
-document.getElementById(‘scan-menu-overlay’).style.display = ‘none’;
+const ov = document.getElementById(‘scan-menu-overlay’);
+if (ov) ov.style.display = ‘none’;
 }
 
-// ── NFC Scanning ──
-let _nfcReader = null;
-let _nfcCtx    = null;
+let _nfcReader = null, _nfcCtx = null;
 
 async function startNfcScan(ctx) {
 _nfcCtx = ctx || ‘inapp’;
-if (!(‘NDEFReader’ in window)) {
-notify(‘NFC is not supported on this device or browser’, ‘error’);
-return;
-}
+if (!(‘NDEFReader’ in window)) { notify(‘NFC not supported on this device’, ‘error’); return; }
 try {
 _nfcReader = new NDEFReader();
-const nfcOverlay = document.getElementById(‘nfc-scan-overlay’);
-if (nfcOverlay) nfcOverlay.style.display = ‘flex’;
-
-```
+const ov = document.getElementById(‘nfc-scan-overlay’);
+if (ov) ov.style.display = ‘flex’;
 await _nfcReader.scan();
-
-_nfcReader.onreadingerror = () => {
-  notify('Could not read NFC tag — try again', 'error');
-};
-
+_nfcReader.onreadingerror = () => notify(‘Could not read NFC tag’, ‘error’);
 _nfcReader.onreading = ({ message }) => {
-  stopNfcScan();
-  for (const record of message.records) {
-    if (record.recordType === 'url' || record.recordType === 'text') {
-      const decoder = new TextDecoder(record.encoding || 'utf-8');
-      const raw = decoder.decode(record.data).trim();
-      _liveQrHandle(raw); // reuse same handler as QR
-      return;
-    }
-  }
-  notify('NFC tag has no readable URL or text', 'error');
+stopNfcScan();
+for (const record of message.records) {
+if (record.recordType === ‘url’ || record.recordType === ‘text’) {
+const raw = new TextDecoder(record.encoding || ‘utf-8’).decode(record.data).trim();
+_liveQrHandle(raw);
+return;
+}
+}
+notify(‘NFC tag has no readable data’, ‘error’);
 };
-```
-
 } catch(e) {
 stopNfcScan();
-if (e.name === ‘NotAllowedError’) {
-notify(‘NFC permission denied’, ‘error’);
-} else {
-notify(’NFC error: ’ + e.message, ‘error’);
-}
+notify(e.name === ‘NotAllowedError’ ? ‘NFC permission denied’ : ’NFC error: ’ + e.message, ‘error’);
 }
 }
 
 function stopNfcScan() {
-const nfcOverlay = document.getElementById(‘nfc-scan-overlay’);
-if (nfcOverlay) nfcOverlay.style.display = ‘none’;
-// NDEFReader has no .stop() in the spec — just drop reference
+const ov = document.getElementById(‘nfc-scan-overlay’);
+if (ov) ov.style.display = ‘none’;
 _nfcReader = null;
 }
 
-// Show NFC button on login page if supported, hide if not
-(function() {
-const btn = document.getElementById(‘login-nfc-btn’);
-if (btn && ‘NDEFReader’ in window) btn.style.display = ‘flex’;
-})();
+// ═══════════════════════════════════════════════════════
+//  BOX MANAGEMENT HELPERS
+// ═══════════════════════════════════════════════════════
+async function removeFixtureFromBox(fid, cid) {
+const f = fixtures.find(x => x.id === fid);
+if (!f) return;
+f.containerId = ‘’;
+await saveData({ fixture: f });
+openContainerDetail(cid);
+notify(‘Fixture removed from box’, ‘info’);
+}
+
+async function addFixtureToBoxFromDetail(cid) {
+const sel = document.getElementById(‘cd-add-fixture-sel’);
+if (!sel || !sel.value) { notify(‘Select a fixture first’, ‘error’); return; }
+const f = fixtures.find(x => x.id === sel.value);
+if (!f) return;
+f.containerId = cid;
+await saveData({ fixture: f });
+openContainerDetail(cid);
+notify(‘Fixture added to box’, ‘success’);
+}
+
+function openAssignBoxFromDetail(fid) {
+closeModal(‘detail-modal’);
+setTimeout(() => {
+openEditFixture(fid);
+setTimeout(() => {
+const sel = document.getElementById(‘ef-container’);
+if (sel) sel.scrollIntoView({ behavior: ‘smooth’, block: ‘center’ });
+}, 200);
+}, 150);
+}
 
 init();
 </script>
@@ -7127,18 +7081,18 @@ init();
 
 <div id="scan-menu-overlay" style="display:none;position:fixed;inset:0;z-index:8999;background:rgba(0,0,0,0.5);" onclick="closeScanMenu()">
   <div style="position:absolute;bottom:100px;right:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:16px;padding:8px;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,0.4);" onclick="event.stopPropagation()">
-    <button onclick="closeScanMenu();openLiveQrScanner('inapp')" style="display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;background:none;border:none;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;border-radius:10px;text-align:left;" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='none'">
+    <button onclick="closeScanMenu();openLiveQrScanner('inapp')" style="display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;background:none;border:none;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;border-radius:10px;text-align:left;">
       <span style="font-size:22px;">📷</span>
       <div><div style="font-weight:600;">QR Code</div><div style="font-size:11px;color:var(--text3);">Camera scanner</div></div>
     </button>
-    <button id="scan-menu-nfc-btn" onclick="closeScanMenu();startNfcScan('inapp')" style="display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;background:none;border:none;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;border-radius:10px;text-align:left;" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='none'">
+    <button id="scan-menu-nfc-btn" onclick="closeScanMenu();startNfcScan('inapp')" style="display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;background:none;border:none;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;border-radius:10px;text-align:left;">
       <span style="font-size:22px;">📡</span>
       <div><div style="font-weight:600;">NFC Tag</div><div id="scan-menu-nfc-status" style="font-size:11px;color:var(--text3);">Tap to scan</div></div>
     </button>
   </div>
 </div>
 
-<!-- LIVE QR SCANNER OVERLAY -->
+<!-- SHARED LIVE QR SCANNER OVERLAY -->
 
 <div id="live-qr-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:#000;">
   <video id="live-qr-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>
@@ -7149,6 +7103,5 @@ init();
   <div id="live-qr-status" style="position:absolute;bottom:120px;left:0;right:0;text-align:center;font-size:15px;color:#fff;font-family:'DM Sans',sans-serif;text-shadow:0 1px 6px rgba(0,0,0,0.9);">Point camera at QR code</div>
   <button onclick="closeLiveQrScanner()" style="position:absolute;top:max(20px,env(safe-area-inset-top,20px));right:20px;background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:24px;border-radius:50%;width:44px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">&#215;</button>
 </div>
-
 </body>
 </html>
