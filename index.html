@@ -1306,7 +1306,7 @@ body.compact #content { padding: 12px !important; }
     flex-shrink: 0;
     position: relative;
   }
-  #mob-search-wrap {
+  #mob-search-wrap { position: relative;
     flex: 1;
     position: relative;
   }
@@ -1389,6 +1389,15 @@ body.compact #content { padding: 12px !important; }
     margin-top: -2px !important;
   }
 }
+
+/* Prevent any stray pseudo-element text rendering */
+#main::before, #main::after,
+#content::before, #content::after,
+#app::before, #app::after { 
+  content: none !important; display: none !important; 
+}
+/* Ensure mob-search-wrap contains absolute SVG */
+#mob-search-wrap { position: relative; }
 
 </style>
 
@@ -1515,7 +1524,7 @@ body.compact #content { padding: 12px !important; }
           oninput="globalSearch(this.value);document.getElementById('searchBar').value=this.value"
           onfocus="this.value?globalSearch(this.value):showSearchHistory()"
           onkeydown="searchKeyNav(event)"
-          style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:9px 12px 9px 36px;font-size:16px;color:#f0f4ff;outline:none;font-family:Helvetica,Arial,sans-serif">
+          style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:9px 12px 9px 36px;font-size:16px;color:#f0f4ff;outline:none;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif">
       </div>
       <button id="mob-notif-btn" onclick="toggleNotifPanel()" style="position:relative;flex-shrink:0;width:40px;height:40px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:#8da0c0"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
