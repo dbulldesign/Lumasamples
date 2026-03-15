@@ -26,7 +26,7 @@
 * {
   box-sizing: border-box; margin: 0; padding: 0;
   -webkit-tap-highlight-color: transparent;
-  font-family: Helvetica, Arial, sans-serif !important;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
 }
 html, body {
   height: 100%; overflow: hidden;
@@ -153,7 +153,7 @@ body {
   padding: 9px 17px; border-radius: 11px; border: none;
   cursor: pointer; font-size: 13px; font-weight: 600;
   transition: all 0.15s; white-space: nowrap;
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 .btn-primary {
   background: #2563ff; color: #fff;
@@ -912,7 +912,7 @@ tr[data-id] { transition: transform 0.25s ease; }
   padding: 11px 36px 11px 14px; color: #f0f4ff !important;
   font-size: 14px; outline: none; transition: all 0.2s;
   -webkit-appearance: none; cursor: text;
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 .combo-input:focus { border-color: rgba(79,142,247,0.5); background: rgba(79,142,247,0.06) !important; }
 .combo-arrow {
@@ -975,7 +975,7 @@ tr[data-id] { transition: transform 0.25s ease; }
 /* SHORTCUTS MODAL */
 .shortcut-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
 .shortcut-row:last-child { border-bottom: none; }
-.shortcut-key { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 3px 8px; font-size: 11px; font-family: Helvetica, Arial, sans-serif; color: #c8d6f0; font-weight: 600; }
+.shortcut-key { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 3px 8px; font-size: 11px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #c8d6f0; font-weight: 600; }
 [data-theme="light"] .shortcut-key { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.15); color: #334155; }
 
 /* DATE INPUT — fix calendar icon in light mode */
@@ -1034,7 +1034,7 @@ body.compact #content { padding: 12px !important; }
   padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.05); color: #4a5e7a;
   font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 .widget-btn:hover { border-color: rgba(79,142,247,0.3); color: #8da0c0; }
 [data-theme="light"] .widget-toolbar { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.07); }
@@ -1087,8 +1087,8 @@ body.compact #content { padding: 12px !important; }
 /* BOTTOM SHEET */@media(max-width:768px){.modal-overlay{align-items:flex-end!important;padding:0!important;}.modal{border-radius:22px 22px 0 0!important;max-height:92vh!important;width:100%!important;max-width:100%!important;animation:sheetUp .3s cubic-bezier(.32,.72,0,1)!important;}}@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 /* SLIDE-IN DETAIL */@media(min-width:769px){#modal-detail{align-items:flex-start!important;justify-content:flex-end!important;padding:0!important;}#modal-detail .modal{border-radius:20px 0 0 20px!important;height:100dvh;max-height:100dvh!important;margin:0;animation:panelIn .25s cubic-bezier(.32,.72,0,1);}}@keyframes panelIn{from{transform:translateX(100%);opacity:.5}to{transform:translateX(0);opacity:1}}
 /* DOTS */.dash-priority-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}.dash-priority-dot.high{background:#ef4444;box-shadow:0 0 5px rgba(239,68,68,.7);}.dash-priority-dot.medium{background:#fbbf24;box-shadow:0 0 5px rgba(251,191,36,.7);}.dash-priority-dot.low{background:#10b981;box-shadow:0 0 5px rgba(16,185,129,.7);}
-/* N HINT */@media(min-width:769px){#addBtn::after{content:'N';font-size:9px;font-weight:700;background:rgba(255,255,255,.15);border-radius:4px;padding:1px 5px;margin-left:7px;vertical-align:middle;}}[data-theme="light"] #addBtn::after{background:rgba(0,0,0,.1);}
-/* TOAST */#toast button{vertical-align:middle;font-family:Helvetica,Arial,sans-serif;}
+/* N HINT */[data-theme="light"] #addBtn::after{background:rgba(0,0,0,.1);}
+/* TOAST */#toast button{vertical-align:middle;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;}
 
 /* ════════════════════════════════════════════════════════
    THINGS 3 STYLE NAVIGATION (mobile only)
@@ -1346,6 +1346,48 @@ body.compact #content { padding: 12px !important; }
   }
 
 
+}
+
+/* ── THINGS 3 STYLE FAB (mobile only) ── */
+@media (max-width: 768px) {
+  #quickAddFab {
+    position: fixed !important;
+    bottom: calc(28px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 24px !important;
+    width: 58px !important;
+    height: 58px !important;
+    border-radius: 50% !important;
+    background: #2563ff !important;
+    border: none !important;
+    box-shadow: 0 4px 20px rgba(37,99,255,0.5), 0 1px 4px rgba(0,0,0,0.3) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 400 !important;
+    cursor: pointer !important;
+    transition: transform 0.15s cubic-bezier(.32,.72,0,1), box-shadow 0.15s !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  #quickAddFab::after {
+    content: none !important;  /* remove the 'N' keyboard hint */
+  }
+  #quickAddFab:active {
+    transform: scale(0.9) !important;
+    box-shadow: 0 2px 10px rgba(37,99,255,0.4) !important;
+  }
+  #quickAddFab svg, #quickAddFab span {
+    display: none !important; /* hide any text content */
+  }
+  /* Recreate the + via ::before */
+  #quickAddFab::before {
+    content: '+' !important;
+    font-size: 32px !important;
+    font-weight: 300 !important;
+    color: #fff !important;
+    line-height: 1 !important;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+    margin-top: -2px !important;
+  }
 }
 
 </style>
@@ -1711,7 +1753,7 @@ body.compact #content { padding: 12px !important; }
 
         <!-- Theme Toggle Card -->
         <div class="card" style="margin-bottom:20px">
-          <div style="font-family:Helvetica, Arial, sans-serif;font-size:16px;font-weight:700;margin-bottom:16px">🎨 Appearance</div>
+          <div style="font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;margin-bottom:16px">🎨 Appearance</div>
           <div class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-row">
             <span class="theme-icons" id="theme-icon">🌙</span>
             <div class="theme-toggle-label">
@@ -1751,7 +1793,7 @@ body.compact #content { padding: 12px !important; }
                 Paste from clipboard
               </button>
             </label>
-            <textarea id="cfg-paste" style="font-family:Helvetica, Arial, sans-serif;font-size:12px;min-height:180px;line-height:1.7" placeholder="Paste the whole thing — any format works:
+            <textarea id="cfg-paste" style="font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:12px;min-height:180px;line-height:1.7" placeholder="Paste the whole thing — any format works:
 
 const firebaseConfig = {
   apiKey: &quot;AIzaSy...&quot;,
@@ -3768,7 +3810,7 @@ window.addEventListener('load', function(){
 
   // Show shortcut hint in topbar on desktop
   var hint = document.createElement('span');
-  hint.style.cssText = 'font-size:11px;color:#4a5e7a;font-family:Helvetica, Arial, sans-serif;white-space:nowrap';
+  hint.style.cssText = 'font-size:11px;color:#4a5e7a;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;white-space:nowrap';
   hint.innerHTML = '&#x2318; N&nbsp;&nbsp;/&nbsp;&nbsp;1-6&nbsp;&nbsp;/&nbsp;&nbsp;/ = search';
   var topbar = document.getElementById('topbar');
   if (topbar && window.innerWidth > 768) topbar.appendChild(hint);
