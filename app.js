@@ -4832,5 +4832,4 @@ function openAssignBoxFromDetail(fid) {
   }, 150);
 }
 
-init();
-</script>
+init();
