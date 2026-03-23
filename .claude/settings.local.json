@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python3 -:*)"
+      "Bash(python3 -:*)",
+      "Bash(node --check \"d:/Lumasamples/app.js\")",
+      "Bash(node -e \":*)"
     ]
   }
 }
