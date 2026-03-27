@@ -82,6 +82,57 @@
     </div>
     <button class="pin-back-btn" onclick="showUserSelect()">← Back</button>
   </div>
+
+  <!-- Setup button — bottom of login screen -->
+  <button onclick="openSetupOverlay()" style="position:absolute;bottom:max(20px,env(safe-area-inset-bottom,20px));left:50%;transform:translateX(-50%);background:none;border:none;color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;letter-spacing:1px;cursor:pointer;padding:8px 16px;opacity:0.5;" id="login-setup-btn">⚙ SETUP</button>
+</div>
+
+<!-- ═══════════════════════════════════════
+     FIRST-TIME SETUP OVERLAY
+════════════════════════════════════════ -->
+<div id="setup-overlay" style="display:none;position:fixed;inset:0;z-index:5000;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+
+  <!-- PIN step -->
+  <div id="setup-pin-step">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:28px;margin-bottom:8px;">⚙️</div>
+      <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--text);letter-spacing:2px;">SETUP</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:6px;">Enter setup PIN to continue</div>
+    </div>
+    <div class="pin-dots" id="setup-pin-dots" style="margin-bottom:20px;">
+      <div class="pin-dot" id="sd0"></div>
+      <div class="pin-dot" id="sd1"></div>
+      <div class="pin-dot" id="sd2"></div>
+      <div class="pin-dot" id="sd3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pin-key" onclick="setupPinPress('1')">1</button>
+      <button class="pin-key" onclick="setupPinPress('2')">2</button>
+      <button class="pin-key" onclick="setupPinPress('3')">3</button>
+      <button class="pin-key" onclick="setupPinPress('4')">4</button>
+      <button class="pin-key" onclick="setupPinPress('5')">5</button>
+      <button class="pin-key" onclick="setupPinPress('6')">6</button>
+      <button class="pin-key" onclick="setupPinPress('7')">7</button>
+      <button class="pin-key" onclick="setupPinPress('8')">8</button>
+      <button class="pin-key" onclick="setupPinPress('9')">9</button>
+      <button class="pin-key" style="visibility:hidden;"></button>
+      <button class="pin-key" onclick="setupPinPress('0')">0</button>
+      <button class="pin-key del" onclick="setupPinBackspace()">⌫</button>
+    </div>
+    <button class="pin-back-btn" onclick="closeSetupOverlay()">← Cancel</button>
+  </div>
+
+  <!-- Config step -->
+  <div id="setup-config-step" style="display:none;width:100%;max-width:480px;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:28px;margin-bottom:8px;">🔥</div>
+      <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--text);letter-spacing:2px;">FIREBASE SETUP</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:6px;">Paste your Firebase config below</div>
+    </div>
+    <textarea id="setup-fb-input" placeholder="const firebaseConfig = {&#10;  apiKey: &quot;AIza...&quot;,&#10;  databaseURL: &quot;https://...firebaseio.com&quot;,&#10;  projectId: &quot;...&quot;,&#10;  ...&#10;}" style="width:100%;box-sizing:border-box;height:160px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:14px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;line-height:1.6;resize:vertical;outline:none;"></textarea>
+    <button onclick="submitSetupConfig()" style="width:100%;margin-top:12px;background:var(--accent);color:#000;border:none;border-radius:var(--radius-sm);padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">🔗 Connect to Firebase</button>
+    <button onclick="closeSetupOverlay()" style="width:100%;margin-top:8px;background:none;border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px;font-size:14px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;">Cancel</button>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════

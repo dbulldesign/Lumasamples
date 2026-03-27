@@ -534,6 +534,9 @@ function renderLoginScreen() {
   ensureAdmin();
   const grid = document.getElementById('login-user-grid');
   if (!grid) return;
+  // Hide setup button once Firebase is configured
+  const setupBtn = document.getElementById('login-setup-btn');
+  if (setupBtn) setupBtn.style.display = fbConfig ? 'none' : '';
   // Safety: if users somehow empty, show just Admin default
   if (!users || users.length === 0) {
     users = [{ id:'admin-1', name:'Admin', pin:'4116', role:'admin', avatar:'⚙️' }];
@@ -665,6 +668,67 @@ function checkPin() {
     for (let i = 0; i < 4; i++) document.getElementById('d' + i).classList.add('error');
     setTimeout(() => { pinBuffer = ''; updatePinDots(); }, 800);
   }
+}
+
+// ── First-time setup overlay ──
+const SETUP_PIN = '1565';
+let _setupBuffer = '';
+
+function openSetupOverlay() {
+  _setupBuffer = '';
+  updateSetupDots();
+  document.getElementById('setup-pin-step').style.display = '';
+  document.getElementById('setup-config-step').style.display = 'none';
+  document.getElementById('setup-overlay').style.display = 'flex';
+}
+
+function closeSetupOverlay() {
+  document.getElementById('setup-overlay').style.display = 'none';
+  _setupBuffer = '';
+}
+
+function updateSetupDots() {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('sd' + i);
+    if (d) d.classList.toggle('filled', i < _setupBuffer.length);
+  }
+}
+
+function setupPinPress(digit) {
+  if (_setupBuffer.length >= 4) return;
+  _setupBuffer += digit;
+  updateSetupDots();
+  if (_setupBuffer.length === 4) {
+    setTimeout(() => {
+      if (_setupBuffer === SETUP_PIN) {
+        document.getElementById('setup-pin-step').style.display = 'none';
+        document.getElementById('setup-config-step').style.display = '';
+        document.getElementById('setup-fb-input').value = '';
+        document.getElementById('setup-fb-input').focus();
+      } else {
+        _setupBuffer = '';
+        updateSetupDots();
+        const dots = document.getElementById('setup-pin-dots');
+        dots.style.animation = 'pinShake 0.3s ease';
+        setTimeout(() => dots.style.animation = '', 350);
+        notify('Incorrect PIN', 'error');
+      }
+    }, 120);
+  }
+}
+
+function setupPinBackspace() {
+  if (_setupBuffer.length > 0) {
+    _setupBuffer = _setupBuffer.slice(0, -1);
+    updateSetupDots();
+  }
+}
+
+async function submitSetupConfig() {
+  const input = document.getElementById('setup-fb-input').value.trim();
+  if (!input) { notify('Please paste your Firebase config', 'error'); return; }
+  closeSetupOverlay();
+  await connectFirebase(input);
 }
 
 function adminQuickLogin() {
