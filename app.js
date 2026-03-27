@@ -534,9 +534,6 @@ function renderLoginScreen() {
   ensureAdmin();
   const grid = document.getElementById('login-user-grid');
   if (!grid) return;
-  // Hide setup button once Firebase is configured
-  const setupBtn = document.getElementById('login-setup-btn');
-  if (setupBtn) setupBtn.style.display = fbConfig ? 'none' : '';
   // Safety: if users somehow empty, show just Admin default
   if (!users || users.length === 0) {
     users = [{ id:'admin-1', name:'Admin', pin:'4116', role:'admin', avatar:'⚙️' }];
