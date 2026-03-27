@@ -460,45 +460,55 @@ function flattenUpdates(obj) {
 //  BOOT / LOAD DATA
 // ═══════════════════════════════════════════════════════
 async function loadData() {
+  // Always load local data first — fast, no network needed
   await localLoad();
   ensureAdmin();
   bumpCounter();
+  localSave();
+  // Firebase sync runs in the background so the login screen renders immediately
   if (fbConfig) {
-    // Firebase config saved — reconnect and PULL remote data before rendering
-    setSyncStatus('syncing', 'Connecting to Firebase…');
-    try {
-      await fbInit(fbConfig);
-      // Pull remote snapshot first so a new device gets real data
-      const snap = await fbGet('lumasamples');
-      if (snap && snap.exists()) {
-        const remoteData = snap.val();
-        // Capture local users before overwriting
-        const localUsers = users.slice();
-        applyRemoteData(remoteData);
-        // If local has users not in Firebase (e.g. created in Claude artifact), push them up
-        const missingUsers = localUsers.filter(lu => lu.id && !users.find(u => u.id === lu.id));
-        if (missingUsers.length > 0) {
-          missingUsers.forEach(u => users.push(u));
-          ensureAdmin();
-          // Push all users to Firebase
-          const sanitize = s => String(s).replace(/[.#$[\]\/\s]/g, '_');
-          const userUpdates = {};
-          users.forEach(u => { userUpdates[`users/${sanitize(u.id)}`] = u; });
-          await fbUpdate('lumasamples', userUpdates).catch(() => {});
-        }
-      } else {
-        // No remote data at all — push everything local up
-        await fbPushAll();
+    _syncWithFirebase(fbConfig);
+  }
+}
+
+async function _syncWithFirebase(config) {
+  if (typeof firebase === 'undefined') {
+    setSyncStatus('error', 'Firebase SDK not loaded');
+    return;
+  }
+  setSyncStatus('syncing', 'Connecting to Firebase…');
+  try {
+    await fbInit(config);
+    // Pull remote snapshot so a new device gets real data
+    const snap = await fbGet('lumasamples');
+    if (snap && snap.exists()) {
+      const remoteData = snap.val();
+      const localUsers = users.slice();
+      applyRemoteData(remoteData);
+      // Push any local-only users up to Firebase
+      const missingUsers = localUsers.filter(lu => lu.id && !users.find(u => u.id === lu.id));
+      if (missingUsers.length > 0) {
+        missingUsers.forEach(u => users.push(u));
+        ensureAdmin();
+        const sanitize = s => String(s).replace(/[.#$[\]\/\s]/g, '_');
+        const userUpdates = {};
+        users.forEach(u => { userUpdates[`users/${sanitize(u.id)}`] = u; });
+        await fbUpdate('lumasamples', userUpdates).catch(() => {});
       }
-      await localSave();
-      fbStartListening();
-      setSyncStatus('synced', 'Firebase connected · ' + new Date().toLocaleTimeString());
-    } catch(e) {
-      setSyncStatus('error', 'Firebase reconnect failed: ' + e.message);
-      await localSave();
+    } else {
+      await fbPushAll();
     }
-  } else {
-    await localSave();
+    localSave();
+    fbStartListening();
+    setSyncStatus('synced', 'Firebase connected · ' + new Date().toLocaleTimeString());
+    // Refresh UI with remote data
+    refreshCurrentPage();
+    const loginVisible = document.getElementById('login-screen') &&
+      document.getElementById('login-screen').style.display !== 'none';
+    if (loginVisible) renderLoginScreen();
+  } catch(e) {
+    setSyncStatus('error', 'Firebase reconnect failed: ' + e.message);
+    localSave();
   }
 }
 
@@ -4659,9 +4669,9 @@ async function init() {
   // Check for native camera QR scan link (?f=FL-xxxx)
   const isDeepLink = await handleScanLanding();
   if (isDeepLink) return;
-  await loadData();
+  await loadData();       // loads local instantly, fires Firebase sync in background
   await loadContainers();
-  renderLoginScreen();
+  renderLoginScreen();    // renders immediately from local cache
 }
 
 
